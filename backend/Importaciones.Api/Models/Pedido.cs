@@ -1,3 +1,5 @@
+using Microsoft.EntityFrameworkCore;
+
 namespace Importaciones.Api.Models;
 
 public class Pedido
@@ -10,11 +12,16 @@ public class Pedido
     public string Observaciones { get; set; } = "";
     public string Referencia { get; set; } = "";
     public int TotalQty { get; set; }
+    [Precision(18, 4)]
     public decimal Yuanes { get; set; }
     public int PiezasCaja { get; set; }
+    [Precision(18, 4)]
     public decimal Cubica { get; set; }
+    [Precision(18, 4)]
     public decimal Tasa { get; set; }
+    [Precision(18, 4)]
     public decimal PrecioMt3 { get; set; }
+    [Precision(18, 4)]
     public decimal PorcentajeEhuk { get; set; }
     public decimal Pesos => Yuanes * Tasa;
     public int Cajas => PiezasCaja > 0 ? TotalQty / PiezasCaja : 0;
