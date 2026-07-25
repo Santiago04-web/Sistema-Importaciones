@@ -11,6 +11,7 @@ public class Pedido
     public string Descripcion { get; set; } = "";
     public string Observaciones { get; set; } = "";
     public string Referencia { get; set; } = "";
+    public EtapaPedido Etapa { get; set; } = EtapaPedido.Cotizacion;
     public int TotalQty { get; set; }
     [Precision(18, 4)]
     public decimal Yuanes { get; set; }
