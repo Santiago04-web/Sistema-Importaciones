@@ -965,10 +965,11 @@ import { ChartConfiguration } from 'chart.js';
       flex-direction: column;
     }
     .center-val {
-      font-size: 1.1rem;
+      font-size: 0.92rem;
       font-weight: 800;
       color: #fff;
-      line-height: 1;
+      line-height: 1.1;
+      letter-spacing: -0.02em;
     }
     .center-lbl {
       font-size: 0.65rem;
@@ -1289,7 +1290,7 @@ export class DashboardComponent implements OnInit {
         const idx = activeElements[0].index;
         const item = this.costBreakdown[idx];
         if (item) {
-          this.costCenterVal = `$${this.formatShort(item.value)}`;
+          this.costCenterVal = `$${this.formatNum(item.value)}`;
           this.costCenterLbl = `${item.name} (${item.pct}%)`;
         }
       } else {
@@ -1313,7 +1314,7 @@ export class DashboardComponent implements OnInit {
         const idx = activeElements[0].index;
         const city = this.ciudadStats[idx];
         if (city) {
-          this.cityCenterVal = `$${this.formatShort(city.total)}`;
+          this.cityCenterVal = `$${this.formatNum(city.total)}`;
           this.cityCenterLbl = `${city.name} (${city.pct}%)`;
         }
       } else {
