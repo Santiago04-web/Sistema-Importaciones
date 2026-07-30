@@ -1283,15 +1283,31 @@ export class DashboardComponent implements OnInit {
     layout: { padding: 6 },
     plugins: {
       legend: { display: false },
-      tooltip: { enabled: false }
+      tooltip: {
+        backgroundColor: '#141418',
+        titleColor: '#fff',
+        bodyColor: '#cbd5e1',
+        borderColor: 'rgba(255,255,255,0.1)',
+        borderWidth: 1,
+        cornerRadius: 8,
+        padding: 10,
+        callbacks: {
+          label: (ctx: any) => {
+            const val = ctx.parsed;
+            if (val >= 1_000_000) return ' $' + (val / 1_000_000).toFixed(1) + 'M';
+            if (val >= 1_000) return ' $' + (val / 1_000).toFixed(0) + 'K';
+            return ' $' + val.toFixed(0);
+          }
+        }
+      }
     },
     onHover: (event: any, activeElements: any[]) => {
       if (activeElements && activeElements.length > 0) {
         const idx = activeElements[0].index;
         const item = this.costBreakdown[idx];
         if (item) {
-          this.costCenterVal = `$${this.formatNum(item.value)}`;
-          this.costCenterLbl = `${item.name} (${item.pct}%)`;
+          this.costCenterVal = '$' + this.formatNum(item.value);
+          this.costCenterLbl = item.name + ' (' + item.pct + '%)';
         }
       } else {
         this.costCenterVal = null;
@@ -1307,15 +1323,31 @@ export class DashboardComponent implements OnInit {
     layout: { padding: 6 },
     plugins: {
       legend: { display: false },
-      tooltip: { enabled: false }
+      tooltip: {
+        backgroundColor: '#141418',
+        titleColor: '#fff',
+        bodyColor: '#cbd5e1',
+        borderColor: 'rgba(255,255,255,0.1)',
+        borderWidth: 1,
+        cornerRadius: 8,
+        padding: 10,
+        callbacks: {
+          label: (ctx: any) => {
+            const val = ctx.parsed;
+            if (val >= 1_000_000) return ' $' + (val / 1_000_000).toFixed(1) + 'M';
+            if (val >= 1_000) return ' $' + (val / 1_000).toFixed(0) + 'K';
+            return ' $' + val.toFixed(0);
+          }
+        }
+      }
     },
     onHover: (event: any, activeElements: any[]) => {
       if (activeElements && activeElements.length > 0) {
         const idx = activeElements[0].index;
         const city = this.ciudadStats[idx];
         if (city) {
-          this.cityCenterVal = `$${this.formatNum(city.total)}`;
-          this.cityCenterLbl = `${city.name} (${city.pct}%)`;
+          this.cityCenterVal = '$' + this.formatNum(city.total);
+          this.cityCenterLbl = city.name + ' (' + city.pct + '%)';
         }
       } else {
         this.cityCenterVal = null;
