@@ -18,9 +18,16 @@ export function formatNum(n: number): string {
 
 export function formatShort(n: number): string {
   if (!n) return '0';
-  if (n >= 1_000_000) return (n / 1_000_000).toFixed(1) + 'M';
-  if (n >= 1_000) return (n / 1_000).toFixed(0) + 'K';
-  return n.toFixed(0);
+  if (n >= 1_000_000_000) {
+    return (n / 1_000_000_000).toLocaleString('en-US', { minimumFractionDigits: 1, maximumFractionDigits: 2 }) + 'B';
+  }
+  if (n >= 1_000_000) {
+    return (n / 1_000_000).toLocaleString('en-US', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + 'M';
+  }
+  if (n >= 1_000) {
+    return (n / 1_000).toLocaleString('en-US', { maximumFractionDigits: 0 }) + 'K';
+  }
+  return n.toLocaleString('en-US', { maximumFractionDigits: 0 });
 }
 
 export function truncateDesc(desc: string, maxLen = 50): string {

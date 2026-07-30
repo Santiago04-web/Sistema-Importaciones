@@ -229,12 +229,12 @@ import { ChartConfiguration } from 'chart.js';
             <div class="chart-canvas-wrap">
               <canvas *ngIf="costDonutData" baseChart
                 [data]="costDonutData"
-                [options]="donutOptions"
+                [options]="costDonutOptions"
                 [type]="'doughnut'">
               </canvas>
               <div class="chart-center-info">
-                <span class="center-val">\${{ formatShort(displayInvertido) }}</span>
-                <span class="center-lbl">Total</span>
+                <span class="center-val">{{ costCenterVal || ('$' + formatShort(displayInvertido)) }}</span>
+                <span class="center-lbl">{{ costCenterLbl || 'Total' }}</span>
               </div>
             </div>
 
@@ -260,12 +260,12 @@ import { ChartConfiguration } from 'chart.js';
             <div class="chart-canvas-wrap">
               <canvas *ngIf="cityDonutData" baseChart
                 [data]="cityDonutData"
-                [options]="donutOptions"
+                [options]="cityDonutOptions"
                 [type]="'doughnut'">
               </canvas>
               <div class="chart-center-info">
-                <span class="center-val">{{ ciudadesUnicas }}</span>
-                <span class="center-lbl">Ciudades</span>
+                <span class="center-val">{{ cityCenterVal || ciudadesUnicas }}</span>
+                <span class="center-lbl">{{ cityCenterLbl || 'Ciudades' }}</span>
               </div>
             </div>
 
@@ -1269,17 +1269,56 @@ export class DashboardComponent implements OnInit {
   etapaNombres = ['Cotización', 'Confirmado', 'Pagado', 'En Tránsito', 'Aduana', 'Recibido'];
   etapaColores = ['#71717a', '#14b8a6', '#f59e0b', '#3b82f6', '#ec4899', '#10b981'];
 
-  donutOptions: any = {
+  // Chart dynamic center hover state
+  costCenterVal: string | null = null;
+  costCenterLbl: string | null = null;
+  cityCenterVal: string | null = null;
+  cityCenterLbl: string | null = null;
+
+  costDonutOptions: any = {
     responsive: true,
     maintainAspectRatio: false,
     cutout: '74%',
-    layout: {
-      padding: 6
-    },
+    layout: { padding: 6 },
     plugins: {
       legend: { display: false },
-      tooltip: {
-        enabled: false // Disables canvas tooltip overlap over center info & legend
+      tooltip: { enabled: false }
+    },
+    onHover: (event: any, activeElements: any[]) => {
+      if (activeElements && activeElements.length > 0) {
+        const idx = activeElements[0].index;
+        const item = this.costBreakdown[idx];
+        if (item) {
+          this.costCenterVal = `$${this.formatShort(item.value)}`;
+          this.costCenterLbl = `${item.name} (${item.pct}%)`;
+        }
+      } else {
+        this.costCenterVal = null;
+        this.costCenterLbl = null;
+      }
+    }
+  };
+
+  cityDonutOptions: any = {
+    responsive: true,
+    maintainAspectRatio: false,
+    cutout: '74%',
+    layout: { padding: 6 },
+    plugins: {
+      legend: { display: false },
+      tooltip: { enabled: false }
+    },
+    onHover: (event: any, activeElements: any[]) => {
+      if (activeElements && activeElements.length > 0) {
+        const idx = activeElements[0].index;
+        const city = this.ciudadStats[idx];
+        if (city) {
+          this.cityCenterVal = `$${this.formatShort(city.total)}`;
+          this.cityCenterLbl = `${city.name} (${city.pct}%)`;
+        }
+      } else {
+        this.cityCenterVal = null;
+        this.cityCenterLbl = null;
       }
     }
   };
