@@ -118,19 +118,20 @@ using (var scope = app.Services.CreateScope())
         await context.Database.ExecuteSqlRawAsync(@"
             IF EXISTS (SELECT * FROM sys.tables WHERE name = 'Pedidos')
             BEGIN
-                IF NOT EXISTS (
-                    SELECT * FROM sys.columns 
-                    WHERE object_id = OBJECT_ID('Pedidos') AND name = 'RowVersion'
-                )
-                BEGIN
+                IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('Pedidos') AND name = 'FotoUrl')
+                    ALTER TABLE Pedidos ADD FotoUrl nvarchar(max) NULL;
+
+                IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('Pedidos') AND name = 'RowVersion')
                     ALTER TABLE Pedidos ADD RowVersion rowversion NULL;
-                END
+
+                IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('Pedidos') AND name = 'Abono')
+                    ALTER TABLE Pedidos ADD Abono bit NOT NULL DEFAULT 0;
             END
         ");
     }
     catch (Exception ex)
     {
-        Console.WriteLine($"===> Auto-migration RowVersion notice: {ex.Message}");
+        Console.WriteLine($"===> Auto-migration schema check notice: {ex.Message}");
     }
 
     var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
