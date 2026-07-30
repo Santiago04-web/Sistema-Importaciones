@@ -1279,21 +1279,7 @@ export class DashboardComponent implements OnInit {
     plugins: {
       legend: { display: false },
       tooltip: {
-        backgroundColor: '#141418',
-        titleColor: '#fff',
-        bodyColor: '#cbd5e1',
-        borderColor: 'rgba(255,255,255,0.1)',
-        borderWidth: 1,
-        cornerRadius: 8,
-        padding: 10,
-        callbacks: {
-          label: (ctx: any) => {
-            const val = ctx.parsed;
-            if (val >= 1_000_000) return ` $${(val / 1_000_000).toFixed(1)}M`;
-            if (val >= 1_000) return ` $${(val / 1_000).toFixed(0)}K`;
-            return ` $${val.toFixed(0)}`;
-          }
-        }
+        enabled: false // Disables canvas tooltip overlap over center info & legend
       }
     }
   };
