@@ -3,21 +3,42 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using Microsoft.AspNetCore.RateLimiting;
+using System.Threading.RateLimiting;
 using Importaciones.Api.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
+builder.Services.AddHttpContextAccessor();
 builder.Services.AddDbContext<ImportacionesDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("ImportacionesDb")));
 
-// Configure Identity
-builder.Services.AddIdentity<IdentityUser, IdentityRole>()
-    .AddEntityFrameworkStores<ImportacionesDbContext>()
-    .AddDefaultTokenProviders();
+// Configure Identity with Strong Password & Lockout Policies
+builder.Services.AddIdentity<IdentityUser, IdentityRole>(options =>
+{
+    // Enterprise password policies
+    options.Password.RequiredLength = 12;
+    options.Password.RequireDigit = true;
+    options.Password.RequireLowercase = true;
+    options.Password.RequireUppercase = true;
+    options.Password.RequireNonAlphanumeric = false; // symbols not strictly required to allow user's password
+
+    // Account lockout policy
+    options.Lockout.AllowedForNewUsers = true;
+    options.Lockout.MaxFailedAccessAttempts = 5;
+    options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(15);
+})
+.AddEntityFrameworkStores<ImportacionesDbContext>()
+.AddDefaultTokenProviders();
 
 // Configure JWT Authentication
-var jwtKey = builder.Configuration["Jwt:Key"] ?? "defaultSecretKey";
+var jwtKey = builder.Configuration["Jwt:Key"];
+if (string.IsNullOrWhiteSpace(jwtKey))
+{
+    throw new InvalidOperationException("La clave secreta 'Jwt:Key' no está configurada en appsettings.json o variables de entorno.");
+}
+
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -33,19 +54,54 @@ builder.Services.AddAuthentication(options =>
         ValidateIssuerSigningKey = true,
         ValidIssuer = builder.Configuration["Jwt:Issuer"],
         ValidAudience = builder.Configuration["Jwt:Audience"],
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey))
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey)),
+        ClockSkew = TimeSpan.Zero // Strict lifetime validation
     };
 });
 
+// Configure Rate Limiting Middleware
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+    
+    // Login endpoints: 5 attempts per minute
+    options.AddPolicy("LoginLimiter", httpContext =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? httpContext.Request.Headers.Host.ToString(),
+            factory: _ => new FixedWindowRateLimiterOptions
+            {
+                AutoReplenishment = true,
+                PermitLimit = 5,
+                QueueLimit = 0,
+                Window = TimeSpan.FromMinutes(1)
+            }));
+
+    // Critical endpoints (e.g. Upload Excel): 10 requests per minute
+    options.AddPolicy("ExcelLimiter", httpContext =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? httpContext.Request.Headers.Host.ToString(),
+            factory: _ => new FixedWindowRateLimiterOptions
+            {
+                AutoReplenishment = true,
+                PermitLimit = 10,
+                QueueLimit = 0,
+                Window = TimeSpan.FromMinutes(1)
+            }));
+});
+
+// Restrictive CORS configured for credentials (cookies)
+var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() 
+                     ?? new[] { "http://localhost:4200" };
+
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowAngularApp",
-        policy =>
-        {
-            policy.WithOrigins("http://localhost:4200")
-                  .AllowAnyHeader()
-                  .AllowAnyMethod();
-        });
+    options.AddPolicy("AllowAngularApp", policy =>
+    {
+        policy.WithOrigins(allowedOrigins)
+              .AllowAnyHeader()
+              .AllowAnyMethod()
+              .AllowCredentials(); // REQUIRED for HttpOnly cookies
+    });
 });
 
 builder.Services.AddControllers();
@@ -53,16 +109,60 @@ builder.Services.AddOpenApi();
 
 var app = builder.Build();
 
-// Seed Roles
+// Seed Roles and Default Admin
 using (var scope = app.Services.CreateScope())
 {
+    var context = scope.ServiceProvider.GetRequiredService<ImportacionesDbContext>();
+    try
+    {
+        await context.Database.ExecuteSqlRawAsync(@"
+            IF EXISTS (SELECT * FROM sys.tables WHERE name = 'Pedidos')
+            BEGIN
+                IF NOT EXISTS (
+                    SELECT * FROM sys.columns 
+                    WHERE object_id = OBJECT_ID('Pedidos') AND name = 'RowVersion'
+                )
+                BEGIN
+                    ALTER TABLE Pedidos ADD RowVersion rowversion NULL;
+                END
+            END
+        ");
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"===> Auto-migration RowVersion notice: {ex.Message}");
+    }
+
     var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+    var userManager = scope.ServiceProvider.GetRequiredService<UserManager<IdentityUser>>();
+    
     var roles = new[] { "Admin", "Editor", "Viewer" };
     foreach (var role in roles)
     {
         if (!await roleManager.RoleExistsAsync(role))
         {
             await roleManager.CreateAsync(new IdentityRole(role));
+        }
+    }
+
+    // Seed default admin from configuration or environment variables
+    var adminEmail = builder.Configuration["SeedData:AdminEmail"] ?? "admin@logigho.com";
+    var adminPassword = builder.Configuration["SeedData:AdminPassword"];
+    
+    var adminUser = await userManager.FindByEmailAsync(adminEmail);
+    if (adminUser == null)
+    {
+        if (string.IsNullOrWhiteSpace(adminPassword))
+        {
+            adminPassword = $"Admin#{Guid.NewGuid().ToString("N").Substring(0, 10)}!";
+            Console.WriteLine($"===> [SECURITY SEED] Se creó la cuenta Admin inicial '{adminEmail}' con contraseña temporal: {adminPassword}");
+        }
+
+        var newAdmin = new IdentityUser { UserName = adminEmail, Email = adminEmail };
+        var result = await userManager.CreateAsync(newAdmin, adminPassword);
+        if (result.Succeeded)
+        {
+            await userManager.AddToRoleAsync(newAdmin, "Admin");
         }
     }
 }
@@ -72,10 +172,28 @@ if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
 }
+else
+{
+    app.UseHsts(); // Force HTTPS using HSTS
+}
 
 app.UseHttpsRedirection();
 
 app.UseCors("AllowAngularApp");
+
+// Custom Middleware for HTTP Security Headers
+app.Use(async (context, next) =>
+{
+    context.Response.Headers.Append("X-Frame-Options", "DENY");
+    context.Response.Headers.Append("X-Content-Type-Options", "nosniff");
+    context.Response.Headers.Append("Referrer-Policy", "no-referrer");
+    context.Response.Headers.Append("Content-Security-Policy", 
+        "default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'; img-src 'self' data:; connect-src 'self' http://localhost:5174 https://localhost:7200 http://localhost:5200 https://localhost:7200 http://localhost:4200;");
+    await next();
+});
+
+app.UseRateLimiter(); // Enable rate limiting before authentication and route mapping
+app.UseStaticFiles();
 
 app.UseAuthentication();
 app.UseAuthorization();

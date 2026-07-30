@@ -1,149 +1,194 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { PedidoService } from '../../services/pedido.service';
+import { FormsModule } from '@angular/forms';
+import { Router, RouterLink } from '@angular/router';
+import { PedidoService, Pedido } from '../../services/pedido.service';
 
 @Component({
   selector: 'app-upload',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule, RouterLink],
   template: `
-    <div class="container mt-4">
-      <div class="glass-panel p-4 upload-card">
-        <h2 class="mb-4">Carga de Pedidos (Excel)</h2>
-        <p class="mb-4 text-secondary">Sube un archivo de Excel con formato válido (.xlsx) para carga masiva.</p>
+    <div class="form-container">
+      <div class="dark-card">
+        <h2>Nueva Importación Manual</h2>
         
-        <div class="drop-zone mb-4" 
-             [class.dragging]="isDragging"
-             (dragover)="onDragOver($event)"
-             (dragleave)="onDragLeave($event)"
-             (drop)="onDrop($event)">
-             
-          <div *ngIf="!selectedFile" class="text-center">
-            <i class="fas fa-cloud-upload-alt upload-icon mb-2"></i>
-            <p>Arrastra tu archivo aquí o</p>
-            <button class="btn btn-outline mt-2" (click)="fileInput.click()">Explorar</button>
+        <form (ngSubmit)="guardar()" class="mt-4">
+          <div class="form-group">
+            <label>Código de Pedido</label>
+            <input type="text" class="form-control" placeholder="Ej: P-2026-08" [(ngModel)]="formulario.codigo" name="codigo" required>
           </div>
           
-          <div *ngIf="selectedFile" class="text-center">
-            <i class="fas fa-file-excel file-icon mb-2"></i>
-            <p class="fw-bold">{{ selectedFile.name }}</p>
-            <p class="text-sm text-secondary">{{ (selectedFile.size / 1024).toFixed(2) }} KB</p>
-            <button class="btn btn-outline mt-2" (click)="removeFile()">Quitar</button>
+          <div class="row-2">
+            <div class="form-group flex-1">
+              <label>Ciudad de Origen</label>
+              <input type="text" class="form-control" placeholder="Ej: YIWU" [(ngModel)]="formulario.ciudad" name="ciudad" required>
+            </div>
+            <div class="form-group flex-1">
+              <label>Fecha de Negociación</label>
+              <input type="date" class="form-control" [(ngModel)]="formulario.fecha" name="fecha" required>
+            </div>
           </div>
           
-          <input type="file" #fileInput (change)="onFileSelected($event)" accept=".xlsx, .xls" hidden>
-        </div>
-        
-        <div *ngIf="error" class="alert-danger mb-4">{{ error }}</div>
-        <div *ngIf="successMsg" class="alert-success mb-4">{{ successMsg }}</div>
-
-        <button class="btn btn-primary w-full" 
-                [disabled]="!selectedFile || loading" 
-                (click)="uploadFile()">
-          {{ loading ? 'Subiendo...' : 'Procesar Archivo' }}
-        </button>
+          <div class="form-group">
+            <label>Descripción (品名)</label>
+            <input type="text" class="form-control" placeholder="Ej: Calzado deportivo" [(ngModel)]="formulario.descripcion" name="descripcion">
+          </div>
+          
+          <div class="form-group">
+            <label>Observaciones (要求)</label>
+            <textarea class="form-control" rows="3" placeholder="Observaciones adicionales..." [(ngModel)]="formulario.observaciones" name="observaciones"></textarea>
+          </div>
+          
+          <div class="row-2">
+            <div class="form-group flex-1">
+              <label>Total Inversión ($)</label>
+              <input type="number" class="form-control" placeholder="0.00" [(ngModel)]="formulario.total" name="total">
+            </div>
+            <div class="form-group flex-1">
+              <label>Etapa Inicial</label>
+              <select class="form-control" [(ngModel)]="formulario.etapa" name="etapa">
+                <option value="0">Cotización</option>
+                <option value="1">Confirmado</option>
+                <option value="2">Pagado</option>
+                <option value="3">En Tránsito</option>
+                <option value="4">Aduana</option>
+                <option value="5">Recibido</option>
+              </select>
+            </div>
+          </div>
+          
+          <div class="form-actions">
+            <button type="button" class="btn btn-outline" routerLink="/table">Cancelar</button>
+            <button type="submit" class="btn btn-primary">Guardar Registro</button>
+          </div>
+        </form>
       </div>
     </div>
   `,
   styles: [`
-    .upload-card { max-width: 600px; margin: 0 auto; }
-    .drop-zone {
-      border: 2px dashed var(--card-border);
-      border-radius: var(--radius-md);
+    .form-container {
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
       padding: 3rem 2rem;
-      transition: var(--transition);
-      background: rgba(15, 23, 42, 0.4);
+      min-height: calc(100vh - 80px);
+      background: #09090b;
     }
-    .drop-zone.dragging {
-      border-color: var(--primary-color);
-      background: rgba(79, 70, 229, 0.1);
+    
+    .dark-card {
+      background: #18181b;
+      border-radius: 10px;
+      padding: 2.5rem 3rem;
+      width: 100%;
+      max-width: 600px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+      border: 1px solid rgba(255, 255, 255, 0.08);
     }
-    .upload-icon, .file-icon { font-size: 3rem; color: var(--primary-color); }
-    .file-icon { color: var(--success); }
-    .alert-danger {
-      color: var(--danger);
-      background: rgba(239, 68, 68, 0.1);
-      padding: 0.75rem;
-      border-radius: var(--radius-md);
-      border: 1px solid rgba(239, 68, 68, 0.3);
+    
+    .dark-card h2 {
+      color: #fafafa;
+      font-size: 1.5rem;
+      font-weight: 600;
+      margin-bottom: 2rem;
+      letter-spacing: -0.02em;
     }
-    .alert-success {
-      color: var(--success);
-      background: rgba(16, 185, 129, 0.1);
-      padding: 0.75rem;
-      border-radius: var(--radius-md);
-      border: 1px solid rgba(16, 185, 129, 0.3);
+    
+    .row-2 {
+      display: flex;
+      gap: 1.5rem;
     }
-    .text-sm { font-size: 0.875rem; }
+    
+    .flex-1 {
+      flex: 1;
+    }
+    
+    .form-group {
+      margin-bottom: 1.5rem;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .form-group label {
+      font-size: 0.75rem;
+      font-weight: 500;
+      color: #a1a1aa;
+      margin-bottom: 0.5rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    
+    .form-control {
+      background: #09090b;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 6px;
+      padding: 0.75rem 1rem;
+      color: #fafafa;
+      font-family: inherit;
+      font-size: 0.9rem;
+      transition: all 0.2s;
+    }
+    
+    .form-control:focus {
+      outline: none;
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+    }
+    
+    .form-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 1rem;
+      margin-top: 2.5rem;
+    }
+    
+    select.form-control {
+      cursor: pointer;
+    }
+    option {
+      background: #18181b;
+      color: #fafafa;
+    }
   `]
 })
 export class UploadComponent {
-  isDragging = false;
-  selectedFile: File | null = null;
-  loading = false;
-  error = '';
-  successMsg = '';
+  formulario: any = {
+    codigo: '',
+    ciudad: '',
+    fecha: new Date().toISOString().split('T')[0],
+    descripcion: '',
+    observaciones: '',
+    total: null,
+    etapa: '0'
+  };
 
-  constructor(private pedidoService: PedidoService) {}
+  constructor(private pedidoService: PedidoService, private router: Router) {}
 
-  onDragOver(event: DragEvent) {
-    event.preventDefault();
-    this.isDragging = true;
-  }
-
-  onDragLeave(event: DragEvent) {
-    event.preventDefault();
-    this.isDragging = false;
-  }
-
-  onDrop(event: DragEvent) {
-    event.preventDefault();
-    this.isDragging = false;
+  guardar() {
+    const p = {
+      codigo: this.formulario.codigo || 'S/N',
+      ciudad: this.formulario.ciudad || 'No city',
+      fechaNegociacion: new Date(this.formulario.fecha),
+      descripcion: this.formulario.descripcion,
+      observaciones: this.formulario.observaciones,
+      total: this.formulario.total || 0,
+      etapa: parseInt(this.formulario.etapa),
+      totalQty: 0,
+      yuanes: 0,
+      piezasCaja: 0,
+      cubica: 0,
+      tasa: 0,
+      precioMt3: 0,
+      porcentajeEhuk: 0
+    } as Pedido;
     
-    if (event.dataTransfer?.files && event.dataTransfer.files.length > 0) {
-      this.handleFile(event.dataTransfer.files[0]);
-    }
-  }
-
-  onFileSelected(event: any) {
-    if (event.target.files && event.target.files.length > 0) {
-      this.handleFile(event.target.files[0]);
-    }
-  }
-
-  handleFile(file: File) {
-    if (file.name.endsWith('.xlsx') || file.name.endsWith('.xls')) {
-      this.selectedFile = file;
-      this.error = '';
-      this.successMsg = '';
-    } else {
-      this.error = 'Por favor, sube un archivo Excel (.xlsx, .xls)';
-      this.selectedFile = null;
-    }
-  }
-
-  removeFile() {
-    this.selectedFile = null;
-    this.successMsg = '';
-    this.error = '';
-  }
-
-  uploadFile() {
-    if (!this.selectedFile) return;
-    
-    this.loading = true;
-    this.error = '';
-    this.successMsg = '';
-
-    this.pedidoService.uploadExcel(this.selectedFile).subscribe({
-      next: (res) => {
-        this.loading = false;
-        this.successMsg = `Archivo procesado con éxito. Se importaron ${res.count} pedidos.`;
-        this.selectedFile = null;
+    this.pedidoService.createPedido(p).subscribe({
+      next: () => {
+        this.router.navigate(['/table']);
       },
       error: (err) => {
-        this.loading = false;
-        this.error = err.error?.message || 'Ocurrió un error procesando el archivo.';
+        console.error('Error saving manual order:', err);
+        alert('Error al guardar la importación.');
       }
     });
   }

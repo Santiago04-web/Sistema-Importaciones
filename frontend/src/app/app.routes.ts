@@ -4,6 +4,9 @@ import { DashboardComponent } from './components/dashboard/dashboard.component';
 import { KanbanComponent } from './components/kanban/kanban.component';
 import { TableComponent } from './components/table/table.component';
 import { UploadComponent } from './components/upload/upload.component';
+import { ExcelComponent } from './components/excel/excel.component';
+import { UsersComponent } from './components/users/users.component';
+import { AuditLogComponent } from './components/audit/audit-log.component';
 import { inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthService } from './services/auth.service';
@@ -18,11 +21,29 @@ const authGuard = () => {
   return false;
 };
 
+const adminGuard = () => {
+  const authService = inject(AuthService);
+  const router = inject(Router);
+  if (!authService.getToken()) {
+    router.navigate(['/login']);
+    return false;
+  }
+  const roles = authService.getRoles();
+  if (roles.includes('Admin')) {
+    return true;
+  }
+  router.navigate(['/dashboard']);
+  return false;
+};
+
 export const routes: Routes = [
   { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
   { path: 'login', component: LoginComponent },
   { path: 'dashboard', component: DashboardComponent, canActivate: [authGuard] },
   { path: 'kanban', component: KanbanComponent, canActivate: [authGuard] },
   { path: 'table', component: TableComponent, canActivate: [authGuard] },
-  { path: 'upload', component: UploadComponent, canActivate: [authGuard] }
+  { path: 'upload', component: UploadComponent, canActivate: [authGuard] },
+  { path: 'excel', component: ExcelComponent, canActivate: [authGuard] },
+  { path: 'usuarios', component: UsersComponent, canActivate: [adminGuard] },
+  { path: 'actividad', component: AuditLogComponent, canActivate: [adminGuard] }
 ];
