@@ -232,9 +232,9 @@ import { ChartConfiguration } from 'chart.js';
                 [options]="costDonutOptions"
                 [type]="'doughnut'">
               </canvas>
-              <div class="chart-center-info">
-                <span class="center-val">{{ costCenterVal || ('$' + formatShort(displayInvertido)) }}</span>
-                <span class="center-lbl">{{ costCenterLbl || 'Total' }}</span>
+              <div class="chart-center-info" [style.opacity]="isHoveringCostDonut ? '0' : '1'" style="transition: opacity 0.2s ease;">
+                <span class="center-val">${{ formatShort(displayInvertido) }}</span>
+                <span class="center-lbl">Total</span>
               </div>
             </div>
 
@@ -242,7 +242,7 @@ import { ChartConfiguration } from 'chart.js';
               <div class="legend-row" *ngFor="let item of costBreakdown; let i = index">
                 <div class="legend-dot" [style.background]="costColors[i]"></div>
                 <span class="legend-title">{{ item.name }}</span>
-                <span class="legend-amount">\${{ formatNum(item.value) }}</span>
+                <span class="legend-amount">${{ formatNum(item.value) }}</span>
                 <span class="legend-percent">{{ item.pct }}%</span>
               </div>
             </div>
@@ -263,9 +263,9 @@ import { ChartConfiguration } from 'chart.js';
                 [options]="cityDonutOptions"
                 [type]="'doughnut'">
               </canvas>
-              <div class="chart-center-info">
-                <span class="center-val">{{ cityCenterVal || ciudadesUnicas }}</span>
-                <span class="center-lbl">{{ cityCenterLbl || 'Ciudades' }}</span>
+              <div class="chart-center-info" [style.opacity]="isHoveringCityDonut ? '0' : '1'" style="transition: opacity 0.2s ease;">
+                <span class="center-val">{{ ciudadesUnicas }}</span>
+                <span class="center-lbl">Ciudades</span>
               </div>
             </div>
 
@@ -1271,10 +1271,8 @@ export class DashboardComponent implements OnInit {
   etapaColores = ['#71717a', '#14b8a6', '#f59e0b', '#3b82f6', '#ec4899', '#10b981'];
 
   // Chart dynamic center hover state
-  costCenterVal: string | null = null;
-  costCenterLbl: string | null = null;
-  cityCenterVal: string | null = null;
-  cityCenterLbl: string | null = null;
+  isHoveringCostDonut = false;
+  isHoveringCityDonut = false;
 
   costDonutOptions: any = {
     responsive: true,
@@ -1294,25 +1292,15 @@ export class DashboardComponent implements OnInit {
         callbacks: {
           label: (ctx: any) => {
             const val = ctx.parsed;
-            if (val >= 1_000_000) return ' $' + (val / 1_000_000).toFixed(1) + 'M';
-            if (val >= 1_000) return ' $' + (val / 1_000).toFixed(0) + 'K';
-            return ' $' + val.toFixed(0);
+            const item = this.costBreakdown[ctx.dataIndex];
+            const pctStr = item ? ' (' + item.pct + '%)' : '';
+            return ' $' + this.formatNum(val) + pctStr;
           }
         }
       }
     },
     onHover: (event: any, activeElements: any[]) => {
-      if (activeElements && activeElements.length > 0) {
-        const idx = activeElements[0].index;
-        const item = this.costBreakdown[idx];
-        if (item) {
-          this.costCenterVal = '$' + this.formatNum(item.value);
-          this.costCenterLbl = item.name + ' (' + item.pct + '%)';
-        }
-      } else {
-        this.costCenterVal = null;
-        this.costCenterLbl = null;
-      }
+      this.isHoveringCostDonut = activeElements && activeElements.length > 0;
     }
   };
 
@@ -1334,25 +1322,15 @@ export class DashboardComponent implements OnInit {
         callbacks: {
           label: (ctx: any) => {
             const val = ctx.parsed;
-            if (val >= 1_000_000) return ' $' + (val / 1_000_000).toFixed(1) + 'M';
-            if (val >= 1_000) return ' $' + (val / 1_000).toFixed(0) + 'K';
-            return ' $' + val.toFixed(0);
+            const city = this.ciudadStats[ctx.dataIndex];
+            const pctStr = city ? ' (' + city.pct + '%)' : '';
+            return ' $' + this.formatNum(val) + pctStr;
           }
         }
       }
     },
     onHover: (event: any, activeElements: any[]) => {
-      if (activeElements && activeElements.length > 0) {
-        const idx = activeElements[0].index;
-        const city = this.ciudadStats[idx];
-        if (city) {
-          this.cityCenterVal = '$' + this.formatNum(city.total);
-          this.cityCenterLbl = city.name + ' (' + city.pct + '%)';
-        }
-      } else {
-        this.cityCenterVal = null;
-        this.cityCenterLbl = null;
-      }
+      this.isHoveringCityDonut = activeElements && activeElements.length > 0;
     }
   };
 
