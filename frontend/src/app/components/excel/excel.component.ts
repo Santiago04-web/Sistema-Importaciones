@@ -161,7 +161,7 @@ import { PedidoService, Pedido } from '../../services/pedido.service';
                 <span class="pkpi-lbl">Piezas Totales</span>
               </div>
               <div class="pkpi-item">
-                <span class="pkpi-num blue">&#36;{{ previewTotalCOP | currency:'USD':'symbol':'1.0-0' }}</span>
+                <span class="pkpi-num blue">{{ previewTotalCOP | currency:'USD':'symbol':'1.0-0' }}</span>
                 <span class="pkpi-lbl">Inversión Estimada (COP)</span>
               </div>
               <div class="pkpi-item" [class.warn]="previewData?.warningsCount > 0">
@@ -910,8 +910,9 @@ export class ExcelComponent implements OnInit {
         this.previewTotalQty = (data.items || []).reduce((s: number, x: any) => s + (x.totalQty || 0), 0);
         this.previewTotalYuanes = (data.items || []).reduce((s: number, x: any) => s + (x.yuanes || 0), 0);
         this.previewTotalCOP = (data.items || []).reduce((s: number, x: any) => {
+          const qty = x.totalQty > 0 ? x.totalQty : 1;
           const tasa = x.tasa > 0 ? x.tasa : 535;
-          const prodCOP = (x.yuanes || 0) * tasa;
+          const prodCOP = (x.yuanes || 0) * qty * tasa;
           const fleteCOP = (x.cubica || 0) * (x.precioMt3 || 0);
           const ehukPct = x.porcentajeEhuk || 0.12;
           const comisionCOP = (prodCOP + fleteCOP) * ehukPct;
