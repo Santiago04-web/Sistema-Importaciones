@@ -1,4 +1,4 @@
-import { Component, OnInit, HostListener } from '@angular/core';
+import { Component, OnInit, HostListener, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { PedidoService, Pedido } from '../../services/pedido.service';
@@ -232,7 +232,7 @@ import { ChartConfiguration } from 'chart.js';
                 [options]="costDonutOptions"
                 [type]="'doughnut'">
               </canvas>
-              <div class="chart-center-info" [style.opacity]="isHoveringCostDonut ? '0' : '1'" style="transition: opacity 0.2s ease;">
+              <div class="chart-center-info" [style.opacity]="isHoveringCostDonut ? '0' : '1'" [style.visibility]="isHoveringCostDonut ? 'hidden' : 'visible'" style="transition: opacity 0.15s ease, visibility 0.15s ease;">
                 <span class="center-val">\${{ formatShort(displayInvertido) }}</span>
                 <span class="center-lbl">Total</span>
               </div>
@@ -263,7 +263,7 @@ import { ChartConfiguration } from 'chart.js';
                 [options]="cityDonutOptions"
                 [type]="'doughnut'">
               </canvas>
-              <div class="chart-center-info" [style.opacity]="isHoveringCityDonut ? '0' : '1'" style="transition: opacity 0.2s ease;">
+              <div class="chart-center-info" [style.opacity]="isHoveringCityDonut ? '0' : '1'" [style.visibility]="isHoveringCityDonut ? 'hidden' : 'visible'" style="transition: opacity 0.15s ease, visibility 0.15s ease;">
                 <span class="center-val">{{ ciudadesUnicas }}</span>
                 <span class="center-lbl">Ciudades</span>
               </div>
@@ -1300,7 +1300,11 @@ export class DashboardComponent implements OnInit {
       }
     },
     onHover: (event: any, activeElements: any[]) => {
-      this.isHoveringCostDonut = activeElements && activeElements.length > 0;
+      const isHov = activeElements && activeElements.length > 0;
+      if (this.isHoveringCostDonut !== isHov) {
+        this.isHoveringCostDonut = isHov;
+        this.cdr.detectChanges();
+      }
     }
   };
 
@@ -1330,7 +1334,11 @@ export class DashboardComponent implements OnInit {
       }
     },
     onHover: (event: any, activeElements: any[]) => {
-      this.isHoveringCityDonut = activeElements && activeElements.length > 0;
+      const isHov = activeElements && activeElements.length > 0;
+      if (this.isHoveringCityDonut !== isHov) {
+        this.isHoveringCityDonut = isHov;
+        this.cdr.detectChanges();
+      }
     }
   };
 
@@ -1368,7 +1376,7 @@ export class DashboardComponent implements OnInit {
 
   filterCategory: 'ALL' | 'EHUK' | 'FLETE' | 'PRODUCTO' | 'PAGO_30' | 'SALDO' = 'ALL';
 
-  constructor(private pedidoService: PedidoService) {}
+  constructor(private pedidoService: PedidoService, private cdr: ChangeDetectorRef) {}
 
   ngOnInit() {
     this.pedidoService.getPedidos().subscribe({
