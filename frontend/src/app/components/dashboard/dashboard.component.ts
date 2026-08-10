@@ -233,7 +233,7 @@ import { ChartConfiguration } from 'chart.js';
                 [type]="'doughnut'">
               </canvas>
               <div class="chart-center-info" [style.opacity]="isHoveringCostDonut ? '0' : '1'" style="transition: opacity 0.2s ease;">
-                <span class="center-val">${{ formatShort(displayInvertido) }}</span>
+                <span class="center-val">\${{ formatShort(displayInvertido) }}</span>
                 <span class="center-lbl">Total</span>
               </div>
             </div>
@@ -242,7 +242,7 @@ import { ChartConfiguration } from 'chart.js';
               <div class="legend-row" *ngFor="let item of costBreakdown; let i = index">
                 <div class="legend-dot" [style.background]="costColors[i]"></div>
                 <span class="legend-title">{{ item.name }}</span>
-                <span class="legend-amount">${{ formatNum(item.value) }}</span>
+                <span class="legend-amount">\${{ formatNum(item.value) }}</span>
                 <span class="legend-percent">{{ item.pct }}%</span>
               </div>
             </div>
@@ -1350,9 +1350,9 @@ export class DashboardComponent implements OnInit {
         callbacks: {
           label: (ctx: any) => {
             const val = ctx.parsed.y;
-            if (val >= 1_000_000) return ` ${ctx.dataset.label}: $${(val / 1_000_000).toFixed(1)}M`;
-            if (val >= 1_000) return ` ${ctx.dataset.label}: $${(val / 1_000).toFixed(0)}K`;
-            return ` ${ctx.dataset.label}: $${val.toFixed(0)}`;
+            if (val >= 1_000_000) return ' ' + ctx.dataset.label + ': $' + (val / 1_000_000).toFixed(1) + 'M';
+            if (val >= 1_000) return ' ' + ctx.dataset.label + ': $' + (val / 1_000).toFixed(0) + 'K';
+            return ' ' + ctx.dataset.label + ': $' + val.toFixed(0);
           }
         }
       }
@@ -1437,7 +1437,7 @@ export class DashboardComponent implements OnInit {
 
   getSelectedLoteName(): string {
     if (this.selectedPedidoCodigo === 'ALL') return 'Todos los Pedidos';
-    return `Pedido #${this.selectedPedidoCodigo}`;
+    return 'Pedido #' + this.selectedPedidoCodigo;
   }
 
   isUpdating = false;
@@ -1634,12 +1634,12 @@ export class DashboardComponent implements OnInit {
         if (this.selectedPedidoCodigo === 'ALL') {
           rawPct = (data.totalVal / grandTotal) * 100;
           const numStr = rawPct > 0 && rawPct < 1 ? rawPct.toFixed(1) : Math.round(rawPct).toString();
-          formattedPct = `${numStr}% del catálogo`;
+          formattedPct = numStr + '% del catálogo';
         } else {
           const globalVal = globalCatMap.get(name) || 1;
           rawPct = (data.totalVal / globalVal) * 100;
           const numStr = rawPct > 0 && rawPct < 1 ? rawPct.toFixed(1) : Math.round(rawPct).toString();
-          formattedPct = `${numStr}% del total global`;
+          formattedPct = numStr + '% del total global';
         }
 
         return {
