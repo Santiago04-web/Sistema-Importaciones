@@ -125,6 +125,9 @@ interface ColumnaEtapa {
                 </div>
                 
                 <div class="card-body-row">
+                  <div class="thumb-mini" *ngIf="pedido.fotoUrl">
+                    <img [src]="pedido.fotoUrl" alt="Producto">
+                  </div>
                   <div class="pedido-desc" *ngIf="pedido.descripcion">
                     {{ truncateDesc(pedido.descripcion) }}
                   </div>
