@@ -27,12 +27,8 @@ import jsPDF from 'jspdf';
             <h2>Control Financiero & Operativo</h2>
           </div>
 
-          <!-- BUSCADOR / SELECTOR INTELIGENTE DE LOTES + EXPORTAR PDF -->
-          <div class="searchable-lote-container" style="display: flex; gap: 10px; align-items: center;">
-            <button class="pdf-export-btn" (click)="exportPDF()">
-              <span>📥 Exportar PDF</span>
-            </button>
-
+          <!-- BUSCADOR / SELECTOR INTELIGENTE DE LOTES -->
+          <div class="searchable-lote-container">
             <button class="lote-dropdown-btn" (click)="toggleLoteDropdown($event)">
               <span class="lote-lbl-icon">🔍 LOTE:</span>
               <span class="lote-active-name">{{ getSelectedLoteName() }}</span>
@@ -307,27 +303,8 @@ import jsPDF from 'jspdf';
               [type]="'bar'">
             </canvas>
           </div>
-      </div>
-
-      <!-- ROW: LÍNEA TEMPORAL DE INVERSIÓN POR MES -->
-      <div class="glass-card mb-4" style="margin-bottom: 2rem; padding: 1.5rem;">
-        <div class="card-header-clean" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
-          <div>
-            <h3 style="margin: 0 0 4px 0; font-size: 1.2rem; color: #fff;">📈 Tendencia de Inversión por Mes (Gasto en el Tiempo)</h3>
-            <span class="subtext">Evolución mensual consolidada del presupuesto de importación</span>
-          </div>
-          <div class="badge-blue-pill">
-            <span>HISTÓRICO 2026</span>
-          </div>
         </div>
 
-        <div style="height: 280px; position: relative; width: 100%; margin-top: 1.25rem;">
-          <canvas *ngIf="trendLineData" baseChart
-            [data]="trendLineData"
-            [options]="lineOptions"
-            [type]="'line'">
-          </canvas>
-        </div>
       </div>
 
       <!-- ROW 4: PIPELINE, TOP PEDIDOS & RESUMEN FINANCIERO (3 COLUMNAS) -->
@@ -1295,7 +1272,6 @@ export class DashboardComponent implements OnInit {
   costDonutData: ChartConfiguration<'doughnut'>['data'] | undefined;
   cityDonutData: ChartConfiguration<'doughnut'>['data'] | undefined;
   compareBarData: ChartConfiguration<'bar'>['data'] | undefined;
-  trendLineData: ChartConfiguration<'line'>['data'] | undefined;
 
   costColors = ['#3b82f6', '#f59e0b', '#8b5cf6', '#ec4899'];
   cityColors = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#06b6d4'];
@@ -1375,49 +1351,10 @@ export class DashboardComponent implements OnInit {
     }
   };
 
-  lineOptions: any = {
+  barOptions: any = {
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
-      legend: {
-        display: true,
-        position: 'top',
-        labels: { color: '#cbd5e1', font: { family: 'Inter', size: 12 } }
-      },
-      tooltip: {
-        backgroundColor: '#141418',
-        titleColor: '#fff',
-        bodyColor: '#cbd5e1',
-        borderColor: 'rgba(255,255,255,0.1)',
-        borderWidth: 1,
-        cornerRadius: 8,
-        padding: 10,
-        callbacks: {
-          label: (ctx: any) => {
-            const val = ctx.parsed.y;
-            return ' ' + ctx.dataset.label + ': $' + this.formatNum(val) + ' COP';
-          }
-        }
-      }
-    },
-    scales: {
-      x: {
-        grid: { color: 'rgba(255,255,255,0.05)' },
-        ticks: { color: '#94a3b8' }
-      },
-      y: {
-        grid: { color: 'rgba(255,255,255,0.05)' },
-        ticks: {
-          color: '#94a3b8',
-          callback: (val: any) => {
-            if (val >= 1_000_000) return '$' + (val / 1_000_000).toFixed(0) + 'M';
-            if (val >= 1_000) return '$' + (val / 1_000).toFixed(0) + 'K';
-            return '$' + val;
-          }
-        }
-      }
-    }
-  };
       legend: { display: true, labels: { color: '#94a3b8', font: { size: 10 }, usePointStyle: true, pointStyle: 'circle' } },
       tooltip: {
         backgroundColor: '#141418',
@@ -1568,13 +1505,10 @@ export class DashboardComponent implements OnInit {
     this.filterLotes();
 
     // Filter by selected batch code if active
-    const filteredList = this.selectedPedidoCodigo === 'ALL'
-      ? this.allPedidos
-      : this.allPedidos.filter(x => (x.codigo || '').trim() === this.selectedPedidoCodigo);
-
-    this.buildTrendLineData(filteredList);
-
-    let p = filteredList;
+    let p = this.allPedidos;
+    if (this.selectedPedidoCodigo !== 'ALL') {
+      p = p.filter(x => (x.codigo || '').trim() === this.selectedPedidoCodigo);
+    }
 
     this.totalPedidos = p.length;
     if (p.length === 0) return;
@@ -1908,116 +1842,6 @@ export class DashboardComponent implements OnInit {
         { data: cityGanancia, label: 'Ganancia', backgroundColor: '#10b981', borderRadius: 4, barThickness: 24 },
       ]
     };
-  }
-
-  buildTrendLineData(filteredList: Pedido[]) {
-    const monthNames = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
-    const monthlyTotal = new Array(12).fill(0);
-    const monthlyGanancia = new Array(12).fill(0);
-
-    filteredList.forEach(p => {
-      if (p.fechaNegociacion) {
-        const d = new Date(p.fechaNegociacion);
-        const m = d.getMonth();
-        if (m >= 0 && m < 12) {
-          monthlyTotal[m] += (p.total || 0);
-          monthlyGanancia[m] += (p.ganancia || 0);
-        }
-      }
-    });
-
-    this.trendLineData = {
-      labels: monthNames,
-      datasets: [
-        {
-          data: monthlyTotal,
-          label: 'Inversión Total (COP)',
-          borderColor: '#3b82f6',
-          backgroundColor: 'rgba(59, 130, 246, 0.15)',
-          fill: true,
-          tension: 0.4,
-          pointRadius: 5,
-          pointHoverRadius: 8
-        },
-        {
-          data: monthlyGanancia,
-          label: 'Ganancia Proyectada',
-          borderColor: '#10b981',
-          backgroundColor: 'rgba(16, 185, 129, 0.15)',
-          fill: true,
-          tension: 0.4,
-          pointRadius: 5,
-          pointHoverRadius: 8
-        }
-      ]
-    };
-  }
-
-  exportPDF() {
-    const doc = new jsPDF('p', 'mm', 'a4');
-    doc.setFillColor(15, 23, 42);
-    doc.rect(0, 0, 210, 297, 'F');
-
-    doc.setTextColor(255, 255, 255);
-    doc.setFontSize(16);
-    doc.text('REPORTE CONSOLIDADO DE IMPORTACIÓN - CHINA', 14, 20);
-
-    doc.setFontSize(9);
-    doc.setTextColor(148, 163, 184);
-    doc.text('Generado: ' + new Date().toLocaleString(), 14, 26);
-    doc.text('Filtro Lote: ' + this.getSelectedLoteName(), 14, 31);
-
-    doc.setDrawColor(59, 130, 246);
-    doc.setLineWidth(0.5);
-    doc.line(14, 35, 196, 35);
-
-    doc.setFillColor(30, 41, 59);
-    doc.roundedRect(14, 40, 182, 45, 3, 3, 'F');
-
-    doc.setFontSize(10);
-    doc.setTextColor(255, 255, 255);
-    doc.text('RESUMEN EJECUTIVO FINANCIERO', 20, 48);
-
-    doc.setFontSize(8.5);
-    doc.setTextColor(203, 213, 225);
-    doc.text('• Total Invertido: $' + this.formatNum(this.displayInvertido) + ' COP', 20, 56);
-    doc.text('• Comisiones EHUK: $' + this.formatNum(this.comisionesTotal) + ' COP', 20, 63);
-    doc.text('• Flete Total: $' + this.formatNum(this.fleteTotal) + ' COP (' + this.formatNum(this.mt3Total) + ' m³)', 20, 70);
-    doc.text('• Ganancia Proyectada: $' + this.formatNum(this.gananciaTotal) + ' COP', 110, 56);
-    doc.text('• Pago Inicial (30%): $' + this.formatNum(this.pagoInicialTotal) + ' COP', 110, 63);
-    doc.text('• Saldo Pendiente: $' + this.formatNum(this.saldoTotal) + ' COP', 110, 70);
-
-    doc.setFontSize(11);
-    doc.setTextColor(255, 255, 255);
-    doc.text('DETALLE DE PRODUCTOS E IMPORTACIONES', 14, 96);
-
-    doc.setFillColor(51, 65, 85);
-    doc.rect(14, 100, 182, 7, 'F');
-    doc.setFontSize(7.5);
-    doc.setTextColor(255, 255, 255);
-    doc.text('CÓDIGO', 18, 105);
-    doc.text('CIUDAD', 42, 105);
-    doc.text('DESCRIPCIÓN', 70, 105);
-    doc.text('UNIDADES', 130, 105);
-    doc.text('TOTAL (COP)', 165, 105);
-
-    let y = 112;
-    const items = (this.selectedPedidoCodigo === 'ALL' ? this.allPedidos : this.allPedidos.filter(x => x.codigo === this.selectedPedidoCodigo)).slice(0, 18);
-    items.forEach((p, idx) => {
-      if (idx % 2 === 0) {
-        doc.setFillColor(24, 32, 47);
-        doc.rect(14, y - 4, 182, 6.5, 'F');
-      }
-      doc.setTextColor(226, 232, 240);
-      doc.text(p.codigo || '-', 18, y);
-      doc.text(p.ciudad || '-', 42, y);
-      doc.text((p.descripcion || '-').substring(0, 28), 70, y);
-      doc.text((p.totalQty || 0).toString(), 130, y);
-      doc.text('$' + this.formatNum(p.total || 0), 165, y);
-      y += 7.5;
-    });
-
-    doc.save('Reporte_Importaciones_' + (this.selectedPedidoCodigo || 'General') + '.pdf');
   }
 
   formatNum(n: number): string {
