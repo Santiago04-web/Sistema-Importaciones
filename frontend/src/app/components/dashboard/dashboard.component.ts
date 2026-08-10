@@ -4,14 +4,13 @@ import { FormsModule } from '@angular/forms';
 import { PedidoService, Pedido } from '../../services/pedido.service';
 import { BaseChartDirective } from 'ng2-charts';
 import { ChartConfiguration } from 'chart.js';
-import { RouteMapComponent } from '../route-map/route-map.component';
 import { ExchangeRateComponent } from '../exchange-rate/exchange-rate.component';
 import jsPDF from 'jspdf';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, BaseChartDirective, FormsModule, RouteMapComponent, ExchangeRateComponent],
+  imports: [CommonModule, BaseChartDirective, FormsModule, ExchangeRateComponent],
   template: `
     <div class="dash" *ngIf="!loading">
 
@@ -98,9 +97,6 @@ import jsPDF from 'jspdf';
 
       <!-- WIDGET DE TASA DE CAMBIO EN VIVO -->
       <app-exchange-rate></app-exchange-rate>
-
-      <!-- MAPA INTERACTIVO DE RUTAS CHINA -> COLOMBIA -->
-      <app-route-map></app-route-map>
 
       <!-- ROW 1: METRICAS PRINCIPALES (KPI CARDS) -->
       <div class="kpi-grid">
