@@ -5,6 +5,9 @@ import { FormsModule } from '@angular/forms';
 import { PedidoService, Pedido } from '../../services/pedido.service';
 import { AuthService } from '../../services/auth.service';
 import { PdfService } from '../../services/pdf.service';
+import { SignalrService } from '../../services/signalr.service';
+import { CourierTrackingComponent } from '../courier-tracking/courier-tracking.component';
+import { QrModalComponent } from '../qr-modal/qr-modal.component';
 
 interface ColumnaEtapa {
   id: number;
@@ -16,7 +19,7 @@ interface ColumnaEtapa {
 @Component({
   selector: 'app-kanban',
   standalone: true,
-  imports: [CommonModule, DragDropModule, FormsModule],
+  imports: [CommonModule, DragDropModule, FormsModule, CourierTrackingComponent, QrModalComponent],
   template: `
     <div class="kanban-wrapper">
       
@@ -171,8 +174,14 @@ interface ColumnaEtapa {
               <h2>{{ formatTitleCase(selectedPedido.descripcion) || 'Sin descripción' }}</h2>
             </div>
             <div style="display: flex; align-items: center; gap: 0.5rem;">
+              <button class="pdf-modal-btn" (click)="selectedCourierPedido = selectedPedido" title="Ver Línea de Tiempo Courier">
+                🚚 Courier
+              </button>
+              <button class="pdf-modal-btn" (click)="selectedQrPedido = selectedPedido" title="Ver Código QR">
+                📱 QR
+              </button>
               <button class="pdf-modal-btn" (click)="descargarPdf(selectedPedido)" title="Descargar PDF de esta importación">
-                📄 Exportar PDF
+                📄 PDF
               </button>
               <button class="modal-close-btn" (click)="selectedPedido = null">✕</button>
             </div>
@@ -242,8 +251,11 @@ interface ColumnaEtapa {
             </div>
           </div>
 
-        </div>
-      </div>
+      <!-- COURIER TIMELINE TRACKING MODAL -->
+      <app-courier-tracking *ngIf="selectedCourierPedido" [pedido]="selectedCourierPedido" (closed)="selectedCourierPedido = null"></app-courier-tracking>
+
+      <!-- QR CODE MODAL -->
+      <app-qr-modal *ngIf="selectedQrPedido" [pedido]="selectedQrPedido" (closed)="selectedQrPedido = null"></app-qr-modal>
 
     </div>
   `,
@@ -878,7 +890,22 @@ export class KanbanComponent implements OnInit {
     { id: 5, nombre: 'RECIBIDO', color: '#10b981', pedidos: [] }
   ];
 
-  constructor(private pedidoService: PedidoService, public authService: AuthService, private pdfService: PdfService) {}
+  selectedCourierPedido: Pedido | null = null;
+  selectedQrPedido: Pedido | null = null;
+
+  constructor(
+    private pedidoService: PedidoService, 
+    public authService: AuthService, 
+    private pdfService: PdfService,
+    private signalrService: SignalrService
+  ) {}
+
+  ngOnInit() {
+    this.cargarPedidos();
+    this.signalrService.pedidoCreado$.subscribe(() => this.cargarPedidos());
+    this.signalrService.pedidoActualizado$.subscribe(() => this.cargarPedidos());
+    this.signalrService.pedidoEliminado$.subscribe(() => this.cargarPedidos());
+  }
 
   descargarPdf(pedido: Pedido, event?: Event) {
     if (event) event.stopPropagation();
@@ -907,10 +934,6 @@ export class KanbanComponent implements OnInit {
       event.preventDefault();
       this.boardContainer.nativeElement.scrollLeft += event.deltaY * 1.2;
     }
-  }
-
-  ngOnInit() {
-    this.cargarPedidos();
   }
 
   cargarPedidos() {

@@ -39,6 +39,9 @@ if (string.IsNullOrWhiteSpace(jwtKey))
     throw new InvalidOperationException("La clave secreta 'Jwt:Key' no está configurada en appsettings.json o variables de entorno.");
 }
 
+builder.Services.AddHttpClient<Importaciones.Api.Services.ExchangeRateService>();
+builder.Services.AddSignalR();
+
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -56,6 +59,20 @@ builder.Services.AddAuthentication(options =>
         ValidAudience = builder.Configuration["Jwt:Audience"],
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey)),
         ClockSkew = TimeSpan.Zero // Strict lifetime validation
+    };
+
+    options.Events = new JwtBearerEvents
+    {
+        OnMessageReceived = context =>
+        {
+            var accessToken = context.Request.Query["access_token"];
+            var path = context.HttpContext.Request.Path;
+            if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/hubs"))
+            {
+                context.Token = accessToken;
+            }
+            return Task.CompletedTask;
+        }
     };
 });
 
@@ -200,5 +217,6 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+app.MapHub<Importaciones.Api.Hubs.PedidosHub>("/hubs/pedidos");
 
 app.Run();

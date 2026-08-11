@@ -1,12 +1,25 @@
-import { Component, HostListener } from '@angular/core';
+import { Component, HostListener, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
+import { RouterOutlet, RouterLink, RouterLinkActive, Router } from '@angular/router';
 import { AuthService } from './services/auth.service';
+import { SignalrService } from './services/signalr.service';
+import { PedidoService, Pedido } from './services/pedido.service';
+import { NotificationCenterComponent } from './components/notification-center/notification-center.component';
+import { CommandPaletteComponent } from './components/command-palette/command-palette.component';
+import { FleteCalculatorComponent } from './components/flete-calculator/flete-calculator.component';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive],
+  imports: [
+    CommonModule, 
+    RouterOutlet, 
+    RouterLink, 
+    RouterLinkActive, 
+    NotificationCenterComponent,
+    CommandPaletteComponent,
+    FleteCalculatorComponent
+  ],
   template: `
     <div class="app-layout">
       
@@ -23,19 +36,28 @@ import { AuthService } from './services/auth.service';
               [class.nav-hidden]="isNavCollapsed"
               [class.nav-scroll-hidden]="isNavScrollHidden && !isNavCollapsed"
               *ngIf="authService.getToken()">
-        <a routerLink="/" class="nav-brand">
-          <div class="brand-logo">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
-              <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
-              <line x1="12" y1="22.08" x2="12" y2="12"/>
-            </svg>
-          </div>
-          <div>
-            <h1 class="brand-title">Logigho</h1>
-            <p class="brand-sub">Sistemas de Importación</p>
-          </div>
-        </a>
+        
+        <div class="nav-brand-group">
+          <a routerLink="/" class="nav-brand">
+            <div class="brand-logo">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+                <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
+                <line x1="12" y1="22.08" x2="12" y2="12"/>
+              </svg>
+            </div>
+            <div>
+              <h1 class="brand-title">Logigho</h1>
+              <p class="brand-sub">Sistemas de Importación</p>
+            </div>
+          </a>
+
+          <!-- SIGNALR LIVE STATUS BADGE -->
+          <span class="live-signal-badge" [class.connected]="signalrService.isConnected$ | async" title="Estado de la conexión SignalR en tiempo real">
+            <span class="live-dot"></span>
+            {{ (signalrService.isConnected$ | async) ? '● EN VIVO' : 'CONNECTING...' }}
+          </span>
+        </div>
         
         <div class="nav-actions">
           <!-- NAVIGATION LINKS -->
@@ -47,6 +69,19 @@ import { AuthService } from './services/auth.service';
             <a *ngIf="isAdmin()" routerLink="/usuarios" routerLinkActive="active" class="tab-link">Usuarios</a>
             <a *ngIf="isAdmin()" routerLink="/actividad" routerLinkActive="active" class="tab-link">Actividad</a>
           </div>
+
+          <!-- COMMAND PALETTE TRIGGER -->
+          <button class="cmd-trigger-btn" (click)="openCmdPalette()" title="Buscador global (Ctrl + K)">
+            🔍 <kbd>Ctrl+K</kbd>
+          </button>
+
+          <!-- FREIGHT CALCULATOR TRIGGER -->
+          <button class="calc-trigger-btn" (click)="showCalculator = true" title="Simulador de Fletes & Comisiones">
+            🧮 Simular Flete
+          </button>
+
+          <!-- NOTIFICATION CENTER -->
+          <app-notification-center></app-notification-center>
           
           <!-- HIDE BUTTON -->
           <button class="collapse-btn" (click)="collapseNav()" title="Ocultar menú completamente">
@@ -71,6 +106,12 @@ import { AuthService } from './services/auth.service';
       <main class="main-content">
         <router-outlet></router-outlet>
       </main>
+
+      <!-- GLOBAL COMMAND PALETTE MODAL -->
+      <app-command-palette #cmdPalette [pedidos]="allPedidos" (selectPedido)="onPedidoSelected($event)"></app-command-palette>
+
+      <!-- FREIGHT CALCULATOR SIMULATOR MODAL -->
+      <app-flete-calculator *ngIf="showCalculator" (closed)="showCalculator = false"></app-flete-calculator>
       
     </div>
   `,
@@ -82,14 +123,13 @@ import { AuthService } from './services/auth.service';
       background: #09090b;
     }
     
-    /* ── Permanent solid sticky header ── */
     .top-nav {
       width: 100%;
       height: 56px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 0 2rem;
+      padding: 0 1.5rem;
       border-bottom: 1px solid rgba(255, 255, 255, 0.06);
       background: #09090b;
       position: sticky;
@@ -99,213 +139,237 @@ import { AuthService } from './services/auth.service';
       transform: translateY(0);
       opacity: 1;
     }
-    
-    /* ── Fully hidden state (only on manual collapse button click) ── */
-    .top-nav.nav-hidden {
+    .nav-hidden {
+      display: none !important;
+    }
+    .nav-scroll-hidden {
       transform: translateY(-100%);
       opacity: 0;
       pointer-events: none;
     }
-
-    /* ── Auto-hide on scroll down ── */
-    .top-nav.nav-scroll-hidden {
-      transform: translateY(-100%);
-      opacity: 0;
-      pointer-events: none;
-    }
-    
-    /* ── Floating trigger when collapsed ── */
     .expand-trigger {
       position: fixed;
       top: 0;
       left: 50%;
       transform: translateX(-50%);
-      background: #18181b;
-      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: #09090b;
+      border: 1px solid rgba(59, 130, 246, 0.3);
       border-top: none;
-      border-radius: 0 0 10px 10px;
-      padding: 0.35rem 1.25rem;
-      z-index: 2000;
-      cursor: pointer;
+      border-radius: 0 0 8px 8px;
+      padding: 4px 12px;
       display: flex;
       align-items: center;
-      gap: 0.5rem;
-      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
-      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      gap: 6px;
+      cursor: pointer;
+      z-index: 1001;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.5);
     }
-    
-    .expand-trigger:hover {
-      background: #27272a;
-      border-color: rgba(59, 130, 246, 0.3);
-      box-shadow: 0 4px 20px rgba(59, 130, 246, 0.15);
-      transform: translateX(-50%) translateY(2px);
-    }
-    
     .trigger-text {
       font-size: 0.65rem;
       font-weight: 800;
-      color: #fafafa;
+      color: #3b82f6;
       letter-spacing: 0.05em;
     }
-    
+    .nav-brand-group {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
     .nav-brand {
       display: flex;
       align-items: center;
-      gap: 0.75rem;
+      gap: 10px;
       text-decoration: none;
-      cursor: pointer;
     }
-    
     .brand-logo {
-      width: 34px;
-      height: 34px;
-      background: rgba(59, 130, 246, 0.08);
-      border: 1px solid rgba(59, 130, 246, 0.2);
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      width: 32px;
+      height: 32px;
       border-radius: 8px;
+      background: rgba(59, 130, 246, 0.15);
+      border: 1px solid rgba(59, 130, 246, 0.3);
+      display: flex;
+      justify-content: center;
+      align-items: center;
     }
-    
     .brand-title {
-      font-weight: 700;
-      font-size: 1.05rem;
-      letter-spacing: 0.05em;
+      font-size: 1rem;
+      font-weight: 800;
+      color: #f8fafc;
       margin: 0;
-      color: #fafafa;
-      text-transform: uppercase;
+      line-height: 1;
     }
-    
     .brand-sub {
-      color: #71717a;
-      font-size: 0.68rem;
-      font-weight: 500;
-      margin-top: 0.02rem;
-      margin-bottom: 0;
+      font-size: 0.65rem;
+      color: #64748b;
+      margin: 0;
     }
-    
+    .live-signal-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 0.68rem;
+      font-weight: 800;
+      color: #eab308;
+      background: rgba(234, 179, 8, 0.1);
+      border: 1px solid rgba(234, 179, 8, 0.25);
+      padding: 2px 8px;
+      border-radius: 12px;
+    }
+    .live-signal-badge.connected {
+      color: #10b981;
+      background: rgba(16, 185, 129, 0.1);
+      border-color: rgba(16, 185, 129, 0.25);
+    }
+    .live-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: currentColor;
+    }
     .nav-actions {
       display: flex;
       align-items: center;
-      gap: 0.85rem;
+      gap: 10px;
     }
-    
     .tabs {
       display: flex;
-      background: rgba(255, 255, 255, 0.02);
-      border: 1px solid rgba(255, 255, 255, 0.05);
+      align-items: center;
+      gap: 4px;
+      background: rgba(255, 255, 255, 0.03);
+      padding: 3px;
       border-radius: 8px;
-      overflow: hidden;
-      padding: 2px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
     }
-    
     .tab-link {
-      padding: 0.4rem 1rem;
-      color: #a1a1aa;
-      text-decoration: none;
+      padding: 0.4rem 0.75rem;
       font-size: 0.8rem;
       font-weight: 600;
+      color: #94a3b8;
+      text-decoration: none;
       border-radius: 6px;
-      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-      border: none;
+      transition: all 0.15s ease;
     }
-    
     .tab-link:hover {
-      color: #fafafa;
-      background: rgba(255, 255, 255, 0.04);
+      color: #f1f5f9;
+      background: rgba(255, 255, 255, 0.05);
     }
-    
     .tab-link.active {
-      background: rgba(255, 255, 255, 0.08);
-      border: 1px solid rgba(255,255,255,0.05);
-      color: #fafafa;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+      color: #fff;
+      background: #3b82f6;
+      box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
     }
-    
-    /* ── Collapse button ── */
-    .collapse-btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      background: rgba(255, 255, 255, 0.02);
-      border: 1px solid rgba(255, 255, 255, 0.05);
-      color: #71717a;
-      width: 30px;
-      height: 30px;
+    .cmd-trigger-btn {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #cbd5e1;
+      padding: 0.35rem 0.75rem;
       border-radius: 8px;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-    
-    .collapse-btn:hover {
-      background: rgba(255, 255, 255, 0.06);
-      border-color: rgba(255, 255, 255, 0.12);
-      color: #fafafa;
-    }
-    
-    .logout-btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.4rem;
-      background: rgba(239, 68, 68, 0.08);
-      border: 1px solid rgba(239, 68, 68, 0.15);
-      color: #f87171;
-      padding: 0.4rem 0.9rem;
-      border-radius: 8px;
-      font-size: 0.78rem;
+      font-size: 0.75rem;
       font-weight: 600;
       cursor: pointer;
-      font-family: inherit;
-      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 6px;
     }
-    
+    .cmd-trigger-btn kbd {
+      background: rgba(255, 255, 255, 0.1);
+      color: #60a5fa;
+      padding: 1px 4px;
+      border-radius: 4px;
+      font-size: 0.65rem;
+    }
+    .calc-trigger-btn {
+      background: rgba(16, 185, 129, 0.1);
+      border: 1px solid rgba(16, 185, 129, 0.25);
+      color: #10b981;
+      padding: 0.35rem 0.75rem;
+      border-radius: 8px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .collapse-btn, .logout-btn {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #94a3b8;
+      border-radius: 8px;
+      padding: 0.35rem 0.75rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.8rem;
+    }
     .logout-btn:hover {
-      background: #ef4444;
-      border-color: #ef4444;
-      color: #fff;
-      box-shadow: 0 0 12px rgba(239, 68, 68, 0.25);
+      background: rgba(239, 68, 68, 0.15);
+      color: #ef4444;
+      border-color: rgba(239, 68, 68, 0.3);
     }
-    
     .main-content {
       flex: 1;
-      padding: 1.25rem 2rem;
-      display: flex;
-      flex-direction: column;
-      min-height: calc(100vh - 56px);
+      padding: 1.5rem;
     }
 
-    @media (max-width: 900px) {
-      .main-content {
-        padding: 1rem 1rem;
-      }
+    @media (max-width: 768px) {
       .top-nav {
-        padding: 0 1rem;
+        padding: 0 0.75rem;
       }
-      .tab-link {
-        padding: 0.35rem 0.65rem;
-        font-size: 0.75rem;
+      .calc-trigger-btn, .cmd-trigger-btn kbd {
+        display: none;
       }
     }
   `]
 })
-export class AppComponent {
+export class AppComponent implements OnInit {
   isNavCollapsed = false;
   isNavScrollHidden = false;
+  showCalculator = false;
+  allPedidos: Pedido[] = [];
   private lastScrollY = 0;
 
-  constructor(public authService: AuthService) {}
+  @ViewChild('cmdPalette') cmdPalette!: CommandPaletteComponent;
+
+  constructor(
+    public authService: AuthService,
+    public signalrService: SignalrService,
+    private pedidoService: PedidoService,
+    private router: Router
+  ) {}
+
+  ngOnInit() {
+    this.loadPedidos();
+  }
+
+  loadPedidos() {
+    if (this.authService.getToken()) {
+      this.pedidoService.getPedidos().subscribe({
+        next: (data) => {
+          this.allPedidos = data || [];
+        }
+      });
+    }
+  }
 
   @HostListener('window:scroll', [])
   onWindowScroll() {
     const currentY = window.scrollY;
     const delta = currentY - this.lastScrollY;
-    // Hide when scrolling DOWN more than 8px, show when scrolling UP
     if (delta > 8 && currentY > 56) {
       this.isNavScrollHidden = true;
     } else if (delta < -4) {
       this.isNavScrollHidden = false;
     }
     this.lastScrollY = currentY;
+  }
+
+  openCmdPalette() {
+    if (this.cmdPalette) {
+      this.cmdPalette.toggle();
+    }
+  }
+
+  onPedidoSelected(pedido: Pedido) {
+    this.router.navigate(['/kanban']);
   }
 
   isAdmin(): boolean {

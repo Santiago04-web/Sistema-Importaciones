@@ -1,6 +1,7 @@
-import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { PedidoService } from '../../services/pedido.service';
 
 @Component({
   selector: 'app-exchange-rate',
@@ -11,26 +12,28 @@ import { FormsModule } from '@angular/forms';
       <div class="rate-card-top">
         <div class="rate-badge">
           <span class="live-dot"></span>
-          <span>TASA DE CAMBIO CNY / COP EN VIVO</span>
+          <span>TASA DE CAMBIO EN VIVO (CNY ➔ COP)</span>
         </div>
         <div class="market-status">
-          <span>Mercado Abierto · Shanghai / Bogotá</span>
+          <span>Fuente: {{ rateSource }} · Actualizado: {{ lastUpdated | date:'shortTime' }}</span>
         </div>
       </div>
 
       <div class="rate-main-row">
         <div class="rate-val-box">
-          <span class="currency-pair">1 CNY (Yuan Chino) =</span>
+          <span class="currency-pair">1 CNY (Yuan RMB) =</span>
           <div class="big-rate">
             <strong>{{ currentRate | number:'1.2-2' }}</strong>
             <span class="cop-unit">COP</span>
-            <span class="rate-change positive">▲ +0.45% (24h)</span>
+            <span class="rate-change" [class.positive]="isLive" [class.neutral]="!isLive">
+              {{ isLive ? '● API Divisas Real en Vivo' : '● Valor Registrado' }}
+            </span>
           </div>
         </div>
 
         <!-- QUICK CALCULATOR CONVERTER -->
         <div class="rate-calc-box">
-          <label class="calc-lbl">🧮 Conversor Rápido RMB $\rightarrow$ COP</label>
+          <label class="calc-lbl">🧮 Conversor Rápido RMB ➔ COP</label>
           <div class="calc-input-group">
             <input type="number" [(ngModel)]="rmbInput" (input)="onRmbChange()" class="calc-input" placeholder="¥ Yuanes">
             <span class="calc-equals">=</span>
@@ -90,7 +93,7 @@ import { FormsModule } from '@angular/forms';
     }
     .market-status {
       font-size: 0.75rem;
-      color: #64748b;
+      color: #94a3b8;
     }
     .rate-main-row {
       display: flex;
@@ -100,10 +103,10 @@ import { FormsModule } from '@angular/forms';
       gap: 1.5rem;
     }
     .currency-pair {
-      font-size: 0.82rem;
+      font-size: 0.8rem;
       color: #94a3b8;
       display: block;
-      margin-bottom: 4px;
+      margin-bottom: 2px;
     }
     .big-rate {
       display: flex;
@@ -111,39 +114,43 @@ import { FormsModule } from '@angular/forms';
       gap: 8px;
     }
     .big-rate strong {
-      font-size: 2.2rem;
+      font-size: 2.1rem;
       font-weight: 800;
-      color: #fff;
-      letter-spacing: -0.03em;
+      color: #3b82f6;
+      letter-spacing: -0.02em;
     }
     .cop-unit {
-      font-size: 1.1rem;
+      font-size: 1rem;
       font-weight: 700;
-      color: #38bdf8;
+      color: #64748b;
     }
     .rate-change {
-      font-size: 0.8rem;
-      font-weight: 700;
-      padding: 2px 8px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 3px 8px;
       border-radius: 6px;
-      margin-left: 8px;
+      margin-left: 6px;
     }
     .rate-change.positive {
-      color: #34d399;
+      color: #10b981;
       background: rgba(16, 185, 129, 0.12);
     }
+    .rate-change.neutral {
+      color: #eab308;
+      background: rgba(234, 179, 8, 0.12);
+    }
     .rate-calc-box {
-      background: rgba(255, 255, 255, 0.03);
+      background: rgba(0, 0, 0, 0.3);
       border: 1px solid rgba(255, 255, 255, 0.08);
-      padding: 10px 14px;
       border-radius: 12px;
+      padding: 0.75rem 1.25rem;
       min-width: 320px;
     }
     .calc-lbl {
+      display: block;
       font-size: 0.75rem;
       font-weight: 600;
-      color: #cbd5e1;
-      display: block;
+      color: #94a3b8;
       margin-bottom: 6px;
     }
     .calc-input-group {
@@ -197,10 +204,37 @@ import { FormsModule } from '@angular/forms';
     }
   `]
 })
-export class ExchangeRateComponent {
-  @Input() currentRate = 560.50; // COP per RMB
+export class ExchangeRateComponent implements OnInit {
+  currentRate = 560.50;
+  rateSource = 'Cargando...';
+  lastUpdated = new Date();
+  isLive = true;
   rmbInput = 1000;
   convertedCop = 560500;
+
+  constructor(private pedidoService: PedidoService) {}
+
+  ngOnInit() {
+    this.fetchLiveRate();
+  }
+
+  fetchLiveRate() {
+    this.pedidoService.getCnyCopRate().subscribe({
+      next: (res: any) => {
+        if (res && res.rateCnyCop) {
+          this.currentRate = res.rateCnyCop;
+          this.rateSource = res.source || 'ExchangeRate-API Real-Time';
+          this.lastUpdated = res.lastUpdated ? new Date(res.lastUpdated) : new Date();
+          this.isLive = res.isLive !== false;
+          this.onRmbChange();
+        }
+      },
+      error: () => {
+        this.rateSource = 'Banco de la República / Cache Local';
+        this.isLive = false;
+      }
+    });
+  }
 
   onRmbChange() {
     const val = Number(this.rmbInput) || 0;

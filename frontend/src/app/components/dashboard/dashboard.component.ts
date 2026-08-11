@@ -2,15 +2,27 @@ import { Component, OnInit, HostListener, ChangeDetectorRef } from '@angular/cor
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { PedidoService, Pedido } from '../../services/pedido.service';
+import { SignalrService } from '../../services/signalr.service';
 import { BaseChartDirective } from 'ng2-charts';
 import { ChartConfiguration } from 'chart.js';
 import { ExchangeRateComponent } from '../exchange-rate/exchange-rate.component';
+import { AiInsightsComponent } from '../ai-insights/ai-insights.component';
+import { CourierTrackingComponent } from '../courier-tracking/courier-tracking.component';
+import { QrModalComponent } from '../qr-modal/qr-modal.component';
 import jsPDF from 'jspdf';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, BaseChartDirective, FormsModule, ExchangeRateComponent],
+  imports: [
+    CommonModule, 
+    BaseChartDirective, 
+    FormsModule, 
+    ExchangeRateComponent, 
+    AiInsightsComponent, 
+    CourierTrackingComponent, 
+    QrModalComponent
+  ],
   template: `
     <div class="dash" *ngIf="!loading">
 
@@ -97,6 +109,9 @@ import jsPDF from 'jspdf';
 
       <!-- WIDGET DE TASA DE CAMBIO EN VIVO -->
       <app-exchange-rate></app-exchange-rate>
+
+      <!-- WIDGET DE IA INSIGHTS LOGÍSTICOS & FINANCIEROS -->
+      <app-ai-insights [pedidos]="allPedidos"></app-ai-insights>
 
       <!-- ROW 1: METRICAS PRINCIPALES (KPI CARDS) -->
       <div class="kpi-grid">
@@ -1380,10 +1395,23 @@ export class DashboardComponent implements OnInit {
   };
 
   filterCategory: 'ALL' | 'EHUK' | 'FLETE' | 'PRODUCTO' | 'PAGO_30' | 'SALDO' = 'ALL';
+  selectedCourierPedido: Pedido | null = null;
+  selectedQrPedido: Pedido | null = null;
 
-  constructor(private pedidoService: PedidoService, private cdr: ChangeDetectorRef) {}
+  constructor(
+    private pedidoService: PedidoService, 
+    public signalrService: SignalrService,
+    private cdr: ChangeDetectorRef
+  ) {}
 
   ngOnInit() {
+    this.loadData();
+    this.signalrService.pedidoCreado$.subscribe(() => this.loadData());
+    this.signalrService.pedidoActualizado$.subscribe(() => this.loadData());
+    this.signalrService.pedidoEliminado$.subscribe(() => this.loadData());
+  }
+
+  loadData() {
     this.pedidoService.getPedidos().subscribe({
       next: (pedidos) => {
         this.allPedidos = pedidos;

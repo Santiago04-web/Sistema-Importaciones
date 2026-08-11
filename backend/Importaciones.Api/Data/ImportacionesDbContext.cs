@@ -40,6 +40,7 @@ public class ImportacionesDbContext : IdentityDbContext<IdentityUser>
     }
 
     public DbSet<Pedido> Pedidos => Set<Pedido>();
+    public DbSet<EtapaHistorial> EtapaHistoriales => Set<EtapaHistorial>();
     public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
     public DbSet<UserRefreshToken> UserRefreshTokens => Set<UserRefreshToken>();
 

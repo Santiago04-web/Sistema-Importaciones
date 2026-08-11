@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { PedidoService, Pedido } from '../../services/pedido.service';
 import { AuthService } from '../../services/auth.service';
 import { PdfService } from '../../services/pdf.service';
+import { SignalrService } from '../../services/signalr.service';
 
 @Component({
   selector: 'app-table',
@@ -1500,10 +1501,18 @@ export class TableComponent implements OnInit {
     return this.pedidosFiltrados.length > 0 && this.pedidosFiltrados.every(p => this.selectedIds.has(p.id!));
   }
 
-  constructor(private pedidoService: PedidoService, public authService: AuthService, private pdfService: PdfService) {}
+  constructor(
+    private pedidoService: PedidoService, 
+    public authService: AuthService, 
+    private pdfService: PdfService,
+    private signalrService: SignalrService
+  ) {}
 
   ngOnInit() {
     this.cargarPedidos();
+    this.signalrService.pedidoCreado$.subscribe(() => this.cargarPedidos());
+    this.signalrService.pedidoActualizado$.subscribe(() => this.cargarPedidos());
+    this.signalrService.pedidoEliminado$.subscribe(() => this.cargarPedidos());
   }
   
   cargarPedidos() {

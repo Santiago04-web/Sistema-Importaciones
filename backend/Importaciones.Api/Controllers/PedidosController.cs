@@ -4,8 +4,10 @@ using Microsoft.EntityFrameworkCore;
 using ClosedXML.Excel;
 using System.Security.Claims;
 using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.AspNetCore.SignalR;
 using Importaciones.Api.Data;
 using Importaciones.Api.Models;
+using Importaciones.Api.Hubs;
 
 namespace Importaciones.Api.Controllers;
 
@@ -33,11 +35,16 @@ public class PedidosController : ControllerBase
 {
     private readonly ImportacionesDbContext _context;
     private readonly ILogger<PedidosController> _logger;
+    private readonly IHubContext<PedidosHub> _hubContext;
 
-    public PedidosController(ImportacionesDbContext context, ILogger<PedidosController> logger)
+    public PedidosController(
+        ImportacionesDbContext context, 
+        ILogger<PedidosController> logger,
+        IHubContext<PedidosHub> hubContext)
     {
         _context = context;
         _logger = logger;
+        _hubContext = hubContext;
     }
 
     private void SetAuditUserId()
@@ -49,14 +56,18 @@ public class PedidosController : ControllerBase
     [Authorize(Roles = "Admin,Editor,Viewer")]
     public async Task<ActionResult<IEnumerable<Pedido>>> GetPedidos()
     {
-        return await _context.Pedidos.ToListAsync();
+        return await _context.Pedidos
+            .Include(p => p.HistorialEtapas)
+            .ToListAsync();
     }
 
     [HttpGet("{id}")]
     [Authorize(Roles = "Admin,Editor,Viewer")]
     public async Task<ActionResult<Pedido>> GetPedido(int id)
     {
-        var pedido = await _context.Pedidos.FindAsync(id);
+        var pedido = await _context.Pedidos
+            .Include(p => p.HistorialEtapas)
+            .FirstOrDefaultAsync(p => p.Id == id);
         if (pedido == null) return NotFound();
         return pedido;
     }
@@ -280,6 +291,19 @@ public class PedidosController : ControllerBase
         SetAuditUserId();
         _context.Pedidos.Add(pedido);
         await _context.SaveChangesAsync();
+
+        // Registrar EtapaHistorial inicial
+        _context.EtapaHistoriales.Add(new EtapaHistorial
+        {
+            PedidoId = pedido.Id,
+            Etapa = pedido.Etapa,
+            FechaCambio = DateTime.UtcNow
+        });
+        await _context.SaveChangesAsync();
+
+        // Transmitir evento SignalR en tiempo real
+        await _hubContext.Clients.All.SendAsync("PedidoCreado", pedido);
+
         return CreatedAtAction(nameof(GetPedido), new { id = pedido.Id }, pedido);
     }
 
@@ -297,11 +321,24 @@ public class PedidosController : ControllerBase
         pedido.Referencia = System.Net.WebUtility.HtmlEncode(pedido.Referencia ?? "");
 
         SetAuditUserId();
+
+        var existing = await _context.Pedidos.AsNoTracking().FirstOrDefaultAsync(p => p.Id == id);
+        if (existing != null && existing.Etapa != pedido.Etapa)
+        {
+            _context.EtapaHistoriales.Add(new EtapaHistorial
+            {
+                PedidoId = id,
+                Etapa = pedido.Etapa,
+                FechaCambio = DateTime.UtcNow
+            });
+        }
+
         _context.Entry(pedido).State = EntityState.Modified;
 
         try
         {
             await _context.SaveChangesAsync();
+            await _hubContext.Clients.All.SendAsync("PedidoActualizado", pedido);
         }
         catch (DbUpdateConcurrencyException ex)
         {
@@ -323,6 +360,7 @@ public class PedidosController : ControllerBase
 
         _context.Pedidos.Remove(pedido);
         await _context.SaveChangesAsync();
+        await _hubContext.Clients.All.SendAsync("PedidoEliminado", id);
         return NoContent();
     }
 

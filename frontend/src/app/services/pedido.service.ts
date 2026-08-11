@@ -20,6 +20,8 @@ export interface Pedido {
   porcentajeEhuk: number;
   fotoUrl?: string;
   etapa: number;
+  fechaLimitePago?: string;
+  historialEtapas?: { id: number; pedidoId: number; etapa: number; fechaCambio: string }[];
   
   // Calculated fields
   pesos?: number;
@@ -98,7 +100,15 @@ export class PedidoService {
   uploadPedidoImage(id: number, file: File): Observable<any> {
     const formData = new FormData();
     formData.append('file', file);
-    return this.http.post(`${this.apiUrl}/${id}/upload-image`, formData);
+    return this.http.post(`${this.apiUrl}/${id}/image`, formData);
+  }
+
+  getCnyCopRate(): Observable<{ rateCnyCop: number; lastUpdated: string; source: string; isLive: boolean }> {
+    return this.http.get<{ rateCnyCop: number; lastUpdated: string; source: string; isLive: boolean }>('http://localhost:5174/api/tasas/cny-cop');
+  }
+
+  simularPedido(pedido: Partial<Pedido>): Observable<any> {
+    return this.http.post(`${this.apiUrl}/simular`, pedido);
   }
 
   getDashboardData(): Observable<any> {

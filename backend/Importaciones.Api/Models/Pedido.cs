@@ -29,6 +29,9 @@ public class Pedido
     
     public EtapaPedido Etapa { get; set; } = EtapaPedido.Cotizacion;
     public string? FotoUrl { get; set; }
+    public DateTime? FechaLimitePago { get; set; }
+    
+    public ICollection<EtapaHistorial> HistorialEtapas { get; set; } = new List<EtapaHistorial>();
     
     [Range(0, 10000000, ErrorMessage = "TotalQty debe ser un valor positivo.")]
     public int TotalQty { get; set; }
