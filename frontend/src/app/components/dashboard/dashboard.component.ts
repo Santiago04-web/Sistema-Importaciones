@@ -110,9 +110,6 @@ import jsPDF from 'jspdf';
       <!-- WIDGET DE TASA DE CAMBIO EN VIVO -->
       <app-exchange-rate></app-exchange-rate>
 
-      <!-- WIDGET DE IA INSIGHTS LOGÍSTICOS & FINANCIEROS -->
-      <app-ai-insights [pedidos]="allPedidos"></app-ai-insights>
-
       <!-- ROW 1: METRICAS PRINCIPALES (KPI CARDS) -->
       <div class="kpi-grid">
         <div class="kpi-card" [class.dash-card-anim]="isUpdating" [class.active-glow-blue]="filterCategory === 'ALL' || filterCategory === 'PRODUCTO'">

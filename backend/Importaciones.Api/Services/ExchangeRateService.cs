@@ -33,6 +33,7 @@ public class ExchangeRateService
     public ExchangeRateService(HttpClient httpClient, ILogger<ExchangeRateService> logger)
     {
         _httpClient = httpClient;
+        _httpClient.Timeout = TimeSpan.FromSeconds(3);
         _logger = logger;
     }
 
