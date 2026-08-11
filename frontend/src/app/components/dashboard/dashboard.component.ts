@@ -1,7 +1,7 @@
 import { Component, OnInit, HostListener, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { PedidoService, Pedido } from '../../services/pedido.service';
+import { PedidoService, Pedido, calculateFinancials } from '../../services/pedido.service';
 import { SignalrService } from '../../services/signalr.service';
 import { of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
@@ -1413,7 +1413,7 @@ export class DashboardComponent implements OnInit {
       catchError(() => of([]))
     ).subscribe({
       next: (pedidos) => {
-        this.allPedidos = pedidos || [];
+        this.allPedidos = (pedidos || []).map(p => calculateFinancials(p));
         this.computeAll();
         this.loading = false;
         this.cdr.detectChanges();

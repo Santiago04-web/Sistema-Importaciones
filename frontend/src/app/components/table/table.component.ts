@@ -1,7 +1,7 @@
 import { Component, OnInit, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { PedidoService, Pedido } from '../../services/pedido.service';
+import { PedidoService, Pedido, calculateFinancials } from '../../services/pedido.service';
 import { AuthService } from '../../services/auth.service';
 import { PdfService } from '../../services/pdf.service';
 import { SignalrService } from '../../services/signalr.service';
@@ -2302,7 +2302,7 @@ export class TableComponent implements OnInit {
     this.loading = true;
     this.pedidoService.getPedidos().subscribe({
       next: (data) => {
-        this.pedidos = data;
+        this.pedidos = (data || []).map(p => calculateFinancials(p));
         this.aplicarFiltros();
         setTimeout(() => this.loading = false, 400);
       },
@@ -2563,6 +2563,9 @@ export class TableComponent implements OnInit {
   private saveDebounceTimer: any;
 
   onCellChange(pedido: Pedido) {
+    const updated = calculateFinancials(pedido);
+    Object.assign(pedido, updated);
+    this.aplicarFiltros();
     if (this.saveDebounceTimer) {
       clearTimeout(this.saveDebounceTimer);
     }
