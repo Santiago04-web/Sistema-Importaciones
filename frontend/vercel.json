@@ -1,0 +1,11 @@
+{
+  "version": 2,
+  "buildCommand": "npx ng build --configuration production",
+  "outputDirectory": "dist/frontend/browser",
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
+}
