@@ -134,6 +134,10 @@ import { SignalrService } from '../../services/signalr.service';
             {{ mostrarFotos ? '🖼️ Fotos Visibles' : '📄 Modo Excel Limpio' }}
           </button>
 
+          <button class="view-pill-btn" [class.active]="mostrarObservaciones" (click)="toggleMostrarObservaciones()" title="Mostrar u ocultar notas u observaciones de los productos">
+            {{ mostrarObservaciones ? '📝 Obs. Visibles' : '📝 Obs. Ocultas' }}
+          </button>
+
           <button class="view-pill-btn" [class.active]="agruparPorProducto" (click)="toggleAgruparPorProducto()" title="Agrupar productos repetidos en 1 sola tarjeta desplegable">
             {{ agruparPorProducto ? '📑 Agrupado por Producto' : '📋 Filas Individuales' }}
           </button>
@@ -298,7 +302,7 @@ import { SignalrService } from '../../services/signalr.service';
                          (change)="actualizarPedido(pedido)"
                          placeholder="Producto...">
                   
-                  <div class="obs-subrow" *ngIf="pedido.observaciones || editField === pedido.id + '-obs'">
+                  <div class="obs-subrow" *ngIf="mostrarObservaciones && (pedido.observaciones || editField === pedido.id + '-obs')">
                     <span class="obs-tag">Obs:</span>
                     <input type="text" class="inline-edit-input obs-input"
                            [(ngModel)]="pedido.observaciones"
@@ -306,7 +310,7 @@ import { SignalrService } from '../../services/signalr.service';
                            (blur)="editField = null"
                            placeholder="Observación...">
                   </div>
-                  <span class="add-obs-btn" *ngIf="!pedido.observaciones && editField !== pedido.id + '-obs'" (click)="editField = pedido.id + '-obs'">
+                  <span class="add-obs-btn" *ngIf="mostrarObservaciones && !pedido.observaciones && editField !== pedido.id + '-obs'" (click)="editField = pedido.id + '-obs'">
                     + Obs
                   </span>
                 </div>
@@ -2195,8 +2199,14 @@ export class TableComponent implements OnInit {
     return `Aplicar a ${prefix} ${totalCount} "${desc}"`;
   }
 
+  mostrarObservaciones = true;
+
   toggleMostrarFotos() {
     this.mostrarFotos = !this.mostrarFotos;
+  }
+
+  toggleMostrarObservaciones() {
+    this.mostrarObservaciones = !this.mostrarObservaciones;
   }
 
   toggleAgruparPorProducto() {
