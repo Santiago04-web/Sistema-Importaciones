@@ -404,3 +404,28 @@ public class PedidosController : ControllerBase
         return NoContent();
     }
 }
+
+public class ExcelConfirmRequest
+{
+    public string? OverrideCodigo { get; set; }
+    public List<PedidoInputDto>? Items { get; set; }
+}
+
+public class PedidoInputDto
+{
+    public string? Codigo { get; set; }
+    public string? Ciudad { get; set; }
+    public DateTime? FechaNegociacion { get; set; }
+    public bool Abono { get; set; }
+    public string? Descripcion { get; set; }
+    public string? Observaciones { get; set; }
+    public string? Referencia { get; set; }
+    public int TotalQty { get; set; }
+    public decimal Yuanes { get; set; }
+    public int PiezasCaja { get; set; }
+    public decimal Cubica { get; set; }
+    public decimal Tasa { get; set; }
+    public decimal PrecioMt3 { get; set; }
+    public decimal PorcentajeEhuk { get; set; }
+    public EtapaPedido Etapa { get; set; }
+}
