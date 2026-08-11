@@ -39,7 +39,11 @@ if (string.IsNullOrWhiteSpace(jwtKey))
     throw new InvalidOperationException("La clave secreta 'Jwt:Key' no está configurada en appsettings.json o variables de entorno.");
 }
 
+builder.Services.Configure<Importaciones.Api.Services.ImportacionesConfig>(builder.Configuration.GetSection("ImportacionesConfig"));
 builder.Services.AddHttpClient<Importaciones.Api.Services.ExchangeRateService>();
+builder.Services.AddScoped<Importaciones.Api.Services.ExcelService>();
+builder.Services.AddScoped<Importaciones.Api.Services.ImagenService>();
+builder.Services.AddScoped<Importaciones.Api.Services.DocumentoService>();
 builder.Services.AddSignalR();
 
 builder.Services.AddAuthentication(options =>

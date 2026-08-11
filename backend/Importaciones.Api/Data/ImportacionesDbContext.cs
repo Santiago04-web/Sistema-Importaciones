@@ -42,6 +42,10 @@ public class ImportacionesDbContext : IdentityDbContext<IdentityUser>
     public DbSet<Pedido> Pedidos => Set<Pedido>();
     public DbSet<EtapaHistorial> EtapaHistoriales => Set<EtapaHistorial>();
     public DbSet<PagoParcial> PagoParciales => Set<PagoParcial>();
+    public DbSet<Proveedor> Proveedores => Set<Proveedor>();
+    public DbSet<Contenedor> Contenedores => Set<Contenedor>();
+    public DbSet<DocumentoAdjunto> Documentos => Set<DocumentoAdjunto>();
+    public DbSet<Notificacion> Notificaciones => Set<Notificacion>();
     public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
     public DbSet<UserRefreshToken> UserRefreshTokens => Set<UserRefreshToken>();
 
@@ -154,5 +158,13 @@ public class ImportacionesDbContext : IdentityDbContext<IdentityUser>
         }
 
         return result;
+    }
+
+    protected override void OnModelCreating(ModelBuilder builder)
+    {
+        base.OnModelCreating(builder);
+
+        // Soft-delete Global Query Filter for real-world money audit compliance
+        builder.Entity<Pedido>().HasQueryFilter(p => !p.Eliminado);
     }
 }

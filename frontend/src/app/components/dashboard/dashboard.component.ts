@@ -1360,12 +1360,12 @@ export class DashboardComponent implements OnInit {
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
-      legend: { display: true, labels: { color: '#94a3b8', font: { size: 10 }, usePointStyle: true, pointStyle: 'circle' } },
+      legend: { display: true, labels: { color: '#f8fafc', font: { size: 11, weight: 'bold' }, usePointStyle: true, pointStyle: 'circle' } },
       tooltip: {
-        backgroundColor: '#141418',
-        titleColor: '#fff',
-        bodyColor: '#cbd5e1',
-        borderColor: 'rgba(255,255,255,0.1)',
+        backgroundColor: '#0f172a',
+        titleColor: '#f8fafc',
+        bodyColor: '#f8fafc',
+        borderColor: 'rgba(59,130,246,0.3)',
         borderWidth: 1,
         cornerRadius: 8,
         padding: 10,
@@ -1380,9 +1380,10 @@ export class DashboardComponent implements OnInit {
       }
     },
     scales: {
-      x: { ticks: { color: '#64748b', font: { size: 10 } }, grid: { display: false }, border: { color: 'rgba(255,255,255,0.06)' } },
+      x: { ticks: { color: '#e2e8f0', font: { size: 11, weight: 'bold' } }, grid: { display: false }, border: { color: 'rgba(255,255,255,0.15)' } },
       y: {
-        grid: { color: 'rgba(255,255,255,0.04)' },
+        ticks: { color: '#e2e8f0', font: { size: 11, weight: 'bold' } },
+        grid: { color: 'rgba(255,255,255,0.08)' },
         border: { display: false }
       }
     }

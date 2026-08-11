@@ -27,7 +27,10 @@ public class Pedido
 
     public string? FotoUrl { get; set; }
 
-    public int Etapa { get; set; } = 0; // 0: Cotizacion, 1: Confirmado, 2: Pagado, 3: En Transito, 4: Aduana, 5: Recibido
+    public EtapaPedido Etapa { get; set; } = EtapaPedido.Cotizacion;
+
+    [MaxLength(100)]
+    public string Categoria { get; set; } = "General";
 
     [MaxLength(500)]
     public string Descripcion { get; set; } = string.Empty;
@@ -64,12 +67,27 @@ public class Pedido
     [Range(0, 1.0)]
     public decimal PorcentajeEhuk { get; set; } = DEFAULT_EHUK_PERCENT;
 
+    // SOFT-DELETE FOR AUDIT & REAL MONEY INTEGRITY
+    public bool Eliminado { get; set; } = false;
+    public DateTime? FechaEliminacion { get; set; }
+
+    // RELATIONS
+    public int? ProveedorId { get; set; }
+    [ForeignKey(nameof(ProveedorId))]
+    public Proveedor? Proveedor { get; set; }
+
+    public int? ContenedorId { get; set; }
+    [ForeignKey(nameof(ContenedorId))]
+    public Contenedor? Contenedor { get; set; }
+
     [Timestamp]
     public byte[]? RowVersion { get; set; }
 
     public ICollection<EtapaHistorial> HistorialEtapas { get; set; } = new List<EtapaHistorial>();
     public ICollection<PagoParcial> PagosParciales { get; set; } = new List<PagoParcial>();
+    public ICollection<DocumentoAdjunto> Documentos { get; set; } = new List<DocumentoAdjunto>();
 
+    // CALCULATED PROPERTIES
     public decimal Pesos => Yuanes * Tasa;
     public int Cajas => PiezasCaja > 0 ? TotalQty / PiezasCaja : 0;
     public decimal Mt3 => Cubica * Cajas;

@@ -6,6 +6,7 @@ import { SignalrService } from './services/signalr.service';
 import { PedidoService, Pedido } from './services/pedido.service';
 import { CommandPaletteComponent } from './components/command-palette/command-palette.component';
 import { ExchangeRateComponent } from './components/exchange-rate/exchange-rate.component';
+import { LanguageService } from './services/language.service';
 
 @Component({
   selector: 'app-root',
@@ -63,12 +64,21 @@ import { ExchangeRateComponent } from './components/exchange-rate/exchange-rate.
         <div class="nav-actions">
           <!-- NAVIGATION LINKS -->
           <div class="tabs">
-            <a routerLink="/dashboard" routerLinkActive="active" class="tab-link">Dashboard</a>
-            <a routerLink="/kanban" routerLinkActive="active" class="tab-link">Tablero</a>
-            <a routerLink="/table" routerLinkActive="active" class="tab-link">Lista</a>
-            <a *ngIf="canEdit()" routerLink="/excel" routerLinkActive="active" class="tab-link">Subir Excel</a>
-            <a *ngIf="isAdmin()" routerLink="/usuarios" routerLinkActive="active" class="tab-link">Usuarios</a>
-            <a *ngIf="isAdmin()" routerLink="/actividad" routerLinkActive="active" class="tab-link">Actividad</a>
+            <a routerLink="/dashboard" routerLinkActive="active" class="tab-link">{{ langService.t('nav_dashboard') }}</a>
+            <a routerLink="/kanban" routerLinkActive="active" class="tab-link">{{ langService.t('nav_kanban') }}</a>
+            <a routerLink="/table" routerLinkActive="active" class="tab-link">{{ langService.t('nav_table') }}</a>
+            <a *ngIf="canEdit()" routerLink="/excel" routerLinkActive="active" class="tab-link">{{ langService.t('nav_excel') }}</a>
+            <a routerLink="/proveedores" routerLinkActive="active" class="tab-link">{{ langService.t('nav_proveedores') }}</a>
+            <a routerLink="/contenedores" routerLinkActive="active" class="tab-link">{{ langService.t('nav_contenedores') }}</a>
+            <a *ngIf="isAdmin()" routerLink="/usuarios" routerLinkActive="active" class="tab-link">{{ langService.t('nav_users') }}</a>
+            <a *ngIf="isAdmin()" routerLink="/actividad" routerLinkActive="active" class="tab-link">{{ langService.t('nav_activity') }}</a>
+          </div>
+
+          <!-- LANGUAGE SELECTOR -->
+          <div class="lang-pills">
+            <button class="l-pill" [class.active]="langService.currentLang() === 'es'" (click)="langService.setLanguage('es')">ES</button>
+            <button class="l-pill" [class.active]="langService.currentLang() === 'en'" (click)="langService.setLanguage('en')">EN</button>
+            <button class="l-pill" [class.active]="langService.currentLang() === 'zh'" (click)="langService.setLanguage('zh')">中文</button>
           </div>
 
           <!-- COMMAND PALETTE TRIGGER -->
@@ -248,6 +258,26 @@ import { ExchangeRateComponent } from './components/exchange-rate/exchange-rate.
       background: #3b82f6;
       box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
     }
+    .lang-pills {
+      display: flex;
+      gap: 3px;
+      margin: 0 6px;
+    }
+    .l-pill {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #94a3b8;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 0.7rem;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .l-pill.active, .l-pill:hover {
+      background: #3b82f6;
+      color: #fff;
+      border-color: #3b82f6;
+    }
     .cmd-trigger-btn {
       background: rgba(255, 255, 255, 0.05);
       border: 1px solid rgba(255, 255, 255, 0.1);
@@ -323,7 +353,8 @@ export class AppComponent implements OnInit {
     public authService: AuthService,
     public signalrService: SignalrService,
     private pedidoService: PedidoService,
-    private router: Router
+    private router: Router,
+    public langService: LanguageService
   ) {}
 
   ngOnInit() {
