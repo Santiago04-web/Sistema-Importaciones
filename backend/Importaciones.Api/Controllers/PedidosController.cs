@@ -185,6 +185,90 @@ public class PedidosController : ControllerBase
         return Ok(new { Count = nuevosPedidos.Count });
     }
 
+    [HttpPost("excel-preview")]
+    [Authorize(Roles = "Admin,Editor")]
+    public IActionResult PreviewExcel(IFormFile file)
+    {
+        if (file == null || file.Length == 0) return BadRequest(new { Message = "Archivo no proporcionado." });
+
+        try
+        {
+            using var stream = file.OpenReadStream();
+            var items = _excelService.ParsePedidosExcel(stream);
+            if (items == null || items.Count == 0)
+            {
+                return BadRequest(new { Message = "No se encontraron filas válidas en el archivo Excel." });
+            }
+
+            var firstCode = items.FirstOrDefault(x => !string.IsNullOrWhiteSpace(x.Codigo))?.Codigo;
+            var suggestedCodigo = !string.IsNullOrWhiteSpace(firstCode) ? firstCode : "1";
+
+            return Ok(new
+            {
+                suggestedCodigo,
+                items
+            });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { Message = $"Error al analizar el archivo Excel: {ex.Message}" });
+        }
+    }
+
+    [HttpPost("excel-confirm")]
+    [Authorize(Roles = "Admin,Editor")]
+    public async Task<IActionResult> ConfirmExcel([FromBody] ExcelConfirmRequest req)
+    {
+        SetAuditUserId();
+        if (req == null || req.Items == null || req.Items.Count == 0)
+        {
+            return BadRequest(new { Message = "No hay elementos para importar." });
+        }
+
+        var codigoFinal = !string.IsNullOrWhiteSpace(req.OverrideCodigo) ? req.OverrideCodigo.Trim() : "1";
+        var nuevosPedidos = new List<Pedido>();
+
+        foreach (var item in req.Items)
+        {
+            var p = new Pedido
+            {
+                Codigo = codigoFinal,
+                Ciudad = string.IsNullOrWhiteSpace(item.Ciudad) ? "GZ" : item.Ciudad.Trim(),
+                FechaNegociacion = item.FechaNegociacion ?? DateTime.UtcNow,
+                Abono = item.Abono,
+                Descripcion = item.Descripcion ?? "",
+                Observaciones = item.Observaciones ?? "",
+                Referencia = item.Referencia ?? "",
+                TotalQty = item.TotalQty,
+                Yuanes = item.Yuanes,
+                PiezasCaja = item.PiezasCaja <= 0 ? 1 : item.PiezasCaja,
+                Cubica = item.Cubica,
+                Tasa = item.Tasa <= 0 ? 535m : item.Tasa,
+                PrecioMt3 = item.PrecioMt3 <= 0 ? 2300000m : item.PrecioMt3,
+                PorcentajeEhuk = item.PorcentajeEhuk <= 0 ? 0.10m : item.PorcentajeEhuk,
+                Etapa = item.Etapa
+            };
+            nuevosPedidos.Add(p);
+        }
+
+        _context.Pedidos.AddRange(nuevosPedidos);
+        await _context.SaveChangesAsync();
+
+        foreach (var p in nuevosPedidos)
+        {
+            _context.EtapaHistoriales.Add(new EtapaHistorial
+            {
+                PedidoId = p.Id,
+                Etapa = p.Etapa,
+                FechaCambio = DateTime.UtcNow
+            });
+        }
+        await _context.SaveChangesAsync();
+
+        await _hubContext.Clients.All.SendAsync("PedidoCreado", nuevosPedidos.FirstOrDefault());
+        return Ok(new { Count = nuevosPedidos.Count, Codigo = codigoFinal });
+    }
+
     [HttpGet("export/excel")]
     public async Task<IActionResult> ExportExcel()
     {
