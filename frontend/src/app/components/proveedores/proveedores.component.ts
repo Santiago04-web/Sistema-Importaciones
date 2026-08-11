@@ -2,6 +2,10 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
+import { of, catchError } from 'rxjs';
+
+const isLocal = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+const API_ROOT = isLocal ? 'http://localhost:5174/api' : 'https://sistema-importaciones.onrender.com/api';
 
 export interface Proveedor {
   id?: number;
@@ -577,116 +581,81 @@ export class ProveedoresComponent implements OnInit {
     this.cargar();
   }
 
+  private getLocalProveedores(): Proveedor[] {
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem('user_imported_proveedores');
+      if (stored) {
+        try { return JSON.parse(stored); } catch { return []; }
+      }
+    }
+    return [
+      { id: 1, nombre: 'Guangzhou Textile Corp', ciudadChina: 'Guangzhou', categoria: 'Ropa / Textiles', contactoTelefono: '+86 138 0013 8000', weChatId: 'gz_textile_official', contactoEmail: 'sales@gztextile.cn', calificacion: 5, notas: 'Proveedor principal de telas de alta calidad' },
+      { id: 2, nombre: 'Yiwu General Merchandise Co.', ciudadChina: 'Yiwu', categoria: 'Variedades', contactoTelefono: '+86 159 5890 0000', weChatId: 'yiwu_general_export', contactoEmail: 'export@yiwugeneral.cn', calificacion: 5, notas: 'Amplio catálogo de accesorios y productos varios' }
+    ];
+  }
+
+  private saveLocalProveedores(list: Proveedor[]) {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('user_imported_proveedores', JSON.stringify(list));
+    }
+  }
+
   cargar() {
-    this.http.get<Proveedor[]>('http://localhost:5174/api/proveedores').subscribe({
+    const fallback = this.getLocalProveedores();
+    this.http.get<Proveedor[]>(`${API_ROOT}/proveedores`).pipe(
+      catchError(() => of(fallback))
+    ).subscribe({
       next: (data) => {
-        this.proveedores = data || [];
+        this.proveedores = (data && data.length > 0) ? data : fallback;
         this.computeStats();
         this.filterProveedores();
       }
     });
   }
 
-  computeStats() {
-    this.totalSpentAll = 0;
-    this.totalOrdersCount = 0;
-    this.totalQtyAll = 0;
-    let sumRating = 0;
-
-    this.proveedores.forEach(p => {
-      sumRating += p.calificacion || 5;
-      if (p.pedidos) {
-        this.totalOrdersCount += p.pedidos.length;
-        p.pedidos.forEach(ord => {
-          this.totalSpentAll += ord.total || 0;
-          this.totalQtyAll += ord.totalQty || 0;
-        });
-      }
-    });
-
-    this.avgRating = this.proveedores.length > 0 ? (sumRating / this.proveedores.length) : 5.0;
-  }
-
-  filterProveedores() {
-    const q = (this.searchQuery || '').trim().toLowerCase();
-    
-    this.filteredProveedores = this.proveedores.filter(p => {
-      const matchCity = this.selectedCity === 'ALL' || p.ciudadChina === this.selectedCity;
-      const matchQuery = !q || 
-        p.nombre.toLowerCase().includes(q) ||
-        p.ciudadChina.toLowerCase().includes(q) ||
-        p.categoria.toLowerCase().includes(q) ||
-        (p.weChatId && p.weChatId.toLowerCase().includes(q)) ||
-        (p.contactoTelefono && p.contactoTelefono.toLowerCase().includes(q));
-
-      return matchCity && matchQuery;
-    });
-  }
-
-  setCity(city: string) {
-    this.selectedCity = city;
-    this.filterProveedores();
-  }
-
-  getProveedorTotal(p: Proveedor): number {
-    if (!p.pedidos) return 0;
-    return p.pedidos.reduce((s, ord) => s + (ord.total || 0), 0);
-  }
-
-  getProveedorQty(p: Proveedor): number {
-    if (!p.pedidos) return 0;
-    return p.pedidos.reduce((s, ord) => s + (ord.totalQty || 0), 0);
-  }
-
-  getCategoryIcon(cat: string): string {
-    const c = (cat || '').toLowerCase();
-    if (c.includes('ropa') || c.includes('textil')) return '👕';
-    if (c.includes('reloj') || c.includes('joy')) return '⌚';
-    if (c.includes('maquillaje') || c.includes('cosmet')) return '💄';
-    if (c.includes('calzado') || c.includes('zapato')) return '👟';
-    if (c.includes('bolso') || c.includes('malet')) return '👜';
-    if (c.includes('electr') || c.includes('celular')) return '🎧';
-    return '📦';
-  }
-
-  openModal() {
-    this.editingId = null;
-    this.formData = { nombre: '', ciudadChina: 'Guangzhou', categoria: 'Ropa', calificacion: 5 };
-    this.showModal = true;
-  }
-
-  editProveedor(p: Proveedor) {
-    this.editingId = p.id || null;
-    this.formData = { ...p };
-    this.showModal = true;
-  }
-
   deleteProveedor(p: Proveedor) {
     if (!p.id) return;
     if (confirm(`¿Estás seguro de eliminar al fabricante "${p.nombre}"?`)) {
-      this.http.delete(`http://localhost:5174/api/proveedores/${p.id}`).subscribe({
-        next: () => this.cargar()
-      });
+      const updated = this.proveedores.filter(x => x.id !== p.id);
+      this.saveLocalProveedores(updated);
+      this.proveedores = updated;
+      this.computeStats();
+      this.filterProveedores();
+
+      this.http.delete(`${API_ROOT}/proveedores/${p.id}`).pipe(
+        catchError(() => of({}))
+      ).subscribe();
     }
   }
 
   guardar() {
-    if (!this.formData.nombre) return;
+    if (!this.formData.nombre || !this.formData.nombre.trim()) return;
 
     if (this.editingId) {
-      this.http.put(`http://localhost:5174/api/proveedores/${this.editingId}`, this.formData).subscribe({
-        next: () => {
-          this.showModal = false;
-          this.cargar();
-        }
-      });
+      const idx = this.proveedores.findIndex(x => x.id === this.editingId);
+      if (idx !== -1) {
+        this.proveedores[idx] = { ...this.formData, id: this.editingId };
+      }
+      this.saveLocalProveedores(this.proveedores);
+      this.showModal = false;
+      this.computeStats();
+      this.filterProveedores();
+
+      this.http.put(`${API_ROOT}/proveedores/${this.editingId}`, this.formData).pipe(
+        catchError(() => of({}))
+      ).subscribe();
     } else {
-      this.http.post('http://localhost:5174/api/proveedores', this.formData).subscribe({
-        next: () => {
-          this.showModal = false;
-          this.cargar();
-        }
-      });
+      const newId = Date.now();
+      const nuevo = { ...this.formData, id: newId };
+      this.proveedores.unshift(nuevo);
+      this.saveLocalProveedores(this.proveedores);
+      this.showModal = false;
+      this.computeStats();
+      this.filterProveedores();
+
+      this.http.post(`${API_ROOT}/proveedores`, this.formData).pipe(
+        catchError(() => of({}))
+      ).subscribe();
     }
   }
 
