@@ -21,10 +21,13 @@ export interface AuditEntry {
   timestamp: string;
 }
 
+const isLocal = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+const API_ROOT = isLocal ? 'http://localhost:5174/api' : 'https://sistema-importaciones.onrender.com/api';
+
 @Injectable({ providedIn: 'root' })
 export class AdminService {
-  private usersUrl = 'http://localhost:5174/api/users';
-  private auditUrl = 'http://localhost:5174/api/audit';
+  private usersUrl = `${API_ROOT}/users`;
+  private auditUrl = `${API_ROOT}/audit`;
 
   constructor(private http: HttpClient) {}
 

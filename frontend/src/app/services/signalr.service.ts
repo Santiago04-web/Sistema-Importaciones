@@ -22,8 +22,11 @@ export class SignalrService {
     const token = this.authService.getToken();
     if (!token) return;
 
+const isLocal = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+const HUB_URL = isLocal ? 'http://localhost:5174/hubs/pedidos' : 'https://sistema-importaciones.onrender.com/hubs/pedidos';
+
     this.hubConnection = new signalR.HubConnectionBuilder()
-      .withUrl('http://localhost:5174/hubs/pedidos', {
+      .withUrl(HUB_URL, {
         accessTokenFactory: () => this.authService.getToken() || ''
       })
       .withAutomaticReconnect([0, 2000, 5000, 10000, 30000])

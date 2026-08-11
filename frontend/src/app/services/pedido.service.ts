@@ -52,11 +52,14 @@ export interface Pedido {
   ganancia?: number;
 }
 
+const isLocal = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+const API_ROOT = isLocal ? 'http://localhost:5174/api' : 'https://sistema-importaciones.onrender.com/api';
+
 @Injectable({
   providedIn: 'root'
 })
 export class PedidoService {
-  private apiUrl = 'http://localhost:5174/api/pedidos';
+  private apiUrl = `${API_ROOT}/pedidos`;
 
   constructor(private http: HttpClient) { }
 
