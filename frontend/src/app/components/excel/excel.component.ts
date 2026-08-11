@@ -176,32 +176,44 @@ import { PedidoService, Pedido } from '../../services/pedido.service';
             <table class="preview-table">
               <thead>
                 <tr>
-                  <th style="width: 50px;">Fila</th>
-                  <th style="width: 90px;">Lote Orig.</th>
-                  <th style="width: 90px;">Ciudad</th>
-                  <th style="width: 110px;">Fecha</th>
+                  <th style="width: 45px;">Fila</th>
+                  <th style="width: 80px;">Lote Orig.</th>
+                  <th style="width: 80px;">Ciudad</th>
                   <th>Descripción del Producto</th>
-                  <th style="width: 80px; text-align: right;">Piezas</th>
-                  <th style="width: 90px; text-align: right;">Yuanes</th>
-                  <th style="width: 80px; text-align: right;">Tasa</th>
-                  <th style="width: 120px;">Estado / Alertas</th>
+                  <th style="width: 100px; text-align: right;">Piezas</th>
+                  <th style="width: 120px; text-align: right;">Yuanes (¥)</th>
+                  <th style="width: 90px; text-align: right;">Tasa ($)</th>
+                  <th style="width: 100px;">Estado</th>
+                  <th style="width: 40px; text-align: center;">Borrar</th>
                 </tr>
               </thead>
               <tbody>
-                <tr *ngFor="let item of previewData?.items" [class.row-warn]="item.warnings && item.warnings.length > 0">
-                  <td>#{{ item.rowIndex }}</td>
-                  <td><strong class="code-pill">{{ item.codigo || 'S/N' }}</strong></td>
-                  <td><span class="city-pill">{{ item.ciudad }}</span></td>
-                  <td>{{ item.fecha }}</td>
-                  <td class="desc-cell">{{ item.descripcion }}</td>
-                  <td class="text-right fw-bold">{{ item.totalQty | number }}</td>
-                  <td class="text-right">¥{{ item.yuanes | number:'1.2-2' }}</td>
-                  <td class="text-right">&#36;{{ item.tasa }}</td>
+                <tr *ngFor="let item of previewData?.items; let i = index" [class.row-warn]="item.warnings && item.warnings.length > 0">
+                  <td>#{{ item.rowIndex || (i + 1) }}</td>
+                  <td><strong class="code-pill">{{ item.codigo || overrideCodigo || 'S/N' }}</strong></td>
+                  <td>
+                    <input type="text" class="prev-edit-input city" [(ngModel)]="item.ciudad" (ngModelChange)="recalcularTotalesPreview()" placeholder="GZ">
+                  </td>
+                  <td class="desc-cell">
+                    <input type="text" class="prev-edit-input desc" [(ngModel)]="item.descripcion" (ngModelChange)="recalcularTotalesPreview()" placeholder="Producto...">
+                  </td>
+                  <td>
+                    <input type="number" class="prev-edit-input num" [(ngModel)]="item.totalQty" (ngModelChange)="recalcularTotalesPreview()" placeholder="0">
+                  </td>
+                  <td>
+                    <input type="number" step="0.01" class="prev-edit-input num" [(ngModel)]="item.yuanes" (ngModelChange)="recalcularTotalesPreview()" placeholder="0.00">
+                  </td>
+                  <td>
+                    <input type="number" step="1" class="prev-edit-input num" [(ngModel)]="item.tasa" (ngModelChange)="recalcularTotalesPreview()" placeholder="535">
+                  </td>
                   <td>
                     <span *ngIf="!item.warnings || item.warnings.length === 0" class="badge-ok">✓ Válido</span>
                     <div *ngIf="item.warnings && item.warnings.length > 0" class="warn-tags">
                       <span class="badge-warn" *ngFor="let w of item.warnings">⚠️ {{ w }}</span>
                     </div>
+                  </td>
+                  <td style="text-align: center;">
+                    <button class="btn-del-row" (click)="eliminarFilaPreview(i)" title="Eliminar este producto del lote">✕</button>
                   </td>
                 </tr>
               </tbody>
@@ -815,9 +827,56 @@ import { PedidoService, Pedido } from '../../services/pedido.service';
     .btn-confirm-save:hover:not(:disabled) {
       background: #34d399;
       transform: translateY(-1px);
-      box-shadow: 0 0 24px rgba(16, 185, 129, 0.6);
+    .prev-edit-input {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 6px;
+      color: #fafafa;
+      padding: 0.35rem 0.6rem;
+      font-size: 0.83rem;
+      width: 100%;
+      outline: none;
+      transition: all 0.15s ease;
     }
-    .btn-confirm-save:disabled { opacity: 0.5; cursor: not-allowed; }
+    .prev-edit-input:hover, .prev-edit-input:focus {
+      background: rgba(59, 130, 246, 0.12);
+      border-color: #3b82f6;
+      box-shadow: 0 0 8px rgba(59, 130, 246, 0.3);
+    }
+    .prev-edit-input.num {
+      text-align: right;
+      font-weight: 700;
+      color: #60a5fa;
+    }
+    .prev-edit-input.city {
+      width: 65px;
+      text-align: center;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+    .prev-edit-input.desc {
+      font-weight: 600;
+    }
+    .btn-del-row {
+      background: rgba(239, 68, 68, 0.15);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      color: #f87171;
+      width: 26px;
+      height: 26px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 0.75rem;
+      transition: all 0.15s ease;
+    }
+    .btn-del-row:hover {
+      background: rgba(239, 68, 68, 0.3);
+      color: #ffffff;
+      border-color: #ef4444;
+      transform: scale(1.08);
+    }
   `]
 })
 export class ExcelComponent implements OnInit {
@@ -955,7 +1014,25 @@ export class ExcelComponent implements OnInit {
         console.error('Error al confirmar y guardar en DB:', err);
         alert(err.error?.Message || err.error?.message || 'Error al guardar los registros en el sistema.');
         this.savingConfirmed = false;
-      }
-    });
+  recalcularTotalesPreview() {
+    if (!this.previewData || !this.previewData.items) return;
+    this.previewTotalQty = this.previewData.items.reduce((s: number, x: any) => s + (Number(x.totalQty) || 0), 0);
+    this.previewTotalYuanes = this.previewData.items.reduce((s: number, x: any) => s + (Number(x.yuanes) || 0), 0);
+    this.previewTotalCOP = this.previewData.items.reduce((s: number, x: any) => {
+      const qty = Number(x.totalQty) > 0 ? Number(x.totalQty) : 1;
+      const tasa = Number(x.tasa) > 0 ? Number(x.tasa) : 535;
+      const prodCOP = (Number(x.yuanes) || 0) * qty * tasa;
+      const fleteCOP = (Number(x.cubica) || 0) * (Number(x.precioMt3) || 0);
+      const ehukPct = Number(x.porcentajeEhuk) || 0.12;
+      const comisionCOP = (prodCOP + fleteCOP) * ehukPct;
+      return s + prodCOP + fleteCOP + comisionCOP;
+    }, 0);
+  }
+
+  eliminarFilaPreview(index: number) {
+    if (!this.previewData || !this.previewData.items) return;
+    this.previewData.items.splice(index, 1);
+    this.previewData.totalRows = this.previewData.items.length;
+    this.recalcularTotalesPreview();
   }
 }
