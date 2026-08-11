@@ -61,6 +61,9 @@ interface ColumnaEtapa {
           <div class="view-mode-toggle">
             <button class="mode-btn" [class.active]="!isCompact" (click)="isCompact = false">📄 Vista Normal</button>
             <button class="mode-btn" [class.active]="isCompact" (click)="isCompact = true">⚡ Vista Compacta</button>
+            <button class="mode-btn" [class.active]="ocultarVacias" (click)="ocultarVacias = !ocultarVacias">
+              {{ ocultarVacias ? '🚫 Ocultar Vacías: ON' : '👁️ Mostrar Vacías' }}
+            </button>
           </div>
 
           <div class="scroll-controls">
@@ -90,7 +93,7 @@ interface ColumnaEtapa {
       
       <!-- KANBAN BOARD CONTAINER -->
       <div class="kanban-container" #boardContainer cdkDropListGroup (wheel)="onWheelScroll($event)">
-        <div class="kanban-column" *ngFor="let col of columnas">
+        <div class="kanban-column" *ngFor="let col of getColumnasVisibles()">
           
           <!-- COLUMN HEADER -->
           <div class="column-header">
@@ -269,12 +272,6 @@ interface ColumnaEtapa {
               <p>{{ selectedPedido.observaciones }}</p>
             </div>
           </div>
-
-      <!-- COURIER TIMELINE TRACKING MODAL -->
-      <app-courier-tracking *ngIf="selectedCourierPedido" [pedido]="selectedCourierPedido" (closed)="selectedCourierPedido = null"></app-courier-tracking>
-
-      <!-- QR CODE MODAL -->
-      <app-qr-modal *ngIf="selectedQrPedido" [pedido]="selectedQrPedido" (closed)="selectedQrPedido = null"></app-qr-modal>
 
     </div>
   `,
@@ -1078,8 +1075,15 @@ export class KanbanComponent implements OnInit {
     { id: 5, nombre: 'RECIBIDO', color: '#10b981', pedidos: [] }
   ];
 
-  selectedCourierPedido: Pedido | null = null;
-  selectedQrPedido: Pedido | null = null;
+  ocultarVacias = true;
+
+  getColumnasVisibles(): ColumnaEtapa[] {
+    if (this.ocultarVacias) {
+      const activeCols = this.columnas.filter(col => this.getFilteredList(col.pedidos).length > 0);
+      return activeCols.length > 0 ? activeCols : this.columnas;
+    }
+    return this.columnas;
+  }
 
   constructor(
     private pedidoService: PedidoService, 
