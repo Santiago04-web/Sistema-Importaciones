@@ -2199,7 +2199,7 @@ export class TableComponent implements OnInit {
     return `Aplicar a ${prefix} ${totalCount} "${desc}"`;
   }
 
-  mostrarObservaciones = true;
+  mostrarObservaciones = false;
 
   toggleMostrarFotos() {
     this.mostrarFotos = !this.mostrarFotos;
