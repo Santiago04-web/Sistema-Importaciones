@@ -43,13 +43,6 @@ import { AuthService } from '../../services/auth.service';
               </div>
             </div>
 
-            <div class="form-options">
-              <label class="remember-me">
-                <input type="checkbox" [(ngModel)]="rememberMe" name="rememberMe" class="custom-checkbox">
-                <span>Recordarme en este dispositivo</span>
-              </label>
-            </div>
-
             <div *ngIf="errorMsg" class="error-banner">
               ⚠️ {{ errorMsg }}
             </div>
