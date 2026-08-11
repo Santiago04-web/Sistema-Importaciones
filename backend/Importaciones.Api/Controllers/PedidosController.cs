@@ -156,6 +156,69 @@ public class PedidosController : ControllerBase
         return NoContent();
     }
 
+    [HttpPost("delete-batch")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> DeleteBatch([FromBody] DeleteBatchRequest req)
+    {
+        SetAuditUserId();
+        if (req == null || req.Ids == null || req.Ids.Count == 0)
+        {
+            return BadRequest(new { Message = "No se proporcionaron IDs para eliminar." });
+        }
+
+        var pedidos = await _context.Pedidos.Where(p => req.Ids.Contains(p.Id)).ToListAsync();
+        foreach (var p in pedidos)
+        {
+            p.Eliminado = true;
+            p.FechaEliminacion = DateTime.UtcNow;
+        }
+
+        await _context.SaveChangesAsync();
+        await _hubContext.Clients.All.SendAsync("PedidoEliminadoMasivo", req.Ids);
+        return Ok(new { Count = pedidos.Count });
+    }
+
+    [HttpPost("update-batch")]
+    [Authorize(Roles = "Admin,Editor")]
+    public async Task<IActionResult> UpdateBatch([FromBody] UpdateBatchRequest req)
+    {
+        SetAuditUserId();
+        if (req == null || req.Ids == null || req.Ids.Count == 0)
+        {
+            return BadRequest(new { Message = "No se proporcionaron IDs para actualizar." });
+        }
+
+        var pedidos = await _context.Pedidos.Where(p => req.Ids.Contains(p.Id)).ToListAsync();
+        foreach (var p in pedidos)
+        {
+            if (req.Tasa.HasValue && req.Tasa.Value > 0) p.Tasa = req.Tasa.Value;
+            if (req.Etapa.HasValue) p.Etapa = req.Etapa.Value;
+            if (!string.IsNullOrWhiteSpace(req.Ciudad)) p.Ciudad = req.Ciudad.Trim();
+            if (req.Abono.HasValue) p.Abono = req.Abono.Value;
+            if (!string.IsNullOrWhiteSpace(req.Codigo)) p.Codigo = req.Codigo.Trim();
+        }
+
+        await _context.SaveChangesAsync();
+        await _hubContext.Clients.All.SendAsync("PedidoActualizadoMasivo", req.Ids);
+        return Ok(new { Count = pedidos.Count });
+    }
+
+    [HttpDelete("delete-all")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> DeleteAll()
+    {
+        SetAuditUserId();
+        var allPedidos = await _context.Pedidos.ToListAsync();
+        foreach (var p in allPedidos)
+        {
+            p.Eliminado = true;
+            p.FechaEliminacion = DateTime.UtcNow;
+        }
+        await _context.SaveChangesAsync();
+        await _hubContext.Clients.All.SendAsync("TodosPedidosEliminados");
+        return NoContent();
+    }
+
     // EXCEL IMPORT & EXPORT
     [HttpPost("excel")]
     [Authorize(Roles = "Admin,Editor")]
@@ -403,6 +466,21 @@ public class PedidosController : ControllerBase
 
         return NoContent();
     }
+}
+
+public class DeleteBatchRequest
+{
+    public List<int>? Ids { get; set; }
+}
+
+public class UpdateBatchRequest
+{
+    public List<int>? Ids { get; set; }
+    public decimal? Tasa { get; set; }
+    public EtapaPedido? Etapa { get; set; }
+    public string? Ciudad { get; set; }
+    public bool? Abono { get; set; }
+    public string? Codigo { get; set; }
 }
 
 public class ExcelConfirmRequest
