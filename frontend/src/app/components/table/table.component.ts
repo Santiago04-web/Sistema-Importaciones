@@ -567,6 +567,33 @@ import { SignalrService } from '../../services/signalr.service';
 
           <!-- EXPANDED INNER TABLE FOR THIS PRODUCT -->
           <div class="group-detail-panel" *ngIf="g.expanded">
+
+            <!-- STAGE FILTER CHIPS TOOLBAR -->
+            <div class="group-stage-filter-bar">
+              <span class="filter-bar-lbl">Filtrar por etapa:</span>
+              <button class="stage-chip-btn" [class.active]="g.filterEtapa === 'TODOS'" (click)="g.filterEtapa = 'TODOS'">
+                Todos ({{ g.pedidos.length }})
+              </button>
+              <button class="stage-chip-btn transito" *ngIf="g.stageCounts[3]" [class.active]="g.filterEtapa === '3'" (click)="g.filterEtapa = '3'">
+                🚚 En Tránsito ({{ g.stageCounts[3] }})
+              </button>
+              <button class="stage-chip-btn aduana" *ngIf="g.stageCounts[4]" [class.active]="g.filterEtapa === '4'" (click)="g.filterEtapa = '4'">
+                🛃 Aduana ({{ g.stageCounts[4] }})
+              </button>
+              <button class="stage-chip-btn pagado" *ngIf="g.stageCounts[2]" [class.active]="g.filterEtapa === '2'" (click)="g.filterEtapa = '2'">
+                💳 Pagado ({{ g.stageCounts[2] }})
+              </button>
+              <button class="stage-chip-btn confirmado" *ngIf="g.stageCounts[1]" [class.active]="g.filterEtapa === '1'" (click)="g.filterEtapa = '1'">
+                ✅ Confirmado ({{ g.stageCounts[1] }})
+              </button>
+              <button class="stage-chip-btn cotizacion" *ngIf="g.stageCounts[0]" [class.active]="g.filterEtapa === '0'" (click)="g.filterEtapa = '0'">
+                📝 Cotización ({{ g.stageCounts[0] }})
+              </button>
+              <button class="stage-chip-btn recibido" *ngIf="g.stageCounts[5]" [class.active]="g.filterEtapa === '5'" (click)="g.filterEtapa = '5'">
+                📦 Recibido ({{ g.stageCounts[5] }})
+              </button>
+            </div>
+
             <table class="table inner-group-table">
               <thead>
                 <tr>
@@ -582,7 +609,7 @@ import { SignalrService } from '../../services/signalr.service';
                 </tr>
               </thead>
               <tbody>
-                <tr *ngFor="let sub of g.pedidos">
+                <tr *ngFor="let sub of getFilteredGroupPedidos(g)">
                   <td><strong>{{ sub.codigo || 'S/N' }}</strong></td>
                   <td>{{ sub.referencia }}</td>
                   <td><span class="badge-city">{{ sub.ciudad }}</span></td>
@@ -590,7 +617,7 @@ import { SignalrService } from '../../services/signalr.service';
                   <td>{{ sub.totalQty | number }}</td>
                   <td>¥{{ sub.yuanes | number:'1.2-2' }}</td>
                   <td>{{ sub.tasa }}</td>
-                  <td><span class="badge-etapa">{{ getEtapaLabel(sub.etapa) }}</span></td>
+                  <td><span [class]="'badge-etapa ' + getEtapaClass(sub.etapa)">{{ getEtapaLabel(sub.etapa) }}</span></td>
                   <td><strong class="text-green">$ {{ sub.total | number:'1.0-0' }}</strong></td>
                 </tr>
               </tbody>
@@ -1390,13 +1417,82 @@ import { SignalrService } from '../../services/signalr.service';
     .group-detail-panel {
       border-top: 1px solid rgba(255,255,255,0.08);
       background: #020617;
-      padding: 0.5rem;
+      padding: 0.85rem;
+      border-radius: 0 0 14px 14px;
     }
-    .inner-group-table { margin: 0; font-size: 0.82rem; }
-    .inner-group-table th { background: transparent; color: #94a3b8; font-size: 0.7rem; text-transform: uppercase; border-bottom: 1px solid rgba(255,255,255,0.08); }
+
+    /* Group Stage Filter Bar */
+    .group-stage-filter-bar {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+      margin-bottom: 0.75rem;
+      padding: 0.55rem 0.85rem;
+      background: rgba(255, 255, 255, 0.03);
+      border-radius: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+    }
+    .filter-bar-lbl {
+      font-size: 0.7rem;
+      font-weight: 800;
+      color: #94a3b8;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-right: 0.4rem;
+    }
+    .stage-chip-btn {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #cbd5e1;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .stage-chip-btn:hover {
+      background: rgba(255, 255, 255, 0.12);
+      color: #ffffff;
+      transform: translateY(-1px);
+    }
+    .stage-chip-btn.active {
+      background: #3b82f6 !important;
+      border-color: #60a5fa !important;
+      color: #ffffff !important;
+      box-shadow: 0 0 12px rgba(59, 130, 246, 0.4);
+    }
+
+    .stage-chip-btn.transito { border-color: rgba(59, 130, 246, 0.4); color: #60a5fa; }
+    .stage-chip-btn.transito.active { background: #3b82f6 !important; color: #fff !important; }
+    .stage-chip-btn.aduana { border-color: rgba(249, 115, 22, 0.4); color: #fb923c; }
+    .stage-chip-btn.aduana.active { background: #f97316 !important; color: #fff !important; }
+    .stage-chip-btn.pagado { border-color: rgba(16, 185, 129, 0.4); color: #34d399; }
+    .stage-chip-btn.pagado.active { background: #10b981 !important; color: #fff !important; }
+    .stage-chip-btn.confirmado { border-color: rgba(168, 85, 247, 0.4); color: #c084fc; }
+    .stage-chip-btn.confirmado.active { background: #a855f7 !important; color: #fff !important; }
+    .stage-chip-btn.cotizacion { border-color: rgba(148, 163, 184, 0.4); color: #cbd5e1; }
+    .stage-chip-btn.cotizacion.active { background: #64748b !important; color: #fff !important; }
+    .stage-chip-btn.recibido { border-color: rgba(20, 184, 166, 0.4); color: #2dd4bf; }
+    .stage-chip-btn.recibido.active { background: #14b8a6 !important; color: #fff !important; }
+
+    .inner-group-table { margin: 0; font-size: 0.82rem; border-collapse: separate; border-spacing: 0 4px; }
+    .inner-group-table th { background: transparent; color: #94a3b8; font-size: 0.7rem; text-transform: uppercase; border-bottom: 1px solid rgba(255,255,255,0.08); padding: 0.6rem 0.85rem; }
     .inner-group-table td { padding: 0.6rem 0.85rem; color: #cbd5e1; border-bottom: 1px solid rgba(255,255,255,0.04); }
+    .inner-group-table tbody tr { transition: background 0.2s; border-radius: 8px; }
+    .inner-group-table tbody tr:hover { background: rgba(255, 255, 255, 0.04); }
+
     .badge-city { background: rgba(59, 130, 246, 0.15); color: #60a5fa; padding: 2px 6px; border-radius: 4px; font-weight: 700; font-size: 0.72rem; }
-    .badge-etapa { background: rgba(255, 255, 255, 0.08); color: #cbd5e1; padding: 2px 6px; border-radius: 4px; font-size: 0.72rem; }
+    
+    /* VIBRANT HIGH-CONTRAST STAGE BADGES */
+    .badge-etapa { padding: 3px 8px; border-radius: 6px; font-size: 0.73rem; font-weight: 800; letter-spacing: 0.02em; display: inline-block; }
+    .badge-etapa.etapa-0 { background: rgba(148, 163, 184, 0.15); color: #cbd5e1; border: 1px solid rgba(148, 163, 184, 0.3); }
+    .badge-etapa.etapa-1 { background: rgba(168, 85, 247, 0.18); color: #d8b4fe; border: 1px solid rgba(168, 85, 247, 0.4); box-shadow: 0 0 8px rgba(168, 85, 247, 0.15); }
+    .badge-etapa.etapa-2 { background: rgba(16, 185, 129, 0.18); color: #6ee7b7; border: 1px solid rgba(16, 185, 129, 0.4); box-shadow: 0 0 8px rgba(16, 185, 129, 0.15); }
+    .badge-etapa.etapa-3 { background: rgba(59, 130, 246, 0.22); color: #93c5fd; border: 1px solid rgba(59, 130, 246, 0.45); box-shadow: 0 0 10px rgba(59, 130, 246, 0.25); }
+    .badge-etapa.etapa-4 { background: rgba(249, 115, 22, 0.22); color: #ffedd5; border: 1px solid rgba(249, 115, 22, 0.45); box-shadow: 0 0 10px rgba(249, 115, 22, 0.25); }
+    .badge-etapa.etapa-5 { background: rgba(20, 184, 166, 0.22); color: #99f6e4; border: 1px solid rgba(20, 184, 166, 0.45); box-shadow: 0 0 10px rgba(20, 184, 166, 0.25); }
 
     /* Catalog Gallery Modal */
     .catalog-modal { max-width: 900px; width: 95%; max-height: 85vh; overflow-y: auto; background: #0f172a; border-radius: 20px; padding: 1.75rem; }
@@ -2230,11 +2326,33 @@ export class TableComponent implements OnInit {
       map.get(key)!.push(p);
     });
 
+    const getStageOrder = (etapa: any) => {
+      const e = Number(etapa);
+      switch(e) {
+        case 3: return 1; // En Tránsito (prioridad visual)
+        case 4: return 2; // Aduana
+        case 2: return 3; // Pagado
+        case 1: return 4; // Confirmado
+        case 0: return 5; // Cotización
+        case 5: return 6; // Recibido
+        default: return 99;
+      }
+    };
+
     this.gruposProductos = Array.from(map.entries()).map(([desc, items]) => {
-      const firstWithPhoto = items.find(p => p.fotoUrl);
-      const totalQty = items.reduce((s, x) => s + (x.totalQty || 0), 0);
-      const totalYuanes = items.reduce((s, x) => s + (x.yuanes || 0), 0);
-      const totalCop = items.reduce((s, x) => s + (x.total || 0), 0);
+      // Sort items by stage priority so identical stages stay grouped together ("pegados")
+      const sortedItems = [...items].sort((a, b) => getStageOrder(a.etapa) - getStageOrder(b.etapa));
+
+      const firstWithPhoto = sortedItems.find(p => p.fotoUrl);
+      const totalQty = sortedItems.reduce((s, x) => s + (x.totalQty || 0), 0);
+      const totalYuanes = sortedItems.reduce((s, x) => s + (x.yuanes || 0), 0);
+      const totalCop = sortedItems.reduce((s, x) => s + (x.total || 0), 0);
+
+      const stageCounts: { [key: number]: number } = {};
+      sortedItems.forEach(x => {
+        const et = Number(x.etapa) || 0;
+        stageCounts[et] = (stageCounts[et] || 0) + 1;
+      });
 
       return {
         descripcion: desc,
@@ -2242,10 +2360,19 @@ export class TableComponent implements OnInit {
         totalQty,
         totalYuanes,
         totalCop,
-        pedidos: items,
+        pedidos: sortedItems,
+        stageCounts,
+        filterEtapa: 'TODOS',
         expanded: false
       };
     });
+  }
+
+  getFilteredGroupPedidos(g: any): Pedido[] {
+    if (!g || !g.filterEtapa || g.filterEtapa === 'TODOS') {
+      return g.pedidos || [];
+    }
+    return (g.pedidos || []).filter((p: Pedido) => String(p.etapa) === String(g.filterEtapa));
   }
 
   actualizarPedido(pedido: Pedido) {
