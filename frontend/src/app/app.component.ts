@@ -4,9 +4,7 @@ import { RouterOutlet, RouterLink, RouterLinkActive, Router } from '@angular/rou
 import { AuthService } from './services/auth.service';
 import { SignalrService } from './services/signalr.service';
 import { PedidoService, Pedido } from './services/pedido.service';
-import { NotificationCenterComponent } from './components/notification-center/notification-center.component';
 import { CommandPaletteComponent } from './components/command-palette/command-palette.component';
-import { FleteCalculatorComponent } from './components/flete-calculator/flete-calculator.component';
 import { ExchangeRateComponent } from './components/exchange-rate/exchange-rate.component';
 
 @Component({
@@ -17,9 +15,7 @@ import { ExchangeRateComponent } from './components/exchange-rate/exchange-rate.
     RouterOutlet, 
     RouterLink, 
     RouterLinkActive, 
-    NotificationCenterComponent,
     CommandPaletteComponent,
-    FleteCalculatorComponent,
     ExchangeRateComponent
   ],
   template: `
@@ -79,14 +75,6 @@ import { ExchangeRateComponent } from './components/exchange-rate/exchange-rate.
           <button class="cmd-trigger-btn" (click)="openCmdPalette()" title="Buscador global (Ctrl + K)">
             🔍 <kbd>Ctrl+K</kbd>
           </button>
-
-          <!-- FREIGHT CALCULATOR TRIGGER -->
-          <button class="calc-trigger-btn" (click)="showCalculator = true" title="Simulador de Fletes & Comisiones">
-            🧮 Simular Flete
-          </button>
-
-          <!-- NOTIFICATION CENTER -->
-          <app-notification-center></app-notification-center>
           
           <!-- HIDE BUTTON -->
           <button class="collapse-btn" (click)="collapseNav()" title="Ocultar menú completamente">
@@ -114,9 +102,6 @@ import { ExchangeRateComponent } from './components/exchange-rate/exchange-rate.
 
       <!-- GLOBAL COMMAND PALETTE MODAL -->
       <app-command-palette #cmdPalette [pedidos]="allPedidos" (selectPedido)="onPedidoSelected($event)"></app-command-palette>
-
-      <!-- FREIGHT CALCULATOR SIMULATOR MODAL -->
-      <app-flete-calculator *ngIf="showCalculator" (closed)="showCalculator = false"></app-flete-calculator>
       
     </div>
   `,
