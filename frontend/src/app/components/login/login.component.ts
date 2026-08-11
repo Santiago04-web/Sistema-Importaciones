@@ -43,7 +43,12 @@ import { LanguageService, Language } from '../../services/language.service';
 
             <div class="form-group">
               <label class="input-label">{{ langService.t('login_password') }}</label>
-              <input type="password" [(ngModel)]="password" name="password" required placeholder="••••••••" class="form-input">
+              <div class="password-wrapper">
+                <input [type]="showPassword ? 'text' : 'password'" [(ngModel)]="password" name="password" required placeholder="Santiago0417#Admin" class="form-input pwd-input">
+                <button type="button" class="toggle-pwd-btn" (click)="showPassword = !showPassword" [title]="showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'">
+                  {{ showPassword ? '🙈' : '👁️' }}
+                </button>
+              </div>
             </div>
 
             <div class="form-options">
@@ -196,12 +201,39 @@ import { LanguageService, Language } from '../../services/language.service';
       font-size: 0.95rem;
       outline: none;
       transition: all 0.2s ease;
+      width: 100%;
     }
     .form-input:focus {
       border-color: #3b82f6;
       box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
     }
     
+    .password-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+    .pwd-input {
+      padding-right: 2.75rem;
+    }
+    .toggle-pwd-btn {
+      position: absolute;
+      right: 10px;
+      background: transparent;
+      border: none;
+      font-size: 1.1rem;
+      cursor: pointer;
+      padding: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0.8;
+      transition: opacity 0.15s ease;
+    }
+    .toggle-pwd-btn:hover {
+      opacity: 1;
+    }
+
     .form-options {
       display: flex;
       justify-content: space-between;
@@ -302,6 +334,7 @@ export class LoginComponent {
   loading = false;
   errorMsg = '';
   showForgotModal = false;
+  showPassword = false;
 
   constructor(
     private authService: AuthService,

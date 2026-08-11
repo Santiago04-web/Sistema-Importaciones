@@ -10,6 +10,10 @@ using Importaciones.Api.Data;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
+builder.Services.AddControllers().AddJsonOptions(options =>
+{
+    options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
+});
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddDbContext<ImportacionesDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("ImportacionesDb")));
@@ -177,7 +181,6 @@ using (var scope = app.Services.CreateScope())
         if (string.IsNullOrWhiteSpace(adminPassword))
         {
             adminPassword = $"Admin#{Guid.NewGuid().ToString("N").Substring(0, 10)}!";
-            Console.WriteLine($"===> [SECURITY SEED] Se creó la cuenta Admin inicial '{adminEmail}' con contraseña temporal: {adminPassword}");
         }
 
         var newAdmin = new IdentityUser { UserName = adminEmail, Email = adminEmail };
@@ -185,6 +188,14 @@ using (var scope = app.Services.CreateScope())
         if (result.Succeeded)
         {
             await userManager.AddToRoleAsync(newAdmin, "Admin");
+        }
+    }
+    else
+    {
+        if (!string.IsNullOrWhiteSpace(adminPassword))
+        {
+            var resetToken = await userManager.GeneratePasswordResetTokenAsync(adminUser);
+            await userManager.ResetPasswordAsync(adminUser, resetToken, adminPassword);
         }
     }
 }
