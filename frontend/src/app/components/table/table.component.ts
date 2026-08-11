@@ -141,6 +141,10 @@ import { SignalrService } from '../../services/signalr.service';
           <button class="btn-ghost" *ngIf="canEdit()" (click)="batchUpdateTasa()">
             ⚡ Cambiar Tasa
           </button>
+          <label class="btn-ghost" *ngIf="canEdit()" title="Subir 1 foto y aplicarla a todos los seleccionados" style="cursor: pointer; display: inline-flex; align-items: center; margin: 0;">
+            📸 Foto Masiva
+            <input type="file" (change)="batchUploadPhoto($event)" accept="image/*" style="display: none;">
+          </label>
           <button class="btn-ghost" *ngIf="canEdit()" (click)="batchUpdateCodigo()">
             🏷️ Reasignar Lote / Pedido #
           </button>
@@ -527,6 +531,32 @@ import { SignalrService } from '../../services/signalr.service';
 
           <!-- HINT -->
           <div class="lb-hint">Rueda del mouse para zoom · Arrastrá para mover</div>
+        </div>
+      </div>
+
+      <!-- SMART PHOTO AUTO-SYNC MODAL -->
+      <div class="modal-overlay" *ngIf="syncFotoModal.show" (click)="syncFotoModal.show = false">
+        <div class="modal-card glass-card sync-photo-modal" (click)="$event.stopPropagation()">
+          <div class="modal-header">
+            <h3>🖼️ Asignación Masiva de Foto</h3>
+            <button class="btn-close" (click)="syncFotoModal.show = false">✕</button>
+          </div>
+          <div class="modal-body">
+            <div class="sync-photo-preview">
+              <img [src]="'http://localhost:5174' + syncFotoModal.fotoUrl" alt="Foto subida" class="sync-img-thumb">
+              <div class="sync-details">
+                <strong>{{ syncFotoModal.descripcion }}</strong>
+                <p>Se detectaron <strong>{{ syncFotoModal.count }}</strong> productos más llamados "{{ syncFotoModal.descripcion }}".</p>
+                <p class="sync-question">¿Deseas aplicar esta misma foto a todas las "{{ syncFotoModal.descripcion }}"?</p>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button class="btn-cancel" (click)="syncFotoModal.show = false">Solo a esta fila</button>
+            <button class="btn-save" (click)="confirmBulkSyncByDesc()">
+              🚀 Aplicar a las {{ syncFotoModal.count + 1 }} filas
+            </button>
+          </div>
         </div>
       </div>
 
@@ -1216,6 +1246,14 @@ import { SignalrService } from '../../services/signalr.service';
       font-size: 0.8rem;
     }
 
+    /* Smart Photo Auto-Sync Modal Styles */
+    .sync-photo-modal { max-width: 480px; background: #0f172a; border: 1px solid rgba(59, 130, 246, 0.4); border-radius: 16px; padding: 1.5rem; }
+    .sync-photo-preview { display: flex; gap: 1.15rem; align-items: center; margin: 1rem 0; background: rgba(255,255,255,0.03); padding: 1rem; border-radius: 12px; border: 1px solid rgba(255,255,255,0.08); }
+    .sync-img-thumb { width: 84px; height: 84px; object-fit: cover; border-radius: 12px; border: 1px solid rgba(59, 130, 246, 0.5); box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
+    .sync-details { display: flex; flex-direction: column; gap: 4px; font-size: 0.85rem; color: #cbd5e1; }
+    .sync-details strong { color: #f8fafc; font-size: 1rem; font-weight: 800; }
+    .sync-question { color: #60a5fa; font-weight: 700; margin-top: 6px; }
+
     /* Lightbox Styles */
     /* ── Lightbox ── */
     .lightbox-overlay {
@@ -1818,6 +1856,14 @@ export class TableComponent implements OnInit {
     );
   }
 
+  syncFotoModal = {
+    show: false,
+    fotoUrl: '',
+    descripcion: '',
+    count: 0,
+    sourceId: 0
+  };
+
   uploadPhoto(event: any, id: number | undefined) {
     if (!id) return;
     const file = event.target.files?.[0];
@@ -1828,11 +1874,84 @@ export class TableComponent implements OnInit {
         const match = this.pedidos.find(p => p.id === id);
         if (match) {
           match.fotoUrl = res.fotoUrl;
+
+          if (match.descripcion && match.descripcion.trim()) {
+            const sameDescItems = this.pedidos.filter(p => p.id !== id && p.descripcion && p.descripcion.trim().toLowerCase() === match.descripcion.trim().toLowerCase());
+            if (sameDescItems.length > 0) {
+              this.syncFotoModal = {
+                show: true,
+                fotoUrl: res.fotoUrl,
+                descripcion: match.descripcion.trim(),
+                count: sameDescItems.length,
+                sourceId: id
+              };
+            }
+          }
         }
       },
       error: (err) => {
         console.error("Error uploading image:", err);
         this.showAlert("Error de carga", "No se pudo subir la imagen del producto.");
+      }
+    });
+  }
+
+  confirmBulkSyncByDesc() {
+    if (!this.syncFotoModal.fotoUrl || !this.syncFotoModal.descripcion) return;
+
+    const descToSync = this.syncFotoModal.descripcion;
+    this.pedidoService.bulkSyncFoto({
+      fotoUrl: this.syncFotoModal.fotoUrl,
+      descripcion: descToSync
+    }).subscribe({
+      next: (res) => {
+        const targetDesc = descToSync.toLowerCase();
+        this.pedidos.forEach(p => {
+          if (p.descripcion && p.descripcion.trim().toLowerCase() === targetDesc) {
+            p.fotoUrl = this.syncFotoModal.fotoUrl;
+          }
+        });
+        this.syncFotoModal.show = false;
+        this.showAlert("Sincronización Completa", `Se aplicó la foto a ${res.actualizados} productos "${descToSync}".`);
+      },
+      error: (err) => {
+        console.error("Error bulk syncing foto:", err);
+        this.showAlert("Error", "No se pudo sincronizar la foto masivamente.");
+      }
+    });
+  }
+
+  batchUploadPhoto(event: any) {
+    const ids = Array.from(this.selectedIds);
+    if (ids.length === 0) return;
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const firstId = ids[0];
+    this.pedidoService.uploadPedidoImage(firstId, file).subscribe({
+      next: (res) => {
+        this.pedidoService.bulkSyncFoto({
+          fotoUrl: res.fotoUrl,
+          pedidoIds: ids
+        }).subscribe({
+          next: () => {
+            this.pedidos.forEach(p => {
+              if (p.id && ids.includes(p.id)) {
+                p.fotoUrl = res.fotoUrl;
+              }
+            });
+            this.selectedIds.clear();
+            this.showAlert("Foto Masiva Aplicada", `Se asignó la foto a ${ids.length} pedidos seleccionados.`);
+          },
+          error: (err) => {
+            console.error("Error applying bulk photo ids:", err);
+            this.showAlert("Error", "No se pudo sincronizar la foto a los pedidos seleccionados.");
+          }
+        });
+      },
+      error: (err) => {
+        console.error("Error batch uploading image:", err);
+        this.showAlert("Error de carga", "No se pudo subir la foto masiva.");
       }
     });
   }

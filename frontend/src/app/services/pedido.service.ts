@@ -114,6 +114,10 @@ export class PedidoService {
     return this.http.post(`${this.apiUrl}/${id}/image`, formData);
   }
 
+  bulkSyncFoto(payload: { fotoUrl: string; descripcion?: string; pedidoIds?: number[] }): Observable<any> {
+    return this.http.post(`${this.apiUrl}/bulk-sync-foto`, payload);
+  }
+
   addPagoParcial(pedidoId: number, pago: { monto: number; nota?: string }): Observable<PagoParcial> {
     return this.http.post<PagoParcial>(`${this.apiUrl}/${pedidoId}/pagos`, pago);
   }

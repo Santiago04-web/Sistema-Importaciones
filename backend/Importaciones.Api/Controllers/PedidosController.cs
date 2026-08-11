@@ -208,6 +208,47 @@ public class PedidosController : ControllerBase
         return Ok(new { FotoUrl = ruta });
     }
 
+    public class SyncFotoRequest
+    {
+        public string FotoUrl { get; set; } = string.Empty;
+        public string? Descripcion { get; set; }
+        public List<int>? PedidoIds { get; set; }
+    }
+
+    [HttpPost("bulk-sync-foto")]
+    [Authorize(Roles = "Admin,Editor")]
+    public async Task<IActionResult> BulkSyncFoto([FromBody] SyncFotoRequest request)
+    {
+        if (string.IsNullOrWhiteSpace(request.FotoUrl)) return BadRequest("FotoUrl es requerida.");
+
+        IQueryable<Pedido> query = _context.Pedidos.AsQueryable();
+
+        if (request.PedidoIds != null && request.PedidoIds.Any())
+        {
+            query = query.Where(p => request.PedidoIds.Contains(p.Id));
+        }
+        else if (!string.IsNullOrWhiteSpace(request.Descripcion))
+        {
+            var targetDesc = request.Descripcion.Trim().ToLower();
+            query = query.Where(p => p.Descripcion != null && p.Descripcion.Trim().ToLower() == targetDesc);
+        }
+        else
+        {
+            return BadRequest("Se debe especificar la descripción o lista de IDs.");
+        }
+
+        var pedidosToUpdate = await query.ToListAsync();
+        foreach (var p in pedidosToUpdate)
+        {
+            p.FotoUrl = request.FotoUrl;
+        }
+
+        await _context.SaveChangesAsync();
+        await _hubContext.Clients.All.SendAsync("PedidosActualizados", pedidosToUpdate.Select(p => p.Id));
+
+        return Ok(new { Actualizados = pedidosToUpdate.Count, FotoUrl = request.FotoUrl });
+    }
+
     [HttpPost("{id}/documentos")]
     [Authorize(Roles = "Admin,Editor")]
     public async Task<IActionResult> UploadDocumento(int id, IFormFile file, [FromForm] string tipo = "General")
