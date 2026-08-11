@@ -59,21 +59,6 @@ import { AuthService } from '../../services/auth.service';
               <span *ngIf="!loading">Ingresar al Sistema ➔</span>
               <span *ngIf="loading">Autenticando...</span>
             </button>
-
-            <!-- SEPARADOR -->
-            <div class="divider">
-              <span>O ACCEDE RÁPIDO CON BIOMETRÍA</span>
-            </div>
-
-            <!-- BOTÓN ACCESO BIOMÉTRICO (HUELLA / FACE ID) -->
-            <button type="button" (click)="loginWithBiometrics()" [disabled]="biometricLoading" class="biometric-btn">
-              <span class="bio-icon">👆</span>
-              <div class="bio-text">
-                <strong *ngIf="!biometricLoading">Huella Digital / Face ID</strong>
-                <strong *ngIf="biometricLoading">Verificando Biometría...</strong>
-                <span>Acceso rápido biométrico cifrado</span>
-              </div>
-            </button>
           </form>
 
         </div>
@@ -242,68 +227,11 @@ import { AuthService } from '../../services/auth.service';
       font-size: 0.98rem;
       cursor: pointer;
       transition: all 0.2s ease;
+      margin-top: 0.5rem;
     }
     .submit-btn:hover {
       background: #2563eb;
       box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
-    }
-
-    /* DIVIDER */
-    .divider {
-      text-align: center;
-      position: relative;
-      margin: 0.5rem 0;
-    }
-    .divider::before {
-      content: '';
-      position: absolute;
-      left: 0; top: 50%;
-      width: 100%; height: 1px;
-      background: rgba(255, 255, 255, 0.1);
-    }
-    .divider span {
-      position: relative;
-      background: #0f172a;
-      padding: 0 10px;
-      font-size: 0.68rem;
-      font-weight: 800;
-      color: #64748b;
-      letter-spacing: 0.05em;
-    }
-
-    /* BIOMETRIC BUTTON */
-    .biometric-btn {
-      background: rgba(16, 185, 129, 0.12);
-      border: 1px solid rgba(16, 185, 129, 0.35);
-      border-radius: 12px;
-      padding: 0.75rem 1rem;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      text-align: left;
-    }
-    .biometric-btn:hover {
-      background: rgba(16, 185, 129, 0.22);
-      border-color: #10b981;
-      box-shadow: 0 4px 15px rgba(16, 185, 129, 0.25);
-    }
-    .bio-icon {
-      font-size: 1.5rem;
-    }
-    .bio-text {
-      display: flex;
-      flex-direction: column;
-    }
-    .bio-text strong {
-      color: #34d399;
-      font-size: 0.9rem;
-      font-weight: 800;
-    }
-    .bio-text span {
-      color: #94a3b8;
-      font-size: 0.73rem;
     }
   `]
 })
@@ -312,7 +240,6 @@ export class LoginComponent implements OnInit {
   password = '';
   rememberMe = true;
   loading = false;
-  biometricLoading = false;
   errorMsg = '';
   showPassword = false;
 
@@ -322,7 +249,6 @@ export class LoginComponent implements OnInit {
   ) {}
 
   ngOnInit() {
-    // If user already logged in before, populate default
     const savedEmail = localStorage.getItem('remembered_email');
     if (savedEmail) {
       this.email = savedEmail;
@@ -347,58 +273,5 @@ export class LoginComponent implements OnInit {
         this.errorMsg = err.error?.message || 'Credenciales inválidas o contraseña incorrecta.';
       }
     });
-  }
-
-  async loginWithBiometrics() {
-    this.biometricLoading = true;
-    this.errorMsg = '';
-
-    try {
-      // Check if WebAuthn / Biometrics is supported in browser
-      if (window.PublicKeyCredential && await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable()) {
-        // Trigger Native Device Biometric Challenge (Huella / Face ID / Windows Hello)
-        const challenge = new Uint8Array(32);
-        window.crypto.getRandomValues(challenge);
-
-        const options: CredentialRequestOptions = {
-          publicKey: {
-            challenge: challenge,
-            timeout: 60000,
-            userVerification: 'required'
-          }
-        };
-
-        // Note: For demo/express biometric auth without pre-registered keys, simulate high-security verification
-        setTimeout(() => {
-          this.authService.login({ username: this.email || 'smenendez554@gmail.com', password: 'Santiago0417#Admin' }).subscribe({
-            next: () => {
-              this.biometricLoading = false;
-              this.router.navigate(['/dashboard']);
-            },
-            error: () => {
-              this.biometricLoading = false;
-              this.errorMsg = 'No se pudo verificar la huella/Face ID.';
-            }
-          });
-        }, 1200);
-      } else {
-        // Fallback for browsers without biometric hardware
-        setTimeout(() => {
-          this.authService.login({ username: this.email || 'smenendez554@gmail.com', password: 'Santiago0417#Admin' }).subscribe({
-            next: () => {
-              this.biometricLoading = false;
-              this.router.navigate(['/dashboard']);
-            },
-            error: () => {
-              this.biometricLoading = false;
-              this.errorMsg = 'Autenticación biométrica fallida.';
-            }
-          });
-        }, 800);
-      }
-    } catch {
-      this.biometricLoading = false;
-      this.errorMsg = 'Error al escanear huella o rostro.';
-    }
   }
 }
