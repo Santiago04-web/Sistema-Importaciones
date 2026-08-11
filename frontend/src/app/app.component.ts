@@ -69,7 +69,6 @@ import { LanguageService } from './services/language.service';
             <a routerLink="/table" routerLinkActive="active" class="tab-link">Lista</a>
             <a *ngIf="canEdit()" routerLink="/excel" routerLinkActive="active" class="tab-link">Subir Excel</a>
             <a routerLink="/proveedores" routerLinkActive="active" class="tab-link">Proveedores</a>
-            <a routerLink="/contenedores" routerLinkActive="active" class="tab-link">Embarques / Contenedores</a>
             <a *ngIf="isAdmin()" routerLink="/usuarios" routerLinkActive="active" class="tab-link">Usuarios</a>
             <a *ngIf="isAdmin()" routerLink="/actividad" routerLinkActive="active" class="tab-link">Actividad</a>
           </div>
