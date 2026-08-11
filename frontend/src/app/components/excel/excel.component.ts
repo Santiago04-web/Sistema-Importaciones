@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { PedidoService, Pedido } from '../../services/pedido.service';
@@ -925,7 +925,10 @@ export class ExcelComponent implements OnInit {
   recientes: Pedido[] = [];
   modoEdicionPreview = false;
 
-  constructor(private pedidoService: PedidoService) {}
+  constructor(
+    private pedidoService: PedidoService,
+    private cdr: ChangeDetectorRef
+  ) {}
 
   ngOnInit() {
     this.cargarRecientes();
@@ -934,10 +937,17 @@ export class ExcelComponent implements OnInit {
   cargarRecientes() {
     this.pedidoService.getPedidos().subscribe({
       next: (data) => {
-        // Sort by ID descending and take first 5
-        this.recientes = [...data].sort((a, b) => (b.id || 0) - (a.id || 0)).slice(0, 5);
+        if (data && data.length > 0) {
+          this.recientes = [...data].sort((a, b) => (b.id || 0) - (a.id || 0)).slice(0, 10);
+        } else {
+          this.recientes = this.pedidoService.getLocalPedidos().slice(0, 10);
+        }
+        this.cdr.detectChanges();
       },
-      error: (err) => console.error('Error cargando recientes:', err)
+      error: () => {
+        this.recientes = this.pedidoService.getLocalPedidos().slice(0, 10);
+        this.cdr.detectChanges();
+      }
     });
   }
 
@@ -1034,10 +1044,11 @@ export class ExcelComponent implements OnInit {
         this.savingConfirmed = false;
         this.showPreviewModal = false;
         const loteLabel = res.codigo ? `Pedido #${res.codigo}` : 'el manifiesto';
-        this.successMsg = `¡Lote guardado con éxito! Se registraron ${res.count} productos asignados a ${loteLabel}.`;
+        this.successMsg = `¡Lote guardado con éxito! Se registraron ${res.count || requestData.items.length} productos asignados a ${loteLabel}.`;
         this.selectedFile = null;
         this.previewData = null;
         this.cargarRecientes();
+        this.cdr.detectChanges();
       },
       error: (err) => {
         console.error('Error al confirmar y guardar en DB:', err);
@@ -1048,6 +1059,8 @@ export class ExcelComponent implements OnInit {
         this.successMsg = `¡Lote guardado con éxito! Se registraron ${count} productos asignados a ${loteLabel}.`;
         this.selectedFile = null;
         this.previewData = null;
+        this.cargarRecientes();
+        this.cdr.detectChanges();
       }
     });
   }
