@@ -128,9 +128,6 @@ interface ColumnaEtapa {
                 </div>
                 
                 <div class="card-body-row">
-                  <div class="thumb-mini" *ngIf="pedido.fotoUrl">
-                    <img [src]="pedido.fotoUrl" alt="Producto">
-                  </div>
                   <div class="pedido-desc" *ngIf="pedido.descripcion">
                     {{ truncateDesc(pedido.descripcion) }}
                   </div>
@@ -193,7 +190,7 @@ interface ColumnaEtapa {
           <div class="modal-body-grid">
             <!-- PHOTO PREVIEW IF AVAILABLE & NOT BROKEN -->
             <div class="modal-photo-box" *ngIf="selectedPedido.fotoUrl && !hasPhotoError">
-              <img [src]="selectedPedido.fotoUrl" (error)="hasPhotoError = true" alt="Foto del pedido">
+              <img [src]="'http://localhost:5174' + selectedPedido.fotoUrl" (error)="hasPhotoError = true" alt="Foto del pedido">
             </div>
 
             <!-- DETAILS GRID -->
