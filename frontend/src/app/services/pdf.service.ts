@@ -120,4 +120,76 @@ export class PdfService {
     const fileName = `Liquidacion_${pedido.codigo}_${pedido.referencia || 'Importacion'}.pdf`;
     doc.save(fileName);
   }
+
+  exportInvestorReportPdf(pedidos: Pedido[]) {
+    const doc = new jsPDF();
+    const formatCop = (val?: number) => {
+      if (val === undefined || val === null) return '$0';
+      return '$' + Math.round(val).toLocaleString('es-CO');
+    };
+
+    // Header Background
+    doc.setFillColor(9, 13, 22);
+    doc.rect(0, 0, 210, 42, 'F');
+
+    // Header Title
+    doc.setTextColor(255, 255, 255);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(20);
+    doc.text('LOGIGHO GLOBAL INVESTORS', 14, 22);
+
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(96, 165, 250);
+    doc.text('Informe Ejecutivo Consolidado de Inversiones & Cargas Internacionales', 14, 31);
+
+    doc.setFontSize(9);
+    doc.setTextColor(255, 255, 255);
+    doc.text(`Emisión: ${new Date().toLocaleDateString('es-CO')}`, 145, 22);
+
+    let y = 54;
+    const totalInversion = pedidos.reduce((s, p) => s + (p.total || 0), 0);
+    const totalGanancia = pedidos.reduce((s, p) => s + (p.ganancia || 0), 0);
+    const totalMt3 = pedidos.reduce((s, p) => s + (p.cubica || 0), 0);
+
+    // KPI Summary Box
+    doc.setFillColor(245, 247, 250);
+    doc.setDrawColor(220, 225, 235);
+    doc.roundedRect(14, y, 182, 32, 3, 3, 'FD');
+
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(11);
+    doc.setTextColor(30, 41, 59);
+    doc.text(`Capital Invertido Total: ${formatCop(totalInversion)}`, 20, y + 12);
+    doc.text(`Ganancia Neto Proyectada: ${formatCop(totalGanancia)}`, 20, y + 23);
+    doc.text(`Total Lotes: ${pedidos.length}  |  Volumen: ${totalMt3.toFixed(2)} m³`, 120, y + 12);
+
+    y += 44;
+
+    doc.setFontSize(11);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(37, 99, 235);
+    doc.text('RESUMEN DE PORTAFOLIO POR CARGA', 14, y);
+
+    y += 8;
+
+    pedidos.slice(0, 18).forEach((p, idx) => {
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(15, 23, 42);
+      doc.text(`${idx + 1}. ${p.descripcion || 'Producto'} (${p.referencia || 'N/A'}) - Origen: ${p.ciudad || 'GZ'}`, 14, y);
+
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(71, 85, 105);
+      doc.text(`Qty: ${(p.totalQty || 0).toLocaleString()} uds  |  Inversión: ${formatCop(p.total)}  |  Ganancia: ${formatCop(p.ganancia)}`, 14, y + 5);
+
+      y += 12;
+      if (y > 270) {
+        doc.addPage();
+        y = 20;
+      }
+    });
+
+    doc.save(`Informe_Inversiones_Logigho_${Date.now()}.pdf`);
+  }
 }

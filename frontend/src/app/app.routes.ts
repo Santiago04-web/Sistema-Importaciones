@@ -9,6 +9,7 @@ import { UsersComponent } from './components/users/users.component';
 import { AuditLogComponent } from './components/audit/audit-log.component';
 import { ProveedoresComponent } from './components/proveedores/proveedores.component';
 import { ContenedoresComponent } from './components/contenedores/contenedores.component';
+import { InvestorPortalComponent } from './components/investor-portal/investor-portal.component';
 import { inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthService } from './services/auth.service';
@@ -47,6 +48,7 @@ export const routes: Routes = [
   { path: 'excel', component: ExcelComponent, canActivate: [authGuard] },
   { path: 'proveedores', component: ProveedoresComponent, canActivate: [authGuard] },
   { path: 'contenedores', component: ContenedoresComponent, canActivate: [authGuard] },
+  { path: 'inversionistas', component: InvestorPortalComponent, canActivate: [authGuard] },
   { path: 'usuarios', component: UsersComponent, canActivate: [adminGuard] },
   { path: 'actividad', component: AuditLogComponent, canActivate: [adminGuard] }
 ];
