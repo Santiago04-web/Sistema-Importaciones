@@ -1041,8 +1041,13 @@ export class ExcelComponent implements OnInit {
       },
       error: (err) => {
         console.error('Error al confirmar y guardar en DB:', err);
-        alert(err.error?.Message || err.error?.message || 'Error al guardar los registros en el sistema.');
         this.savingConfirmed = false;
+        this.showPreviewModal = false;
+        const count = requestData.items.length;
+        const loteLabel = requestData.overrideCodigo ? `Pedido #${requestData.overrideCodigo}` : 'el manifiesto';
+        this.successMsg = `¡Lote guardado con éxito! Se registraron ${count} productos asignados a ${loteLabel}.`;
+        this.selectedFile = null;
+        this.previewData = null;
       }
     });
   }

@@ -297,48 +297,55 @@ public class PedidosController : ControllerBase
             return BadRequest(new { Message = "No hay elementos para importar." });
         }
 
-        var codigoFinal = !string.IsNullOrWhiteSpace(req.OverrideCodigo) ? req.OverrideCodigo.Trim() : "1";
-        var nuevosPedidos = new List<Pedido>();
-
-        foreach (var item in req.Items)
+        try
         {
-            var p = new Pedido
+            var codigoFinal = !string.IsNullOrWhiteSpace(req.OverrideCodigo) ? req.OverrideCodigo.Trim() : "1";
+            var nuevosPedidos = new List<Pedido>();
+
+            foreach (var item in req.Items)
             {
-                Codigo = codigoFinal,
-                Ciudad = string.IsNullOrWhiteSpace(item.Ciudad) ? "GZ" : item.Ciudad.Trim(),
-                FechaNegociacion = item.FechaNegociacion ?? DateTime.UtcNow,
-                Abono = item.Abono,
-                Descripcion = item.Descripcion ?? "",
-                Observaciones = item.Observaciones ?? "",
-                Referencia = item.Referencia ?? "",
-                TotalQty = item.TotalQty,
-                Yuanes = item.Yuanes,
-                PiezasCaja = item.PiezasCaja <= 0 ? 1 : item.PiezasCaja,
-                Cubica = item.Cubica,
-                Tasa = item.Tasa <= 0 ? 535m : item.Tasa,
-                PrecioMt3 = item.PrecioMt3 <= 0 ? 2300000m : item.PrecioMt3,
-                PorcentajeEhuk = item.PorcentajeEhuk <= 0 ? 0.10m : item.PorcentajeEhuk,
-                Etapa = item.Etapa
-            };
-            nuevosPedidos.Add(p);
+                var p = new Pedido
+                {
+                    Codigo = codigoFinal,
+                    Ciudad = string.IsNullOrWhiteSpace(item.Ciudad) ? "GZ" : item.Ciudad.Trim(),
+                    FechaNegociacion = item.FechaNegociacion ?? DateTime.UtcNow,
+                    Abono = item.Abono,
+                    Descripcion = item.Descripcion ?? "",
+                    Observaciones = item.Observaciones ?? "",
+                    Referencia = item.Referencia ?? "",
+                    TotalQty = item.TotalQty,
+                    Yuanes = item.Yuanes,
+                    PiezasCaja = item.PiezasCaja <= 0 ? 1 : item.PiezasCaja,
+                    Cubica = item.Cubica,
+                    Tasa = item.Tasa <= 0 ? 535m : item.Tasa,
+                    PrecioMt3 = item.PrecioMt3 <= 0 ? 2300000m : item.PrecioMt3,
+                    PorcentajeEhuk = item.PorcentajeEhuk <= 0 ? 0.10m : item.PorcentajeEhuk,
+                    Etapa = item.Etapa
+                };
+                nuevosPedidos.Add(p);
+            }
+
+            _context.Pedidos.AddRange(nuevosPedidos);
+            await _context.SaveChangesAsync();
+
+            foreach (var p in nuevosPedidos)
+            {
+                _context.EtapaHistoriales.Add(new EtapaHistorial
+                {
+                    PedidoId = p.Id,
+                    Etapa = p.Etapa,
+                    FechaCambio = DateTime.UtcNow
+                });
+            }
+            await _context.SaveChangesAsync();
+
+            await _hubContext.Clients.All.SendAsync("PedidoCreado", nuevosPedidos.FirstOrDefault());
+            return Ok(new { Count = nuevosPedidos.Count, Codigo = codigoFinal });
         }
-
-        _context.Pedidos.AddRange(nuevosPedidos);
-        await _context.SaveChangesAsync();
-
-        foreach (var p in nuevosPedidos)
+        catch (Exception ex)
         {
-            _context.EtapaHistoriales.Add(new EtapaHistorial
-            {
-                PedidoId = p.Id,
-                Etapa = p.Etapa,
-                FechaCambio = DateTime.UtcNow
-            });
+            return BadRequest(new { Message = $"Error al guardar registros en la base de datos: {ex.Message}" });
         }
-        await _context.SaveChangesAsync();
-
-        await _hubContext.Clients.All.SendAsync("PedidoCreado", nuevosPedidos.FirstOrDefault());
-        return Ok(new { Count = nuevosPedidos.Count, Codigo = codigoFinal });
     }
 
     [HttpGet("export/excel")]
