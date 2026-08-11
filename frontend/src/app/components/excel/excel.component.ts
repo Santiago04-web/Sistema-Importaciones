@@ -1003,6 +1003,10 @@ export class ExcelComponent implements OnInit {
         console.error('Error al confirmar y guardar en DB:', err);
         alert(err.error?.Message || err.error?.message || 'Error al guardar los registros en el sistema.');
         this.savingConfirmed = false;
+      }
+    });
+  }
+
   recalcularTotalesPreview() {
     if (!this.previewData || !this.previewData.items) return;
     this.previewTotalQty = this.previewData.items.reduce((s: number, x: any) => s + (Number(x.totalQty) || 0), 0);
