@@ -8,38 +8,31 @@ import { PedidoService } from '../../services/pedido.service';
   standalone: true,
   imports: [CommonModule, FormsModule],
   template: `
-    <div class="rate-card glass-card">
-      <div class="rate-card-top">
-        <div class="rate-badge">
-          <span class="live-dot"></span>
-          <span>TASA DE CAMBIO EN VIVO (CNY ➔ COP)</span>
-        </div>
-        <div class="market-status">
-          <span>Fuente: {{ rateSource }} · Actualizado: {{ lastUpdated | date:'shortTime' }}</span>
-        </div>
+    <div class="rate-mini-bar">
+      <div class="mini-left">
+        <span class="live-dot"></span>
+        <span class="mini-lbl">CNY ➔ COP:</span>
+        <strong class="mini-rate">$ {{ currentRate | number:'1.2-2' }} COP</strong>
+        <span class="mini-source">· {{ rateSource }}</span>
       </div>
 
-      <div class="rate-main-row">
-        <div class="rate-val-box">
-          <span class="currency-pair">1 CNY (Yuan RMB) =</span>
-          <div class="big-rate">
-            <strong>{{ currentRate | number:'1.2-2' }}</strong>
-            <span class="cop-unit">COP</span>
-            <span class="rate-change" [class.positive]="isLive" [class.neutral]="!isLive">
-              {{ isLive ? '● API Divisas Real en Vivo' : '● Valor Registrado' }}
-            </span>
-          </div>
-        </div>
+      <div class="mini-right">
+        <button class="mini-toggle-btn" (click)="showCalc = !showCalc" title="Abrir conversor rápido RMB a COP">
+          🧮 {{ showCalc ? 'Cerrar Conversor' : 'Conversor Rápido RMB' }}
+        </button>
 
-        <!-- QUICK CALCULATOR CONVERTER -->
-        <div class="rate-calc-box">
-          <label class="calc-lbl">🧮 Conversor Rápido RMB ➔ COP</label>
-          <div class="calc-input-group">
-            <input type="number" [(ngModel)]="rmbInput" (input)="onRmbChange()" class="calc-input" placeholder="¥ Yuanes">
-            <span class="calc-equals">=</span>
-            <div class="calc-result">
+        <!-- DISCREET POPUP CONVERTER -->
+        <div class="mini-popover glass-card" *ngIf="showCalc">
+          <span class="pop-title">🧮 Conversor Rápido RMB ➔ COP</span>
+          <div class="pop-inputs">
+            <div class="pop-field">
+              <label>¥ RMB</label>
+              <input type="number" [(ngModel)]="rmbInput" (input)="onRmbChange()" class="pop-input">
+            </div>
+            <span class="pop-equals">=</span>
+            <div class="pop-res">
+              <label>COP</label>
               <strong>$ {{ convertedCop | number:'1.0-0' }}</strong>
-              <span class="result-unit">COP</span>
             </div>
           </div>
         </div>
@@ -47,36 +40,23 @@ import { PedidoService } from '../../services/pedido.service';
     </div>
   `,
   styles: [`
-    .rate-card {
-      padding: 1.25rem 1.5rem;
-      border-radius: 16px;
-      background: linear-gradient(135deg, rgba(20, 20, 24, 0.8) 0%, rgba(15, 23, 42, 0.85) 100%);
-      border: 1px solid rgba(59, 130, 246, 0.2);
-      backdrop-filter: blur(12px);
-      margin-bottom: 2rem;
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
-    }
-    .rate-card-top {
+    .rate-mini-bar {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 1rem;
-      flex-wrap: wrap;
-      gap: 0.5rem;
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid rgba(59, 130, 246, 0.2);
+      border-radius: 10px;
+      padding: 6px 14px;
+      margin-bottom: 1.25rem;
+      backdrop-filter: blur(8px);
+      position: relative;
     }
-    .rate-badge {
-      display: inline-flex;
+    .mini-left {
+      display: flex;
       align-items: center;
-      gap: 6px;
-      font-size: 0.72rem;
-      font-weight: 700;
-      color: #10b981;
-      background: rgba(16, 185, 129, 0.1);
-      border: 1px solid rgba(16, 185, 129, 0.25);
-      padding: 4px 10px;
-      border-radius: 20px;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
+      gap: 8px;
+      font-size: 0.8rem;
     }
     .live-dot {
       width: 7px;
@@ -91,116 +71,97 @@ import { PedidoService } from '../../services/pedido.service';
       50% { opacity: 1; transform: scale(1.3); }
       100% { opacity: 0.5; transform: scale(0.9); }
     }
-    .market-status {
+    .mini-lbl {
+      color: #94a3b8;
+      font-weight: 600;
+    }
+    .mini-rate {
+      color: #3b82f6;
+      font-weight: 800;
+      font-size: 0.9rem;
+    }
+    .mini-source {
+      color: #64748b;
+      font-size: 0.72rem;
+    }
+    .mini-right {
+      position: relative;
+    }
+    .mini-toggle-btn {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #cbd5e1;
+      padding: 3px 10px;
+      border-radius: 6px;
       font-size: 0.75rem;
-      color: #94a3b8;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s ease;
     }
-    .rate-main-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 1.5rem;
+    .mini-toggle-btn:hover {
+      background: rgba(255, 255, 255, 0.12);
+      color: #fff;
     }
-    .currency-pair {
-      font-size: 0.8rem;
-      color: #94a3b8;
+    .mini-popover {
+      position: absolute;
+      top: 36px;
+      right: 0;
+      width: 260px;
+      background: #0f172a;
+      border: 1px solid rgba(59, 130, 246, 0.3);
+      border-radius: 12px;
+      padding: 10px 14px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+      z-index: 100;
+    }
+    .pop-title {
       display: block;
-      margin-bottom: 2px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: #94a3b8;
+      margin-bottom: 8px;
     }
-    .big-rate {
+    .pop-inputs {
       display: flex;
-      align-items: baseline;
+      align-items: center;
       gap: 8px;
     }
-    .big-rate strong {
-      font-size: 2.1rem;
-      font-weight: 800;
-      color: #3b82f6;
-      letter-spacing: -0.02em;
+    .pop-field {
+      flex: 1;
     }
-    .cop-unit {
-      font-size: 1rem;
-      font-weight: 700;
+    .pop-field label, .pop-res label {
+      display: block;
+      font-size: 0.65rem;
       color: #64748b;
     }
-    .rate-change {
-      font-size: 0.75rem;
-      font-weight: 600;
-      padding: 3px 8px;
-      border-radius: 6px;
-      margin-left: 6px;
-    }
-    .rate-change.positive {
-      color: #10b981;
-      background: rgba(16, 185, 129, 0.12);
-    }
-    .rate-change.neutral {
-      color: #eab308;
-      background: rgba(234, 179, 8, 0.12);
-    }
-    .rate-calc-box {
-      background: rgba(0, 0, 0, 0.3);
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      border-radius: 12px;
-      padding: 0.75rem 1.25rem;
-      min-width: 320px;
-    }
-    .calc-lbl {
-      display: block;
-      font-size: 0.75rem;
-      font-weight: 600;
-      color: #94a3b8;
-      margin-bottom: 6px;
-    }
-    .calc-input-group {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-    .calc-input {
-      width: 110px;
+    .pop-input {
+      width: 100%;
       background: rgba(0, 0, 0, 0.4);
       border: 1px solid rgba(255, 255, 255, 0.15);
-      border-radius: 8px;
-      padding: 6px 10px;
+      border-radius: 6px;
+      padding: 4px 6px;
       color: #fff;
-      font-size: 0.95rem;
+      font-size: 0.85rem;
       font-weight: 700;
       outline: none;
     }
-    .calc-input:focus {
-      border-color: #3b82f6;
-      box-shadow: 0 0 10px rgba(59, 130, 246, 0.3);
-    }
-    .calc-equals {
+    .pop-equals {
       color: #64748b;
-      font-weight: bold;
+      font-size: 0.8rem;
     }
-    .calc-result {
-      display: flex;
-      align-items: baseline;
-      gap: 4px;
-    }
-    .calc-result strong {
-      font-size: 1.1rem;
-      font-weight: 800;
+    .pop-res strong {
       color: #10b981;
-    }
-    .result-unit {
-      font-size: 0.75rem;
-      color: #64748b;
+      font-size: 0.9rem;
+      font-weight: 800;
     }
 
-    @media (max-width: 768px) {
-      .rate-main-row {
+    @media (max-width: 600px) {
+      .rate-mini-bar {
         flex-direction: column;
         align-items: flex-start;
+        gap: 6px;
       }
-      .rate-calc-box {
-        width: 100%;
-        min-width: 100%;
-      }
+      .mini-source { display: none; }
     }
   `]
 })
@@ -209,6 +170,7 @@ export class ExchangeRateComponent implements OnInit {
   rateSource = 'Cargando...';
   lastUpdated = new Date();
   isLive = true;
+  showCalc = false;
   rmbInput = 1000;
   convertedCop = 560500;
 
@@ -223,14 +185,14 @@ export class ExchangeRateComponent implements OnInit {
       next: (res: any) => {
         if (res && res.rateCnyCop) {
           this.currentRate = res.rateCnyCop;
-          this.rateSource = res.source || 'ExchangeRate-API Real-Time';
+          this.rateSource = res.source || 'Live API';
           this.lastUpdated = res.lastUpdated ? new Date(res.lastUpdated) : new Date();
           this.isLive = res.isLive !== false;
           this.onRmbChange();
         }
       },
       error: () => {
-        this.rateSource = 'Banco de la República / Cache Local';
+        this.rateSource = 'Cache Local';
         this.isLive = false;
       }
     });
