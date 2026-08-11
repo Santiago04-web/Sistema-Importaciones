@@ -171,31 +171,34 @@ using (var scope = app.Services.CreateScope())
         }
     }
 
-    // Seed default admin from configuration or environment variables
-    var adminEmail = builder.Configuration["SeedData:AdminEmail"] ?? "admin@logigho.com";
-    var adminPassword = builder.Configuration["SeedData:AdminPassword"];
-    
-    var adminUser = await userManager.FindByEmailAsync(adminEmail);
-    if (adminUser == null)
+    // Seed default Admin, Editor, and Viewer users
+    var seedUsers = new[]
     {
-        if (string.IsNullOrWhiteSpace(adminPassword))
-        {
-            adminPassword = $"Admin#{Guid.NewGuid().ToString("N").Substring(0, 10)}!";
-        }
+        new { Email = "admin@logigho.com", Password = "Santiago0417#Admin", Role = "Admin" },
+        new { Email = "smenendez554@gmail.com", Password = "Santiago0417#Admin", Role = "Admin" },
+        new { Email = "editor@logigho.com", Password = "Santiago0417#Editor", Role = "Editor" },
+        new { Email = "viewer@logigho.com", Password = "Santiago0417#Viewer", Role = "Viewer" }
+    };
 
-        var newAdmin = new IdentityUser { UserName = adminEmail, Email = adminEmail };
-        var result = await userManager.CreateAsync(newAdmin, adminPassword);
-        if (result.Succeeded)
-        {
-            await userManager.AddToRoleAsync(newAdmin, "Admin");
-        }
-    }
-    else
+    foreach (var su in seedUsers)
     {
-        if (!string.IsNullOrWhiteSpace(adminPassword))
+        var existingUser = await userManager.FindByEmailAsync(su.Email);
+        if (existingUser == null)
         {
-            var resetToken = await userManager.GeneratePasswordResetTokenAsync(adminUser);
-            await userManager.ResetPasswordAsync(adminUser, resetToken, adminPassword);
+            var newUser = new IdentityUser { UserName = su.Email, Email = su.Email, EmailConfirmed = true };
+            var res = await userManager.CreateAsync(newUser, su.Password);
+            if (res.Succeeded)
+            {
+                await userManager.AddToRoleAsync(newUser, su.Role);
+            }
+        }
+        else
+        {
+            var userRoles = await userManager.GetRolesAsync(existingUser);
+            if (!userRoles.Contains(su.Role))
+            {
+                await userManager.AddToRoleAsync(existingUser, su.Role);
+            }
         }
     }
 }
