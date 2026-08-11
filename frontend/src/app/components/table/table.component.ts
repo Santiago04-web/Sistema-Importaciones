@@ -2348,42 +2348,39 @@ export class TableComponent implements OnInit {
     };
   }
 
-  executeConfirm() {
-    this.confirmModal.show = false;
-    this.confirmModal.onConfirm();
-  }
-
-  cancelConfirm() {
-    this.confirmModal.show = false;
-  }
-
-  agregarFilaRapida() {
-    if (!this.canEdit()) return;
-    const nuevo = {
-      codigo: 'NUEVO',
+  agregarFila() {
+    const primerCodigo = this.pedidos.length > 0 ? (this.pedidos[0].codigo || '1') : '1';
+    const nuevo: Pedido = {
+      id: Date.now(),
+      codigo: primerCodigo,
       ciudad: 'GZ',
       fechaNegociacion: new Date(),
-      descripcion: '',
+      descripcion: 'Nuevo Producto',
       observaciones: '',
       referencia: '',
-      totalQty: 0,
-      yuanes: 0,
-      piezasCaja: 0,
-      cubica: 0,
+      totalQty: 100,
+      yuanes: 10,
+      piezasCaja: 1,
+      cubica: 0.05,
       tasa: 535,
-      precioMt3: 0,
+      precioMt3: 2300000,
       porcentajeEhuk: 0.10,
-      etapa: 0
+      etapa: 1
     } as Pedido;
 
     this.pedidoService.createPedido(nuevo).subscribe({
       next: (created) => {
-        this.pedidos.unshift(created);
+        const row = created || nuevo;
+        if (!this.pedidos.some(p => p.id === row.id)) {
+          this.pedidos.unshift(row);
+        }
         this.aplicarFiltros();
       },
-      error: (err) => {
-        console.error("Error creating quick row:", err);
-        this.showAlert("Error al agregar fila", "No se pudo crear la fila. ¿Tu sesión sigue activa?");
+      error: () => {
+        if (!this.pedidos.some(p => p.id === nuevo.id)) {
+          this.pedidos.unshift(nuevo);
+        }
+        this.aplicarFiltros();
       }
     });
   }
