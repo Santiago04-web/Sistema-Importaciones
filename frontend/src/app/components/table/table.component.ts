@@ -248,17 +248,17 @@ import { SignalrService } from '../../services/signalr.service';
               <!-- PHOTO -->
               <td *ngIf="mostrarFotos">
                 <div class="photo-cell">
-                  <ng-container *ngIf="pedido.fotoUrl; else categoryTpl">
-                    <div class="thumb-container">
-                      <img [src]="'http://localhost:5174' + pedido.fotoUrl" class="table-thumb" (click)="openPreview('http://localhost:5174' + pedido.fotoUrl)">
+                  <ng-container *ngIf="getEffectivePhotoUrl(pedido) as effectivePhoto; else categoryTpl">
+                    <div class="thumb-container" [class.inherited-thumb]="!pedido.fotoUrl">
+                      <img [src]="'http://localhost:5174' + effectivePhoto" class="table-thumb" (click)="openPreview('http://localhost:5174' + effectivePhoto)">
                       
                       <!-- Large hover popover preview -->
                       <div class="hover-preview-popover">
-                        <img [src]="'http://localhost:5174' + pedido.fotoUrl" alt="Vista Previa">
+                        <img [src]="'http://localhost:5174' + effectivePhoto" alt="Vista Previa">
                       </div>
                       
                       <!-- Tiny blue edit badge in the corner -->
-                      <label class="edit-photo-badge" title="Cambiar foto">
+                      <label class="edit-photo-badge" [title]="pedido.fotoUrl ? 'Cambiar foto' : 'Subir foto propia para este pedido'">
                         📷
                         <input type="file" style="display: none" (change)="uploadPhoto($event, pedido.id)" accept="image/*">
                       </label>
@@ -665,15 +665,15 @@ import { SignalrService } from '../../services/signalr.service';
               <img [src]="'http://localhost:5174' + syncFotoModal.fotoUrl" alt="Foto subida" class="sync-img-thumb">
               <div class="sync-details">
                 <strong>{{ syncFotoModal.descripcion }}</strong>
-                <p>Se detectaron <strong>{{ syncFotoModal.count }}</strong> productos más llamados "{{ syncFotoModal.descripcion }}".</p>
-                <p class="sync-question">¿Deseas aplicar esta misma foto a todas las "{{ syncFotoModal.descripcion }}"?</p>
+                <p>Se detectaron <strong>{{ syncFotoModal.count }}</strong> productos más de este tipo.</p>
+                <p class="sync-question">¿Deseas aplicar esta foto a {{ getPluralQuestion(syncFotoModal.descripcion) }}?</p>
               </div>
             </div>
           </div>
           <div class="modal-footer">
-            <button class="btn-cancel" (click)="syncFotoModal.show = false">Solo a esta fila</button>
-            <button class="btn-save" (click)="confirmBulkSyncByDesc()">
-              🚀 Aplicar a las {{ syncFotoModal.count + 1 }} filas
+            <button class="btn-modal-sync cancel" (click)="syncFotoModal.show = false">Solo a este pedido</button>
+            <button class="btn-modal-sync save" (click)="confirmBulkSyncByDesc()">
+              🚀 {{ getPluralButtonText(syncFotoModal.descripcion, syncFotoModal.count + 1) }}
             </button>
           </div>
         </div>
@@ -1497,6 +1497,30 @@ import { SignalrService } from '../../services/signalr.service';
     .sync-details strong { color: #f8fafc; font-size: 1rem; font-weight: 800; }
     .sync-question { color: #60a5fa; font-weight: 700; margin-top: 6px; }
 
+    .btn-modal-sync {
+      padding: 0.6rem 1.2rem;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 0.85rem;
+      cursor: pointer;
+      border: none;
+      transition: all 0.2s ease;
+    }
+    .btn-modal-sync.cancel {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: #cbd5e1;
+    }
+    .btn-modal-sync.save {
+      background: #3b82f6;
+      color: #ffffff;
+      box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
+    }
+    .btn-modal-sync.save:hover {
+      background: #2563eb;
+      box-shadow: 0 6px 20px rgba(59, 130, 246, 0.6);
+    }
+
     /* Lightbox Styles */
     /* ── Lightbox ── */
     .lightbox-overlay {
@@ -1937,10 +1961,33 @@ export class TableComponent implements OnInit {
     });
   }
 
-  mostrarFotos = true;
+  mostrarFotos = false;
   agruparPorProducto = false;
   galeriaModalOpen = false;
   gruposProductos: any[] = [];
+
+  getEffectivePhotoUrl(pedido: Pedido): string | null {
+    if (pedido.fotoUrl) return pedido.fotoUrl;
+    if (!pedido.descripcion || !pedido.descripcion.trim()) return null;
+
+    const desc = pedido.descripcion.trim().toLowerCase();
+    const master = this.pedidos.find(p => p.fotoUrl && p.descripcion && p.descripcion.trim().toLowerCase() === desc);
+    return master ? master.fotoUrl! : null;
+  }
+
+  getPluralQuestion(desc: string): string {
+    const d = (desc || '').toLowerCase();
+    const isMasculine = /buzo|pantalon|jeans|hoodie|sueter|reloj|zapato|tenis|bolso|cargador|celular/.test(d);
+    const prefix = isMasculine ? 'todos los' : 'todas las';
+    return `${prefix} "${desc}"`;
+  }
+
+  getPluralButtonText(desc: string, totalCount: number): string {
+    const d = (desc || '').toLowerCase();
+    const isMasculine = /buzo|pantalon|jeans|hoodie|sueter|reloj|zapato|tenis|bolso|cargador|celular/.test(d);
+    const prefix = isMasculine ? 'todos los' : 'todas las';
+    return `Aplicar a ${prefix} ${totalCount} "${desc}"`;
+  }
 
   toggleMostrarFotos() {
     this.mostrarFotos = !this.mostrarFotos;
