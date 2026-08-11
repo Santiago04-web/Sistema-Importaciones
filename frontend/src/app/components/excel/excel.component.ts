@@ -1052,19 +1052,18 @@ export class ExcelComponent implements OnInit {
     this.previewTotalQty = this.previewData.items.reduce((s: number, x: any) => s + (Number(x.totalQty) || 0), 0);
     this.previewTotalYuanes = this.previewData.items.reduce((s: number, x: any) => {
       const qty = Number(x.totalQty) > 0 ? Number(x.totalQty) : 1;
-      const unitRmb = (Number(x.yuanes) > 100 && qty > 1) ? (Number(x.yuanes) / qty) : Number(x.yuanes);
-      return s + (unitRmb || 0) * qty;
+      const unitRmb = Number(x.yuanes) || 0;
+      return s + unitRmb * qty;
     }, 0);
     this.previewTotalCOP = this.previewData.items.reduce((s: number, x: any) => {
-      const qty = Number(x.totalQty) > 0 ? Number(x.totalQty) : 1;
-      const rawRmb = Number(x.yuanes) || 0;
-      const unitRmb = (rawRmb > 100 && qty > 1) ? (rawRmb / qty) : rawRmb;
+      const qty = Number(x.totalQty) > 0 ? Number(x.totalQty) : 0;
+      const unitRmb = Number(x.yuanes) || 0;
       const tasa = Number(x.tasa) > 0 ? Number(x.tasa) : 535;
-      const prodCOP = (unitRmb || 0) * qty * tasa;
-      const cubica = Number(x.cubica) > 0 ? Number(x.cubica) : 0.001;
-      const precioMt3 = Number(x.precioMt3) > 0 ? Number(x.precioMt3) : 2300000;
+      const prodCOP = unitRmb * qty * tasa;
       const piezasCaja = Number(x.piezasCaja) > 0 ? Number(x.piezasCaja) : 1;
-      const cajas = Math.ceil(qty / piezasCaja);
+      const cubica = Number(x.cubica) || 0;
+      const precioMt3 = Number(x.precioMt3) || 2300000;
+      const cajas = piezasCaja > 0 ? Math.ceil(qty / piezasCaja) : 0;
       const mt3Total = cubica * cajas;
       const fleteCOP = mt3Total * precioMt3;
       const comisionTrabajo = prodCOP * 0.05;

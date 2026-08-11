@@ -45,7 +45,7 @@ public class ExcelService
             else if (headerText.Contains("REFERENCIA")) colRef = c;
             else if (headerText.Contains("QTY") || headerText.Contains("CANTIDAD") || headerText.Contains("总数量")) colQty = c;
             else if (headerText.Contains("YUAN") && !headerText.Contains("PRODUCTO") && !headerText.Contains("TOTAL")) colYuanes = c;
-            else if (headerText.Contains("PIEZAS") || headerText.Contains("CAJA")) colPiezasCaja = c;
+            else if (headerText.Contains("PIEZAS") && !headerText.Contains("CUBICA")) colPiezasCaja = c;
             else if (headerText.Contains("CUBICA")) colCubica = c;
             else if (headerText.Contains("TASA")) colTasa = c;
             else if (headerText.Contains("PRECIO MT") || headerText.Contains("PRECIO M3")) colPrecioMt3 = c;
