@@ -151,7 +151,12 @@ import { PedidoService, Pedido } from '../../services/pedido.service';
               <span class="lote-hint">Puedes cambiar este número antes de guardar para clasificar todo el archivo en 1 clic.</span>
             </div>
 
-            <div class="preview-kpi-group">
+            <div class="preview-kpi-group" style="align-items: center; gap: 1.5rem;">
+              <button class="btn-toggle-edit" [class.active]="modoEdicionPreview" (click)="modoEdicionPreview = !modoEdicionPreview">
+                <span *ngIf="!modoEdicionPreview">✏️ Editar Campos</span>
+                <span *ngIf="modoEdicionPreview">👁️ Vista Limpia</span>
+              </button>
+
               <div class="pkpi-item">
                 <span class="pkpi-num green">{{ previewTotalQty | number }}</span>
                 <span class="pkpi-lbl">Piezas Totales</span>
@@ -182,23 +187,41 @@ import { PedidoService, Pedido } from '../../services/pedido.service';
                 <tr *ngFor="let item of previewData?.items; let i = index">
                   <td>#{{ item.rowIndex || (i + 1) }}</td>
                   <td><strong class="code-pill">{{ item.codigo || overrideCodigo || 'S/N' }}</strong></td>
+                  
+                  <!-- CIUDAD -->
                   <td>
-                    <input type="text" class="prev-edit-input city" [(ngModel)]="item.ciudad" (ngModelChange)="recalcularTotalesPreview()" placeholder="GZ">
+                    <input *ngIf="modoEdicionPreview" type="text" class="prev-edit-input city" [(ngModel)]="item.ciudad" (ngModelChange)="recalcularTotalesPreview()" placeholder="GZ">
+                    <span *ngIf="!modoEdicionPreview" class="city-pill">{{ item.ciudad }}</span>
                   </td>
+
+                  <!-- DESCRIPCION -->
                   <td class="desc-cell">
-                    <input type="text" class="prev-edit-input desc" [(ngModel)]="item.descripcion" (ngModelChange)="recalcularTotalesPreview()" placeholder="Producto...">
+                    <input *ngIf="modoEdicionPreview" type="text" class="prev-edit-input desc" [(ngModel)]="item.descripcion" (ngModelChange)="recalcularTotalesPreview()" placeholder="Producto...">
+                    <span *ngIf="!modoEdicionPreview">{{ item.descripcion }}</span>
                   </td>
-                  <td>
-                    <input type="number" class="prev-edit-input num" [(ngModel)]="item.totalQty" (ngModelChange)="recalcularTotalesPreview()" placeholder="0">
+
+                  <!-- QTY -->
+                  <td class="text-right">
+                    <input *ngIf="modoEdicionPreview" type="number" class="prev-edit-input num" [(ngModel)]="item.totalQty" (ngModelChange)="recalcularTotalesPreview()" placeholder="0">
+                    <span *ngIf="!modoEdicionPreview" class="fw-bold">{{ item.totalQty | number }}</span>
                   </td>
-                  <td>
-                    <input type="number" step="0.01" class="prev-edit-input num" [(ngModel)]="item.yuanes" (ngModelChange)="recalcularTotalesPreview()" placeholder="0.00">
+
+                  <!-- YUANES -->
+                  <td class="text-right">
+                    <input *ngIf="modoEdicionPreview" type="number" step="0.01" class="prev-edit-input num" [(ngModel)]="item.yuanes" (ngModelChange)="recalcularTotalesPreview()" placeholder="0.00">
+                    <span *ngIf="!modoEdicionPreview">¥{{ (item.yuanes || 0) | number:'1.2-2' }}</span>
                   </td>
-                  <td>
-                    <input type="number" step="1" class="prev-edit-input num" [(ngModel)]="item.tasa" (ngModelChange)="recalcularTotalesPreview()" placeholder="535">
+
+                  <!-- TASA -->
+                  <td class="text-right">
+                    <input *ngIf="modoEdicionPreview" type="number" step="1" class="prev-edit-input num" [(ngModel)]="item.tasa" (ngModelChange)="recalcularTotalesPreview()" placeholder="535">
+                    <span *ngIf="!modoEdicionPreview">&#36;{{ item.tasa }}</span>
                   </td>
+
+                  <!-- BORRAR -->
                   <td style="text-align: center;">
-                    <button class="btn-del-row" (click)="eliminarFilaPreview(i)" title="Eliminar este producto del lote">✕</button>
+                    <button *ngIf="modoEdicionPreview" class="btn-del-row" (click)="eliminarFilaPreview(i)" title="Eliminar este producto del lote">✕</button>
+                    <span *ngIf="!modoEdicionPreview" style="color: #52525b;">—</span>
                   </td>
                 </tr>
               </tbody>
@@ -866,6 +889,31 @@ import { PedidoService, Pedido } from '../../services/pedido.service';
       border-color: #ef4444;
       transform: scale(1.08);
     }
+
+    .btn-toggle-edit {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: #fafafa;
+      padding: 0.45rem 0.9rem;
+      border-radius: 8px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      transition: all 0.2s ease;
+    }
+    .btn-toggle-edit:hover {
+      background: rgba(255, 255, 255, 0.12);
+      border-color: rgba(255, 255, 255, 0.3);
+    }
+    .btn-toggle-edit.active {
+      background: rgba(59, 130, 246, 0.2);
+      border-color: #3b82f6;
+      color: #60a5fa;
+      box-shadow: 0 0 12px rgba(59, 130, 246, 0.3);
+    }
   `]
 })
 export class ExcelComponent implements OnInit {
@@ -875,6 +923,7 @@ export class ExcelComponent implements OnInit {
   error = '';
   successMsg = '';
   recientes: Pedido[] = [];
+  modoEdicionPreview = false;
 
   constructor(private pedidoService: PedidoService) {}
 
@@ -953,6 +1002,7 @@ export class ExcelComponent implements OnInit {
     this.loading = true;
     this.error = '';
     this.successMsg = '';
+    this.modoEdicionPreview = false;
 
     this.pedidoService.previewExcel(this.selectedFile).subscribe({
       next: (data) => {
