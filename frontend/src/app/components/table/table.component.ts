@@ -237,6 +237,7 @@ import { SignalrService } from '../../services/signalr.service';
               <td>
                 <input type="text" class="inline-edit-input fw-bold" 
                        [(ngModel)]="pedido.codigo" 
+                       (ngModelChange)="onCellChange(pedido)"
                        (change)="actualizarPedido(pedido)"
                        placeholder="S/N">
               </td>
@@ -245,6 +246,7 @@ import { SignalrService } from '../../services/signalr.service';
               <td>
                 <input type="text" class="inline-edit-input" 
                        [(ngModel)]="pedido.referencia" 
+                       (ngModelChange)="onCellChange(pedido)"
                        (change)="actualizarPedido(pedido)"
                        placeholder="co-1">
               </td>
@@ -282,6 +284,7 @@ import { SignalrService } from '../../services/signalr.service';
               <td>
                 <input type="text" class="inline-edit-input city-badge-input" 
                        [(ngModel)]="pedido.ciudad" 
+                       (ngModelChange)="onCellChange(pedido)"
                        (change)="actualizarPedido(pedido)"
                        placeholder="GZ">
               </td>
@@ -299,6 +302,7 @@ import { SignalrService } from '../../services/signalr.service';
                 <div class="desc-cell-group">
                   <input type="text" class="inline-edit-input desc-input" 
                          [(ngModel)]="pedido.descripcion" 
+                         (ngModelChange)="onCellChange(pedido)"
                          (change)="actualizarPedido(pedido)"
                          placeholder="Producto...">
                   
@@ -306,6 +310,7 @@ import { SignalrService } from '../../services/signalr.service';
                     <span class="obs-tag">Obs:</span>
                     <input type="text" class="inline-edit-input obs-input"
                            [(ngModel)]="pedido.observaciones"
+                           (ngModelChange)="onCellChange(pedido)"
                            (change)="actualizarPedido(pedido)"
                            (blur)="editField = null"
                            placeholder="Observación...">
@@ -322,6 +327,7 @@ import { SignalrService } from '../../services/signalr.service';
                        [id]="pedido.id + '-qty-input'"
                        type="number" class="inline-edit-input text-right" 
                        [(ngModel)]="pedido.totalQty" 
+                       (ngModelChange)="onCellChange(pedido)"
                        (blur)="editField = null; actualizarPedido(pedido)"
                        (keydown.enter)="editField = null; actualizarPedido(pedido)"
                        placeholder="0">
@@ -338,6 +344,7 @@ import { SignalrService } from '../../services/signalr.service';
                        [id]="pedido.id + '-yuanes-input'"
                        type="number" step="0.01" class="inline-edit-input text-right" 
                        [(ngModel)]="pedido.yuanes" 
+                       (ngModelChange)="onCellChange(pedido)"
                        (blur)="editField = null; actualizarPedido(pedido)"
                        (keydown.enter)="editField = null; actualizarPedido(pedido)"
                        placeholder="0.00">
@@ -354,6 +361,7 @@ import { SignalrService } from '../../services/signalr.service';
                        [id]="pedido.id + '-tasa-input'"
                        type="number" step="0.01" class="inline-edit-input text-right" 
                        [(ngModel)]="pedido.tasa" 
+                       (ngModelChange)="onCellChange(pedido)"
                        (blur)="editField = null; actualizarPedido(pedido)"
                        (keydown.enter)="editField = null; actualizarPedido(pedido)"
                        placeholder="535">
@@ -370,6 +378,7 @@ import { SignalrService } from '../../services/signalr.service';
                        [id]="pedido.id + '-cubica-input'"
                        type="number" step="0.0001" class="inline-edit-input text-right" 
                        [(ngModel)]="pedido.cubica" 
+                       (ngModelChange)="onCellChange(pedido)"
                        (blur)="editField = null; actualizarPedido(pedido)"
                        (keydown.enter)="editField = null; actualizarPedido(pedido)"
                        placeholder="0.000">
@@ -386,6 +395,7 @@ import { SignalrService } from '../../services/signalr.service';
                        [id]="pedido.id + '-precioMt3-input'"
                        type="number" step="0.01" class="inline-edit-input text-right" 
                        [(ngModel)]="pedido.precioMt3" 
+                       (ngModelChange)="onCellChange(pedido)"
                        (blur)="editField = null; actualizarPedido(pedido)"
                        (keydown.enter)="editField = null; actualizarPedido(pedido)"
                        placeholder="0.00">
@@ -402,6 +412,7 @@ import { SignalrService } from '../../services/signalr.service';
                        [id]="pedido.id + '-porcentajeEhuk-input'"
                        type="number" step="0.01" class="inline-edit-input text-right" 
                        [(ngModel)]="pedido.porcentajeEhuk" 
+                       (ngModelChange)="onCellChange(pedido)"
                        (blur)="editField = null; actualizarPedido(pedido)"
                        (keydown.enter)="editField = null; actualizarPedido(pedido)"
                        placeholder="0.10">
@@ -2468,6 +2479,17 @@ export class TableComponent implements OnInit {
       });
     }
     return list;
+  }
+
+  private saveDebounceTimer: any;
+
+  onCellChange(pedido: Pedido) {
+    if (this.saveDebounceTimer) {
+      clearTimeout(this.saveDebounceTimer);
+    }
+    this.saveDebounceTimer = setTimeout(() => {
+      this.actualizarPedido(pedido);
+    }, 350);
   }
 
   onEtapaChange(pedido: Pedido, newEtapa: any) {
