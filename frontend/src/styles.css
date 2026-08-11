@@ -268,3 +268,111 @@ h1, h2, h3, h4 { font-weight: 700; color: #fff; letter-spacing: -0.02em; }
 .badge-entransito { background: rgba(245, 158, 11, 0.2); color: #fcd34d; border: 1px solid rgba(245, 158, 11, 0.3); }
 .badge-aduana { background: rgba(239, 68, 68, 0.2); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.3); }
 .badge-recibido { background: rgba(139, 92, 246, 0.2); color: #c4b5fd; border: 1px solid rgba(139, 92, 246, 0.3); }
+
+/* =========================================================
+   MOBILE, TABLET & ULTRA-WIDE RESPONSIVE POLISHING
+   ========================================================= */
+
+@media (max-width: 992px) {
+  .container {
+    padding: 1.25rem 1rem;
+  }
+  .main-content {
+    padding: 1rem !important;
+  }
+}
+
+@media (max-width: 768px) {
+  html, body {
+    overflow-x: hidden;
+  }
+  
+  .container {
+    padding: 0.85rem 0.5rem;
+  }
+  
+  .main-content {
+    padding: 0.75rem 0.5rem !important;
+  }
+
+  /* Sticky Navigation on Mobile with Touch-Friendly Scroll */
+  .top-nav {
+    height: auto !important;
+    min-height: 52px;
+    padding: 0.5rem 0.75rem !important;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .nav-brand-group {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .nav-actions {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 2px;
+    justify-content: flex-start;
+  }
+
+  .tabs {
+    flex-shrink: 0;
+    gap: 6px;
+    padding: 4px;
+  }
+
+  .tab-link {
+    font-size: 0.76rem !important;
+    padding: 0.35rem 0.65rem !important;
+    white-space: nowrap;
+  }
+
+  /* Cards and Spacing */
+  .glass-card, .metric-card, .panel {
+    border-radius: 12px !important;
+    padding: 1rem !important;
+    margin-bottom: 0.85rem !important;
+  }
+
+  /* KPI values on small screens */
+  .metric-value, .kpi-val {
+    font-size: 1.25rem !important;
+  }
+
+  /* Modal responsiveness */
+  .modal-overlay {
+    padding: 0.75rem !important;
+  }
+  
+  .modal-card {
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 1.2rem !important;
+    border-radius: 14px !important;
+  }
+
+  /* Inputs and buttons on mobile */
+  .btn {
+    padding: 0.5rem 1rem !important;
+    font-size: 0.82rem !important;
+  }
+  
+  .inline-edit-input, .clean-input, .form-control {
+    font-size: 16px !important; /* Prevents auto-zoom on iOS Safari */
+  }
+}
+
+/* TV & Ultra-wide displays (4K / 1440p) */
+@media (min-width: 1920px) {
+  .container {
+    max-width: 1720px;
+  }
+  .main-content {
+    padding: 2.5rem;
+  }
+  .metric-value {
+    font-size: 2rem;
+  }
+}
