@@ -147,12 +147,25 @@ export class PedidoService {
 
     const newPedidos: Pedido[] = items.map((item, idx) => {
       maxId++;
+      let etapaVal = 0; // Default: 0 (Cotización)
+      if (item.etapa !== undefined && item.etapa !== null && !isNaN(Number(item.etapa))) {
+        etapaVal = Number(item.etapa);
+      } else if (typeof item.etapa === 'string') {
+        const eStr = item.etapa.toLowerCase();
+        if (eStr.includes('confir')) etapaVal = 1;
+        else if (eStr.includes('paga')) etapaVal = 2;
+        else if (eStr.includes('tran')) etapaVal = 3;
+        else if (eStr.includes('adua')) etapaVal = 4;
+        else if (eStr.includes('reci')) etapaVal = 5;
+        else etapaVal = 0;
+      }
+
       const raw = {
         id: maxId,
         codigo: codigoFinal,
         ciudad: item.ciudad || 'GZ',
         fechaNegociacion: item.fechaNegociacion ? new Date(item.fechaNegociacion) : new Date(),
-        abono: !!item.abono,
+        abono: item.abono !== undefined ? !!item.abono : true,
         descripcion: item.descripcion || '',
         observaciones: item.observaciones || '',
         referencia: item.referencia || '',
@@ -163,7 +176,7 @@ export class PedidoService {
         tasa: Number(item.tasa) || 535,
         precioMt3: Number(item.precioMt3) || 2300000,
         porcentajeEhuk: Number(item.porcentajeEhuk) || 0.12,
-        etapa: Number(item.etapa) || 1
+        etapa: etapaVal
       };
       return calculateFinancials(raw);
     });
