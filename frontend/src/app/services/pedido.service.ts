@@ -56,6 +56,58 @@ export interface Pedido {
 const isLocal = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
 const API_ROOT = isLocal ? 'http://localhost:5174/api' : 'https://sistema-importaciones.onrender.com/api';
 
+export function calculateFinancials(item: any): Pedido {
+  const totalQty = Number(item.totalQty) || 0;
+  const yuanes = Number(item.yuanes) || 0;
+  const tasa = Number(item.tasa) > 0 ? Number(item.tasa) : 535;
+  const piezasCaja = Number(item.piezasCaja) > 0 ? Number(item.piezasCaja) : 1;
+  const cubica = Number(item.cubica) || 0;
+  const precioMt3 = Number(item.precioMt3) > 0 ? Number(item.precioMt3) : 2300000;
+  const porcentajeEhuk = Number(item.porcentajeEhuk) > 0 ? Number(item.porcentajeEhuk) : 0.12;
+
+  const pesos = yuanes * tasa;
+  const cajas = piezasCaja > 0 ? Math.floor(totalQty / piezasCaja) : 0;
+  const mt3 = cubica * cajas;
+  const flete = mt3 * precioMt3;
+  const producto = totalQty * pesos;
+  const productoEnYuanes = yuanes * totalQty;
+  const comisionTrabajo = producto * 0.05;
+  const pagoInicial = item.abono ? producto * 0.30 : 0;
+  const comisionApalancamiento = (producto - (producto * 0.30)) * 0.07;
+  const total = flete + producto + comisionTrabajo + comisionApalancamiento;
+  const saldo = Math.max(0, total - pagoInicial);
+  const costoFinal = totalQty > 0 ? total / totalQty : 0;
+  const costoVenta = costoFinal * (1 + porcentajeEhuk);
+  const finalVenta = costoVenta * totalQty;
+  const ganancia = (costoVenta - costoFinal) * totalQty;
+
+  return {
+    ...item,
+    totalQty,
+    yuanes,
+    tasa,
+    piezasCaja,
+    cubica,
+    precioMt3,
+    porcentajeEhuk,
+    pesos,
+    cajas,
+    mt3,
+    flete,
+    producto,
+    productoEnYuanes,
+    comisionTrabajo,
+    comisionApalancamiento,
+    total,
+    pagoInicial,
+    saldo,
+    costoFinal,
+    costoVenta,
+    finalVenta,
+    ganancia
+  };
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -72,7 +124,8 @@ export class PedidoService {
       const stored = localStorage.getItem('user_imported_pedidos');
       if (stored) {
         try {
-          this.localPedidos = JSON.parse(stored);
+          const list: any[] = JSON.parse(stored);
+          this.localPedidos = list.map(x => calculateFinancials(x));
         } catch {
           this.localPedidos = [];
         }
@@ -81,7 +134,7 @@ export class PedidoService {
   }
 
   private saveLocalPedidos(pedidos: Pedido[]) {
-    this.localPedidos = pedidos;
+    this.localPedidos = pedidos.map(x => calculateFinancials(x));
     if (typeof window !== 'undefined') {
       localStorage.setItem('user_imported_pedidos', JSON.stringify(this.localPedidos));
     }
@@ -94,7 +147,7 @@ export class PedidoService {
 
     const newPedidos: Pedido[] = items.map((item, idx) => {
       maxId++;
-      return {
+      const raw = {
         id: maxId,
         codigo: codigoFinal,
         ciudad: item.ciudad || 'GZ',
@@ -109,9 +162,10 @@ export class PedidoService {
         cubica: Number(item.cubica) || 0,
         tasa: Number(item.tasa) || 535,
         precioMt3: Number(item.precioMt3) || 2300000,
-        porcentajeEhuk: Number(item.porcentajeEhuk) || 0.10,
+        porcentajeEhuk: Number(item.porcentajeEhuk) || 0.12,
         etapa: Number(item.etapa) || 1
       };
+      return calculateFinancials(raw);
     });
 
     const combined = [...existing, ...newPedidos];
