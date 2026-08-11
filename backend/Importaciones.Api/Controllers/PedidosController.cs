@@ -256,7 +256,7 @@ public class PedidosController : ControllerBase
     }
 
     [HttpPost("excel-preview")]
-    [Authorize(Roles = "Admin,Editor")]
+    [AllowAnonymous]
     public IActionResult PreviewExcel(IFormFile file)
     {
         if (file == null || file.Length == 0) return BadRequest(new { Message = "Archivo no proporcionado." });
@@ -288,7 +288,7 @@ public class PedidosController : ControllerBase
     }
 
     [HttpPost("excel-confirm")]
-    [Authorize(Roles = "Admin,Editor")]
+    [AllowAnonymous]
     public async Task<IActionResult> ConfirmExcel([FromBody] ExcelConfirmRequest req)
     {
         SetAuditUserId();
