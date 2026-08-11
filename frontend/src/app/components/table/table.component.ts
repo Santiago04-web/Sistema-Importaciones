@@ -127,6 +127,21 @@ import { SignalrService } from '../../services/signalr.service';
                 *ngIf="filtros.busqueda || filtros.ciudad || filtros.etapa !== null || filtros.montoMin !== null">
           Limpiar Filtros
         </button>
+
+        <!-- VISUAL VIEW MODE SWITCHES -->
+        <div class="view-mode-toolbar">
+          <button class="view-pill-btn" [class.active]="mostrarFotos" (click)="toggleMostrarFotos()" title="Mostrar u ocultar la columna de fotos">
+            {{ mostrarFotos ? '🖼️ Fotos Visibles' : '📄 Modo Excel Limpio' }}
+          </button>
+
+          <button class="view-pill-btn" [class.active]="agruparPorProducto" (click)="toggleAgruparPorProducto()" title="Agrupar productos repetidos en 1 sola tarjeta desplegable">
+            {{ agruparPorProducto ? '📑 Agrupado por Producto' : '📋 Filas Individuales' }}
+          </button>
+
+          <button class="view-pill-btn catalog-btn" (click)="abrirGaleriaModal()" title="Abrir catálogo visual en cuadrícula">
+            ✨ Catálogo Galería
+          </button>
+        </div>
       </div>
 
       <!-- BULK ACTION TOOLBAR -->
@@ -178,8 +193,8 @@ import { SignalrService } from '../../services/signalr.service';
         </div>
       </div>
       
-      <!-- TABLE -->
-      <div class="table-responsive" *ngIf="!loading">
+      <!-- TABLE (MODO REGULAR FILAS INDIVIDUALES) -->
+      <div class="table-responsive" *ngIf="!loading && !agruparPorProducto">
         <table class="table">
           <thead>
             <tr>
@@ -188,7 +203,7 @@ import { SignalrService } from '../../services/signalr.service';
               </th>
               <th style="width: 100px;">Pedido</th>
               <th style="width: 120px;">Referencia</th>
-              <th style="width: 80px; text-align: center;">Foto</th>
+              <th style="width: 80px; text-align: center;" *ngIf="mostrarFotos">Foto</th>
               <th style="width: 100px;">Ciudad</th>
               <th style="width: 120px;">Fecha</th>
               <th style="min-width: 220px;">Producto</th>
@@ -231,7 +246,7 @@ import { SignalrService } from '../../services/signalr.service';
               </td>
 
               <!-- PHOTO -->
-              <td>
+              <td *ngIf="mostrarFotos">
                 <div class="photo-cell">
                   <ng-container *ngIf="pedido.fotoUrl; else categoryTpl">
                     <div class="thumb-container">
@@ -487,6 +502,110 @@ import { SignalrService } from '../../services/signalr.service';
           <p>{{ alertModal.message }}</p>
           <div class="modal-actions" style="justify-content: center;">
             <button class="btn-modal btn-confirm" style="background: rgba(255,255,255,0.08); color: #fff; border: 1px solid rgba(255,255,255,0.08);" (click)="alertModal.show = false">Entendido</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- VISTA AGRUPADA POR PRODUCTO -->
+      <div class="grouped-products-container" *ngIf="agruparPorProducto && !loading">
+        <div class="group-card glass-card" *ngFor="let g of gruposProductos">
+          <div class="group-header" (click)="g.expanded = !g.expanded">
+            
+            <div class="group-left">
+              <div class="group-thumb-box" *ngIf="g.fotoUrl; else groupCatTpl">
+                <img [src]="'http://localhost:5174' + g.fotoUrl" class="group-thumb">
+              </div>
+              <ng-template #groupCatTpl>
+                <div class="group-thumb-box cat-placeholder">
+                  <span>{{ getCategoryIcon(g.descripcion) }}</span>
+                </div>
+              </ng-template>
+
+              <div class="group-title-box">
+                <h3 class="group-title">{{ g.descripcion }}</h3>
+                <span class="group-badge">{{ g.pedidos.length }} pedidos vinculados</span>
+              </div>
+            </div>
+
+            <div class="group-metrics">
+              <div class="g-metric">
+                <span>Total Qty</span>
+                <strong>{{ g.totalQty | number }} pzas</strong>
+              </div>
+              <div class="g-metric">
+                <span>Total Yuanes</span>
+                <strong class="text-yellow">¥{{ g.totalYuanes | number:'1.2-2' }}</strong>
+              </div>
+              <div class="g-metric">
+                <span>Total COP</span>
+                <strong class="text-green">$ {{ g.totalCop | number:'1.0-0' }}</strong>
+              </div>
+              <button class="expand-btn">
+                {{ g.expanded ? '▲ Ocultar' : '▼ Ver ' + g.pedidos.length + ' Pedidos' }}
+              </button>
+            </div>
+
+          </div>
+
+          <!-- EXPANDED INNER TABLE FOR THIS PRODUCT -->
+          <div class="group-detail-panel" *ngIf="g.expanded">
+            <table class="table inner-group-table">
+              <thead>
+                <tr>
+                  <th>Pedido #</th>
+                  <th>Referencia</th>
+                  <th>Ciudad</th>
+                  <th>Fecha</th>
+                  <th>Qty</th>
+                  <th>Yuanes</th>
+                  <th>Tasa</th>
+                  <th>Etapa</th>
+                  <th>Total COP</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let sub of g.pedidos">
+                  <td><strong>{{ sub.codigo || 'S/N' }}</strong></td>
+                  <td>{{ sub.referencia }}</td>
+                  <td><span class="badge-city">{{ sub.ciudad }}</span></td>
+                  <td>{{ sub.fechaNegociacion | date:'dd/MM/yyyy' }}</td>
+                  <td>{{ sub.totalQty | number }}</td>
+                  <td>¥{{ sub.yuanes | number:'1.2-2' }}</td>
+                  <td>{{ sub.tasa }}</td>
+                  <td><span class="badge-etapa">{{ getEtapaLabel(sub.etapa) }}</span></td>
+                  <td><strong class="text-green">$ {{ sub.total | number:'1.0-0' }}</strong></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- CATALOG GALLERY MODAL -->
+      <div class="modal-overlay" *ngIf="galeriaModalOpen" (click)="galeriaModalOpen = false">
+        <div class="modal-card glass-card catalog-modal" (click)="$event.stopPropagation()">
+          <div class="modal-header">
+            <h3>✨ Catálogo de Productos Importados</h3>
+            <button class="btn-close" (click)="galeriaModalOpen = false">✕</button>
+          </div>
+          <div class="catalog-grid">
+            <div class="catalog-card glass-card" *ngFor="let g of gruposProductos">
+              <div class="cat-img-wrap">
+                <img *ngIf="g.fotoUrl" [src]="'http://localhost:5174' + g.fotoUrl" class="cat-img">
+                <div *ngIf="!g.fotoUrl" class="cat-no-img">
+                  <span class="cat-no-img-icon">{{ getCategoryIcon(g.descripcion) }}</span>
+                </div>
+                <span class="cat-badge-qty">{{ g.totalQty | number }} unidades</span>
+              </div>
+              <div class="cat-body">
+                <h4 class="cat-title">{{ g.descripcion }}</h4>
+                <div class="cat-foot">
+                  <span class="cat-pedidos-lbl">{{ g.pedidos.length }} pedidos</span>
+                  <strong class="cat-price">$ {{ g.totalCop | number:'1.0-0' }}</strong>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -1126,6 +1245,130 @@ import { SignalrService } from '../../services/signalr.service';
       color: #fff;
     }
     
+    /* View Mode Toolbar & Pills */
+    .view-mode-toolbar {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-left: auto;
+    }
+    .view-pill-btn {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: #94a3b8;
+      padding: 5px 12px;
+      border-radius: 20px;
+      font-size: 0.76rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .view-pill-btn:hover, .view-pill-btn.active {
+      background: #3b82f6;
+      border-color: #3b82f6;
+      color: #ffffff;
+      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+    }
+    .view-pill-btn.catalog-btn {
+      background: rgba(168, 85, 247, 0.15);
+      border-color: rgba(168, 85, 247, 0.4);
+      color: #c084fc;
+    }
+    .view-pill-btn.catalog-btn:hover {
+      background: #a855f7;
+      color: #ffffff;
+      box-shadow: 0 4px 12px rgba(168, 85, 247, 0.4);
+    }
+
+    /* Grouped Products Styles */
+    .grouped-products-container {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      padding: 1rem;
+    }
+    .group-card {
+      background: #0f172a;
+      border: 1px solid rgba(59, 130, 246, 0.25);
+      border-radius: 16px;
+      overflow: hidden;
+      transition: border-color 0.2s ease;
+    }
+    .group-card:hover {
+      border-color: rgba(59, 130, 246, 0.5);
+    }
+    .group-header {
+      padding: 1rem 1.25rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      user-select: none;
+      background: rgba(255, 255, 255, 0.02);
+    }
+    .group-left {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+    .group-thumb-box {
+      width: 52px; height: 52px;
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      flex-shrink: 0;
+    }
+    .group-thumb {
+      width: 100%; height: 100%; object-fit: cover;
+    }
+    .group-thumb-box.cat-placeholder {
+      background: rgba(59, 130, 246, 0.15);
+      display: flex; align-items: center; justify-content: center; font-size: 1.5rem;
+    }
+    .group-title-box { display: flex; flex-direction: column; gap: 2px; }
+    .group-title { font-size: 1.1rem; font-weight: 800; color: #f8fafc; margin: 0; }
+    .group-badge { font-size: 0.75rem; color: #60a5fa; font-weight: 600; }
+
+    .group-metrics { display: flex; align-items: center; gap: 1.5rem; }
+    .g-metric { display: flex; flex-direction: column; text-align: right; }
+    .g-metric span { font-size: 0.68rem; color: #94a3b8; font-weight: 700; text-transform: uppercase; }
+    .g-metric strong { font-size: 0.95rem; color: #f8fafc; font-weight: 800; }
+    .text-yellow { color: #facc15 !important; }
+    .text-green { color: #4ade80 !important; }
+    .expand-btn {
+      background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12);
+      color: #cbd5e1; padding: 6px 12px; border-radius: 8px; font-size: 0.78rem; font-weight: 700; cursor: pointer;
+    }
+
+    .group-detail-panel {
+      border-top: 1px solid rgba(255,255,255,0.08);
+      background: #020617;
+      padding: 0.5rem;
+    }
+    .inner-group-table { margin: 0; font-size: 0.82rem; }
+    .inner-group-table th { background: transparent; color: #94a3b8; font-size: 0.7rem; text-transform: uppercase; border-bottom: 1px solid rgba(255,255,255,0.08); }
+    .inner-group-table td { padding: 0.6rem 0.85rem; color: #cbd5e1; border-bottom: 1px solid rgba(255,255,255,0.04); }
+    .badge-city { background: rgba(59, 130, 246, 0.15); color: #60a5fa; padding: 2px 6px; border-radius: 4px; font-weight: 700; font-size: 0.72rem; }
+    .badge-etapa { background: rgba(255, 255, 255, 0.08); color: #cbd5e1; padding: 2px 6px; border-radius: 4px; font-size: 0.72rem; }
+
+    /* Catalog Gallery Modal */
+    .catalog-modal { max-width: 900px; width: 95%; max-height: 85vh; overflow-y: auto; background: #0f172a; border-radius: 20px; padding: 1.75rem; }
+    .catalog-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 1.25rem; margin-top: 1.25rem; }
+    .catalog-card { background: #020617; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 14px; overflow: hidden; display: flex; flex-direction: column; justify-content: space-between; }
+    .cat-img-wrap { height: 160px; width: 100%; position: relative; background: #09090b; }
+    .cat-img { width: 100%; height: 100%; object-fit: cover; }
+    .cat-no-img { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: rgba(59, 130, 246, 0.1); }
+    .cat-no-img-icon { font-size: 3rem; }
+    .cat-badge-qty { position: absolute; bottom: 8px; right: 8px; background: rgba(0,0,0,0.85); color: #fff; padding: 3px 8px; border-radius: 6px; font-size: 0.7rem; font-weight: 800; border: 1px solid rgba(255,255,255,0.2); }
+    .cat-body { padding: 0.85rem; }
+    .cat-title { font-size: 0.95rem; font-weight: 800; color: #f8fafc; margin-bottom: 0.5rem; }
+    .cat-foot { display: flex; justify-content: space-between; align-items: center; }
+    .cat-pedidos-lbl { font-size: 0.72rem; color: #94a3b8; }
+    .cat-price { font-size: 0.9rem; color: #4ade80; font-weight: 800; }
+
     /* Excel-style inline text display */
     .inline-edit-display {
       display: block;
@@ -1573,6 +1816,19 @@ export class TableComponent implements OnInit {
     return 'etapa-' + (isNaN(et) ? '0' : et);
   }
 
+  getEtapaLabel(etapa: any): string {
+    const et = Number(etapa);
+    switch (et) {
+      case 0: return 'Cotización';
+      case 1: return 'Confirmado';
+      case 2: return 'Pagado';
+      case 3: return 'En Tránsito';
+      case 4: return 'Aduana';
+      case 5: return 'Recibido';
+      default: return 'Desconocido';
+    }
+  }
+
   get allSelected(): boolean {
     return this.pedidosFiltrados.length > 0 && this.pedidosFiltrados.every(p => this.selectedIds.has(p.id!));
   }
@@ -1678,6 +1934,54 @@ export class TableComponent implements OnInit {
         console.error("Error creating quick row:", err);
         this.showAlert("Error al agregar fila", "No se pudo crear la fila. ¿Tu sesión sigue activa?");
       }
+    });
+  }
+
+  mostrarFotos = true;
+  agruparPorProducto = false;
+  galeriaModalOpen = false;
+  gruposProductos: any[] = [];
+
+  toggleMostrarFotos() {
+    this.mostrarFotos = !this.mostrarFotos;
+  }
+
+  toggleAgruparPorProducto() {
+    this.agruparPorProducto = !this.agruparPorProducto;
+    if (this.agruparPorProducto) {
+      this.computeGrupos();
+    }
+  }
+
+  abrirGaleriaModal() {
+    this.computeGrupos();
+    this.galeriaModalOpen = true;
+  }
+
+  computeGrupos() {
+    const map = new Map<string, Pedido[]>();
+    
+    this.pedidosFiltrados.forEach(p => {
+      const key = (p.descripcion || 'Sin Descripción').trim();
+      if (!map.has(key)) map.set(key, []);
+      map.get(key)!.push(p);
+    });
+
+    this.gruposProductos = Array.from(map.entries()).map(([desc, items]) => {
+      const firstWithPhoto = items.find(p => p.fotoUrl);
+      const totalQty = items.reduce((s, x) => s + (x.totalQty || 0), 0);
+      const totalYuanes = items.reduce((s, x) => s + (x.yuanes || 0), 0);
+      const totalCop = items.reduce((s, x) => s + (x.total || 0), 0);
+
+      return {
+        descripcion: desc,
+        fotoUrl: firstWithPhoto?.fotoUrl,
+        totalQty,
+        totalYuanes,
+        totalCop,
+        pedidos: items,
+        expanded: false
+      };
     });
   }
 
