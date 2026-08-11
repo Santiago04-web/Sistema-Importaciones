@@ -7,6 +7,7 @@ import { PedidoService, Pedido } from './services/pedido.service';
 import { NotificationCenterComponent } from './components/notification-center/notification-center.component';
 import { CommandPaletteComponent } from './components/command-palette/command-palette.component';
 import { FleteCalculatorComponent } from './components/flete-calculator/flete-calculator.component';
+import { ExchangeRateComponent } from './components/exchange-rate/exchange-rate.component';
 
 @Component({
   selector: 'app-root',
@@ -18,7 +19,8 @@ import { FleteCalculatorComponent } from './components/flete-calculator/flete-ca
     RouterLinkActive, 
     NotificationCenterComponent,
     CommandPaletteComponent,
-    FleteCalculatorComponent
+    FleteCalculatorComponent,
+    ExchangeRateComponent
   ],
   template: `
     <div class="app-layout">
@@ -57,6 +59,9 @@ import { FleteCalculatorComponent } from './components/flete-calculator/flete-ca
             <span class="live-dot"></span>
             {{ (signalrService.isConnected$ | async) ? '● EN VIVO' : 'CONNECTING...' }}
           </span>
+
+          <!-- TASA DE CAMBIO CNY EN VIVO (PILL NAVBAR) -->
+          <app-exchange-rate></app-exchange-rate>
         </div>
         
         <div class="nav-actions">

@@ -107,9 +107,6 @@ import jsPDF from 'jspdf';
         </div>
       </div>
 
-      <!-- WIDGET DE TASA DE CAMBIO EN VIVO -->
-      <app-exchange-rate></app-exchange-rate>
-
       <!-- ROW 1: METRICAS PRINCIPALES (KPI CARDS) -->
       <div class="kpi-grid">
         <div class="kpi-card" [class.dash-card-anim]="isUpdating" [class.active-glow-blue]="filterCategory === 'ALL' || filterCategory === 'PRODUCTO'">
