@@ -64,21 +64,14 @@ import { LanguageService } from './services/language.service';
         <div class="nav-actions">
           <!-- NAVIGATION LINKS -->
           <div class="tabs">
-            <a routerLink="/dashboard" routerLinkActive="active" class="tab-link">{{ langService.t('nav_dashboard') }}</a>
-            <a routerLink="/kanban" routerLinkActive="active" class="tab-link">{{ langService.t('nav_kanban') }}</a>
-            <a routerLink="/table" routerLinkActive="active" class="tab-link">{{ langService.t('nav_table') }}</a>
-            <a *ngIf="canEdit()" routerLink="/excel" routerLinkActive="active" class="tab-link">{{ langService.t('nav_excel') }}</a>
-            <a routerLink="/proveedores" routerLinkActive="active" class="tab-link">{{ langService.t('nav_proveedores') }}</a>
-            <a routerLink="/contenedores" routerLinkActive="active" class="tab-link">{{ langService.t('nav_contenedores') }}</a>
-            <a *ngIf="isAdmin()" routerLink="/usuarios" routerLinkActive="active" class="tab-link">{{ langService.t('nav_users') }}</a>
-            <a *ngIf="isAdmin()" routerLink="/actividad" routerLinkActive="active" class="tab-link">{{ langService.t('nav_activity') }}</a>
-          </div>
-
-          <!-- LANGUAGE SELECTOR -->
-          <div class="lang-pills">
-            <button class="l-pill" [class.active]="langService.currentLang() === 'es'" (click)="langService.setLanguage('es')">ES</button>
-            <button class="l-pill" [class.active]="langService.currentLang() === 'en'" (click)="langService.setLanguage('en')">EN</button>
-            <button class="l-pill" [class.active]="langService.currentLang() === 'zh'" (click)="langService.setLanguage('zh')">中文</button>
+            <a routerLink="/dashboard" routerLinkActive="active" class="tab-link">Dashboard</a>
+            <a routerLink="/kanban" routerLinkActive="active" class="tab-link">Tablero</a>
+            <a routerLink="/table" routerLinkActive="active" class="tab-link">Lista</a>
+            <a *ngIf="canEdit()" routerLink="/excel" routerLinkActive="active" class="tab-link">Subir Excel</a>
+            <a routerLink="/proveedores" routerLinkActive="active" class="tab-link">Proveedores</a>
+            <a routerLink="/contenedores" routerLinkActive="active" class="tab-link">Embarques / Contenedores</a>
+            <a *ngIf="isAdmin()" routerLink="/usuarios" routerLinkActive="active" class="tab-link">Usuarios</a>
+            <a *ngIf="isAdmin()" routerLink="/actividad" routerLinkActive="active" class="tab-link">Actividad</a>
           </div>
 
           <!-- COMMAND PALETTE TRIGGER -->

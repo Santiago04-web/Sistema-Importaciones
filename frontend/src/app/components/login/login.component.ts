@@ -3,7 +3,6 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
-import { LanguageService, Language } from '../../services/language.service';
 
 @Component({
   selector: 'app-login',
@@ -11,13 +10,6 @@ import { LanguageService, Language } from '../../services/language.service';
   imports: [CommonModule, FormsModule],
   template: `
     <div class="login-page">
-      
-      <!-- TOP RIGHT SINGLE LANG SELECTOR -->
-      <div class="lang-selector-top">
-        <button class="lang-pill-btn" [class.active]="langService.currentLang() === 'es'" (click)="setLang('es')">🇪🇸 ES</button>
-        <button class="lang-pill-btn" [class.active]="langService.currentLang() === 'en'" (click)="setLang('en')">🇬🇧 EN</button>
-        <button class="lang-pill-btn" [class.active]="langService.currentLang() === 'zh'" (click)="setLang('zh')">🇨🇳 中文</button>
-      </div>
 
       <div class="login-card-wrapper">
         <div class="login-card glass-card">
@@ -30,21 +22,21 @@ import { LanguageService, Language } from '../../services/language.service';
                 <line x1="12" y1="22.08" x2="12" y2="12"/>
               </svg>
             </div>
-            <h1 class="brand-name">Logigho</h1>
-            <h2 class="title">{{ langService.t('login_title') }}</h2>
-            <p class="subtitle">{{ langService.t('login_sub') }}</p>
+            <h1 class="brand-name">LOGIGHO</h1>
+            <h2 class="title">Iniciar Sesión</h2>
+            <p class="subtitle">Sistema Enterprise de Gestión de Importaciones</p>
           </div>
 
           <form (ngSubmit)="login()" class="login-form">
             <div class="form-group">
-              <label class="input-label">{{ langService.t('login_email') }}</label>
+              <label class="input-label">CORREO ELECTRÓNICO</label>
               <input type="email" [(ngModel)]="email" name="email" required placeholder="smenendez554@gmail.com" class="form-input">
             </div>
 
             <div class="form-group">
-              <label class="input-label">{{ langService.t('login_password') }}</label>
+              <label class="input-label">CONTRASEÑA</label>
               <div class="password-wrapper">
-                <input [type]="showPassword ? 'text' : 'password'" [(ngModel)]="password" name="password" required placeholder="Santiago0417#Admin" class="form-input pwd-input">
+                <input [type]="showPassword ? 'text' : 'password'" [(ngModel)]="password" name="password" required placeholder="••••••••" class="form-input pwd-input">
                 <button type="button" class="toggle-pwd-btn" (click)="showPassword = !showPassword" [title]="showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'">
                   {{ showPassword ? '🙈' : '👁️' }}
                 </button>
@@ -54,10 +46,10 @@ import { LanguageService, Language } from '../../services/language.service';
             <div class="form-options">
               <label class="remember-me">
                 <input type="checkbox" [(ngModel)]="rememberMe" name="rememberMe" class="custom-checkbox">
-                <span>{{ langService.t('login_remember') }}</span>
+                <span>Recordarme</span>
               </label>
               <a href="javascript:void(0)" (click)="showForgotModal = true" class="forgot-link">
-                {{ langService.t('login_forgot') }}
+                ¿Olvidaste tu contraseña?
               </a>
             </div>
 
@@ -66,7 +58,7 @@ import { LanguageService, Language } from '../../services/language.service';
             </div>
 
             <button type="submit" [disabled]="loading" class="submit-btn">
-              <span *ngIf="!loading">{{ langService.t('login_btn') }} ➔</span>
+              <span *ngIf="!loading">Ingresar al Sistema ➔</span>
               <span *ngIf="loading">Autenticando...</span>
             </button>
           </form>
@@ -77,8 +69,8 @@ import { LanguageService, Language } from '../../services/language.service';
       <!-- FORGOT PASSWORD MODAL -->
       <div class="modal-overlay" *ngIf="showForgotModal">
         <div class="modal-card glass-card">
-          <h3>🔒 {{ langService.t('forgot_modal_title') }}</h3>
-          <p>{{ langService.t('forgot_modal_msg') }}</p>
+          <h3>🔒 Restablecer Contraseña</h3>
+          <p>Contacta al Administrador Principal para reexpedir tus credenciales de acceso seguras.</p>
           <div class="admin-contact">
             <code>smenendez554&#64;gmail.com</code>
           </div>
@@ -101,32 +93,6 @@ import { LanguageService, Language } from '../../services/language.service';
       top: 0; left: 0; right: 0; bottom: 0;
       z-index: 9999;
       padding: 1.5rem;
-    }
-    
-    .lang-selector-top {
-      position: absolute;
-      top: 1.5rem;
-      right: 2rem;
-      display: flex;
-      gap: 6px;
-      z-index: 10;
-    }
-    .lang-pill-btn {
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      color: #94a3b8;
-      padding: 6px 12px;
-      border-radius: 20px;
-      font-size: 0.78rem;
-      font-weight: 700;
-      cursor: pointer;
-      transition: all 0.2s ease;
-    }
-    .lang-pill-btn.active, .lang-pill-btn:hover {
-      background: #3b82f6;
-      border-color: #3b82f6;
-      color: #ffffff;
-      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
     }
 
     .login-card-wrapper {
@@ -338,26 +304,22 @@ export class LoginComponent {
 
   constructor(
     private authService: AuthService,
-    private router: Router,
-    public langService: LanguageService
+    private router: Router
   ) {}
-
-  setLang(lang: Language) {
-    this.langService.setLanguage(lang);
-  }
 
   login() {
     this.loading = true;
     this.errorMsg = '';
 
-    this.authService.login({ email: this.email, password: this.password }).subscribe({
+    // Backend expects 'username' (which can be email or username)
+    this.authService.login({ username: this.email, password: this.password }).subscribe({
       next: () => {
         this.loading = false;
         this.router.navigate(['/dashboard']);
       },
       error: (err) => {
         this.loading = false;
-        this.errorMsg = err.error?.message || 'Credenciales incorrectas.';
+        this.errorMsg = err.error?.message || 'Credenciales inválidas o cuenta inexistente.';
       }
     });
   }
