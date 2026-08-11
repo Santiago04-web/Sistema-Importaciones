@@ -1009,17 +1009,7 @@ export class ExcelComponent implements OnInit {
         this.loading = false;
         this.previewData = data;
         this.overrideCodigo = data.suggestedCodigo || '1';
-        this.previewTotalQty = (data.items || []).reduce((s: number, x: any) => s + (x.totalQty || 0), 0);
-        this.previewTotalYuanes = (data.items || []).reduce((s: number, x: any) => s + (x.yuanes || 0), 0);
-        this.previewTotalCOP = (data.items || []).reduce((s: number, x: any) => {
-          const qty = x.totalQty > 0 ? x.totalQty : 1;
-          const tasa = x.tasa > 0 ? x.tasa : 535;
-          const prodCOP = (x.yuanes || 0) * qty * tasa;
-          const fleteCOP = (x.cubica || 0) * (x.precioMt3 || 0);
-          const ehukPct = x.porcentajeEhuk || 0.12;
-          const comisionCOP = (prodCOP + fleteCOP) * ehukPct;
-          return s + prodCOP + fleteCOP + comisionCOP;
-        }, 0);
+        this.recalcularTotalesPreview();
         this.showPreviewModal = true;
       },
       error: (err) => {
@@ -1060,15 +1050,27 @@ export class ExcelComponent implements OnInit {
   recalcularTotalesPreview() {
     if (!this.previewData || !this.previewData.items) return;
     this.previewTotalQty = this.previewData.items.reduce((s: number, x: any) => s + (Number(x.totalQty) || 0), 0);
-    this.previewTotalYuanes = this.previewData.items.reduce((s: number, x: any) => s + (Number(x.yuanes) || 0), 0);
+    this.previewTotalYuanes = this.previewData.items.reduce((s: number, x: any) => {
+      const qty = Number(x.totalQty) > 0 ? Number(x.totalQty) : 1;
+      const unitRmb = (Number(x.yuanes) > 100 && qty > 1) ? (Number(x.yuanes) / qty) : Number(x.yuanes);
+      return s + (unitRmb || 0) * qty;
+    }, 0);
     this.previewTotalCOP = this.previewData.items.reduce((s: number, x: any) => {
       const qty = Number(x.totalQty) > 0 ? Number(x.totalQty) : 1;
+      const rawRmb = Number(x.yuanes) || 0;
+      const unitRmb = (rawRmb > 100 && qty > 1) ? (rawRmb / qty) : rawRmb;
       const tasa = Number(x.tasa) > 0 ? Number(x.tasa) : 535;
-      const prodCOP = (Number(x.yuanes) || 0) * qty * tasa;
-      const fleteCOP = (Number(x.cubica) || 0) * (Number(x.precioMt3) || 0);
-      const ehukPct = Number(x.porcentajeEhuk) || 0.12;
-      const comisionCOP = (prodCOP + fleteCOP) * ehukPct;
-      return s + prodCOP + fleteCOP + comisionCOP;
+      const prodCOP = (unitRmb || 0) * qty * tasa;
+      const cubica = Number(x.cubica) > 0 ? Number(x.cubica) : 0.001;
+      const precioMt3 = Number(x.precioMt3) > 0 ? Number(x.precioMt3) : 2300000;
+      const piezasCaja = Number(x.piezasCaja) > 0 ? Number(x.piezasCaja) : 1;
+      const cajas = Math.ceil(qty / piezasCaja);
+      const mt3Total = cubica * cajas;
+      const fleteCOP = mt3Total * precioMt3;
+      const comisionTrabajo = prodCOP * 0.05;
+      const pagoInicial = prodCOP * 0.30;
+      const comisionApalancamiento = (prodCOP - pagoInicial) * 0.07;
+      return s + fleteCOP + prodCOP + comisionTrabajo + comisionApalancamiento;
     }, 0);
   }
 
