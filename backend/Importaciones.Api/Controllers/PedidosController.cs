@@ -232,7 +232,9 @@ public class PedidosController : ControllerBase
         SetAuditUserId();
         if (file == null || file.Length == 0) return BadRequest("Archivo no proporcionado.");
 
-        using var stream = file.OpenReadStream();
+        using var stream = new MemoryStream();
+        await file.CopyToAsync(stream);
+        stream.Position = 0;
         var nuevosPedidos = _excelService.ParsePedidosExcel(stream);
 
         _context.Pedidos.AddRange(nuevosPedidos);
@@ -261,7 +263,9 @@ public class PedidosController : ControllerBase
 
         try
         {
-            using var stream = file.OpenReadStream();
+            using var stream = new MemoryStream();
+            file.CopyTo(stream);
+            stream.Position = 0;
             var items = _excelService.ParsePedidosExcel(stream);
             if (items == null || items.Count == 0)
             {
