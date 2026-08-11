@@ -9,87 +9,103 @@ import { AuthService } from '../../services/auth.service';
   standalone: true,
   imports: [CommonModule, FormsModule],
   template: `
-    <div class="login-page">
+    <div class="login-layout">
 
-      <!-- AMBIENT BACKGROUND GLOWS & TECH GRID -->
-      <div class="bg-grid-overlay"></div>
-      <div class="glow-orb orb-1"></div>
-      <div class="glow-orb orb-2"></div>
-
-      <div class="login-card-wrapper">
-        <div class="login-card glass-card">
-          
-          <!-- BRAND & SECURITY HEADER -->
-          <div class="login-header">
-            <div class="brand-logo-icon">
-              <div class="logo-pulse-ring"></div>
-              <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="cube-icon">
+      <!-- LEFT BANNER SECTION -->
+      <div class="left-banner">
+        <div class="banner-grid-overlay"></div>
+        <div class="banner-glow"></div>
+        
+        <div class="banner-content">
+          <div class="brand-header">
+            <div class="brand-symbol">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
                 <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
                 <line x1="12" y1="22.08" x2="12" y2="12"/>
               </svg>
             </div>
-
-            <div class="security-level-pill">
-              <span class="pulse-dot"></span> 🛡️ Servidor Seguro Operativo
-            </div>
-
-            <h1 class="brand-name">LOGIGHO</h1>
-            <h2 class="title">Iniciar Sesión</h2>
-            <p class="subtitle">Plataforma Consolidada de Gestión de Importaciones</p>
+            <span class="brand-text">LOGIGHO<span class="dot">.</span></span>
           </div>
 
-          <!-- FORM -->
+          <div class="hero-box">
+            <h1 class="hero-title">Gestión de Importaciones</h1>
+            <p class="hero-desc">
+              Control consolidado de mercancías, fletes marítimos, comisiones y costos puestos en Colombia desde China.
+            </p>
+
+            <div class="feature-list">
+              <div class="feature-item">
+                <span class="feat-icon">📦</span>
+                <span>Seguimiento en tiempo real por etapas de carga</span>
+              </div>
+              <div class="feature-item">
+                <span class="feat-icon">📊</span>
+                <span>Fórmulas financieras integradas con el Excel</span>
+              </div>
+              <div class="feature-item">
+                <span class="feat-icon">🔐</span>
+                <span>Acceso restringido para personal autorizado</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="banner-footer">
+            <span>LOGIGHO System v2.5 • Enterprise Import Platform</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT FORM SECTION -->
+      <div class="right-section">
+        <div class="form-card">
+          
+          <div class="mobile-brand" *ngIf="isMobile">
+            <span class="brand-text">LOGIGHO<span class="dot">.</span></span>
+          </div>
+
+          <div class="form-header">
+            <h2 class="form-title">Iniciar sesión</h2>
+            <p class="form-subtitle">Ingresa tus credenciales para acceder a la plataforma</p>
+          </div>
+
           <form (ngSubmit)="login()" class="login-form">
             <div class="form-group">
-              <label class="input-label">
-                <span>✉️ CORREO ELECTRÓNICO / USUARIO</span>
-              </label>
-              <div class="input-container">
-                <input type="email" [(ngModel)]="email" name="email" required placeholder="ej. smenendez554@gmail.com" class="form-input">
-              </div>
+              <label class="field-label">Correo electrónico</label>
+              <input type="email" 
+                     [(ngModel)]="email" 
+                     name="email" 
+                     required 
+                     placeholder="ej. usuario@ejemplo.com" 
+                     class="clean-input">
             </div>
 
             <div class="form-group">
-              <label class="input-label">
-                <span>🔒 CONTRASEÑA DE ACCESO</span>
-              </label>
-              <div class="input-container password-wrapper">
-                <input [type]="showPassword ? 'text' : 'password'" [(ngModel)]="password" name="password" required placeholder="••••••••" class="form-input pwd-input">
-                <button type="button" class="toggle-pwd-btn" (click)="showPassword = !showPassword" [title]="showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'">
+              <label class="field-label">Contraseña</label>
+              <div class="password-input-wrap">
+                <input [type]="showPassword ? 'text' : 'password'" 
+                       [(ngModel)]="password" 
+                       name="password" 
+                       required 
+                       placeholder="••••••••" 
+                       class="clean-input pwd-field">
+                <button type="button" class="eye-toggle" (click)="showPassword = !showPassword" [title]="showPassword ? 'Ocultar' : 'Mostrar'">
                   {{ showPassword ? '🙈' : '👁️' }}
                 </button>
               </div>
             </div>
 
-            <div *ngIf="errorMsg" class="error-banner">
-              <span class="err-icon">⚠️</span>
-              <span>{{ errorMsg }}</span>
+            <div *ngIf="errorMsg" class="error-box">
+              ⚠️ {{ errorMsg }}
             </div>
 
-            <!-- BOTÓN PRINCIPAL DE INGRESAR -->
-            <button type="submit" [disabled]="loading" class="submit-btn">
-              <span *ngIf="!loading" class="btn-text">
-                Ingresar al Sistema
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                  <line x1="5" y1="12" x2="19" y2="12"></line>
-                  <polyline points="12 5 19 12 12 19"></polyline>
-                </svg>
-              </span>
-              <span *ngIf="loading" class="btn-loading">
-                <span class="spinner"></span> Autenticando acceso seguro...
+            <button type="submit" [disabled]="loading" class="primary-btn">
+              <span *ngIf="!loading">Ingresar</span>
+              <span *ngIf="loading" class="loading-state">
+                <span class="btn-spinner"></span> Accediendo...
               </span>
             </button>
           </form>
-
-          <!-- SECURITY BADGE FOOTER -->
-          <div class="security-footer">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-              <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-            </svg>
-            <span>Conexión Cifrada AES-256 | Tokens JWT Revocables</span>
-          </div>
 
         </div>
       </div>
@@ -97,172 +113,186 @@ import { AuthService } from '../../services/auth.service';
     </div>
   `,
   styles: [`
-    .login-page {
+    .login-layout {
       min-height: 100vh;
       width: 100%;
-      background: #070a12;
+      display: flex;
+      background: #090d16;
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      overflow: hidden;
+      font-family: 'Inter', sans-serif;
+    }
+
+    /* LEFT BANNER */
+    .left-banner {
+      flex: 1;
+      max-width: 50%;
+      background: linear-gradient(135deg, #030712 0%, #091533 50%, #020617 100%);
+      position: relative;
       display: flex;
       flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
-      z-index: 9999;
-      padding: 1.5rem;
+      justify-content: border-between;
+      padding: 3.5rem 4rem;
+      border-right: 1px solid rgba(255, 255, 255, 0.08);
       overflow: hidden;
     }
 
-    /* Ambient Background Effects */
-    .bg-grid-overlay {
+    .banner-grid-overlay {
       position: absolute;
       inset: 0;
-      background-image: radial-gradient(rgba(255, 255, 255, 0.06) 1px, transparent 1px);
+      background-image: radial-gradient(rgba(255, 255, 255, 0.07) 1px, transparent 1px);
       background-size: 32px 32px;
-      opacity: 0.6;
+      opacity: 0.5;
       pointer-events: none;
     }
 
-    .glow-orb {
+    .banner-glow {
       position: absolute;
-      border-radius: 50%;
-      filter: blur(100px);
-      pointer-events: none;
-      opacity: 0.4;
-      animation: orbFloat 10s ease-in-out infinite alternate;
-    }
-    .orb-1 {
-      width: 450px;
-      height: 450px;
-      background: radial-gradient(circle, #3b82f6 0%, rgba(59, 130, 246, 0) 70%);
-      top: -100px;
-      left: -100px;
-    }
-    .orb-2 {
       width: 500px;
       height: 500px;
-      background: radial-gradient(circle, #6366f1 0%, rgba(99, 102, 241, 0) 70%);
-      bottom: -120px;
-      right: -120px;
-      animation-delay: -5s;
+      background: radial-gradient(circle, rgba(59, 130, 246, 0.18) 0%, rgba(59, 130, 246, 0) 70%);
+      top: -100px;
+      left: -100px;
+      pointer-events: none;
     }
 
-    @keyframes orbFloat {
-      0%   { transform: translate(0, 0) scale(1); }
-      100% { transform: translate(30px, 30px) scale(1.1); }
-    }
-
-    .login-card-wrapper {
-      width: 100%;
-      max-width: 440px;
+    .banner-content {
       position: relative;
       z-index: 2;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
     }
 
-    .login-card {
-      background: rgba(15, 23, 42, 0.82);
-      backdrop-filter: blur(20px);
-      border: 1px solid rgba(59, 130, 246, 0.35);
-      border-radius: 24px;
-      padding: 2.5rem 2.25rem;
-      box-shadow: 0 30px 80px rgba(0, 0, 0, 0.95), 0 0 40px rgba(59, 130, 246, 0.12);
-      animation: loginCardIn 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+    .brand-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
     }
 
-    @keyframes loginCardIn {
-      from { opacity: 0; transform: scale(0.95) translateY(16px); }
-      to   { opacity: 1; transform: scale(1) translateY(0); }
-    }
-
-    .login-header {
-      text-align: center;
-      margin-bottom: 1.85rem;
-    }
-
-    .brand-logo-icon {
-      width: 62px;
-      height: 62px;
-      background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(99, 102, 241, 0.2));
-      border: 1px solid rgba(59, 130, 246, 0.4);
-      border-radius: 18px;
+    .brand-symbol {
+      width: 38px;
+      height: 38px;
+      background: #2563eb;
+      border-radius: 10px;
       display: flex;
       align-items: center;
       justify-content: center;
-      margin: 0 auto 0.85rem;
-      color: #60a5fa;
-      position: relative;
-      box-shadow: 0 8px 24px rgba(59, 130, 246, 0.25);
+      color: #ffffff;
+      box-shadow: 0 6px 18px rgba(37, 99, 235, 0.4);
     }
 
-    .logo-pulse-ring {
-      position: absolute;
-      inset: -4px;
-      border-radius: 22px;
-      border: 1px solid rgba(59, 130, 246, 0.3);
-      animation: pulseRing 2.5s infinite;
-    }
-
-    @keyframes pulseRing {
-      0%   { transform: scale(1); opacity: 0.8; }
-      50%  { transform: scale(1.08); opacity: 0.2; }
-      100% { transform: scale(1); opacity: 0.8; }
-    }
-
-    .security-level-pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      background: rgba(16, 185, 129, 0.12);
-      border: 1px solid rgba(16, 185, 129, 0.3);
-      color: #34d399;
-      font-size: 0.72rem;
-      font-weight: 700;
-      padding: 3px 10px;
-      border-radius: 20px;
-      margin-bottom: 0.6rem;
-    }
-
-    .pulse-dot {
-      width: 6px;
-      height: 6px;
-      background: #10b981;
-      border-radius: 50%;
-      box-shadow: 0 0 8px #10b981;
-      animation: dotBlink 1.5s infinite;
-    }
-
-    @keyframes dotBlink {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.3; }
-    }
-
-    .brand-name {
-      font-size: 0.9rem;
+    .brand-text {
+      font-size: 1.35rem;
       font-weight: 900;
-      letter-spacing: 0.18em;
-      background: linear-gradient(135deg, #60a5fa, #a855f7);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      text-transform: uppercase;
-      margin-bottom: 0.2rem;
+      color: #f8fafc;
+      letter-spacing: 0.08em;
     }
 
-    .title {
-      font-size: 1.65rem;
+    .dot {
+      color: #3b82f6;
+    }
+
+    .hero-box {
+      margin: auto 0;
+      max-width: 480px;
+    }
+
+    .hero-title {
+      font-size: 2.5rem;
       font-weight: 800;
       color: #f8fafc;
-      margin-bottom: 0.3rem;
+      line-height: 1.15;
+      margin-bottom: 1.25rem;
+      letter-spacing: -0.03em;
+    }
+
+    .hero-desc {
+      font-size: 1.05rem;
+      color: #94a3b8;
+      line-height: 1.6;
+      margin-bottom: 2.25rem;
+    }
+
+    .feature-list {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .feature-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 0.92rem;
+      color: #cbd5e1;
+      font-weight: 500;
+    }
+
+    .feat-icon {
+      font-size: 1.1rem;
+      width: 32px;
+      height: 32px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .banner-footer {
+      font-size: 0.78rem;
+      color: #64748b;
+      font-weight: 500;
+    }
+
+    /* RIGHT FORM SECTION */
+    .right-section {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2.5rem;
+      background: #090d16;
+    }
+
+    .form-card {
+      width: 100%;
+      max-width: 400px;
+    }
+
+    .mobile-brand {
+      margin-bottom: 2rem;
+      text-align: center;
+    }
+
+    .form-header {
+      margin-bottom: 2.25rem;
+    }
+
+    .form-title {
+      font-size: 1.75rem;
+      font-weight: 800;
+      color: #f8fafc;
+      margin-bottom: 0.4rem;
       letter-spacing: -0.02em;
     }
 
-    .subtitle {
-      font-size: 0.82rem;
+    .form-subtitle {
+      font-size: 0.88rem;
       color: #94a3b8;
+      line-height: 1.5;
     }
 
     .login-form {
       display: flex;
       flex-direction: column;
-      gap: 1.25rem;
+      gap: 1.35rem;
     }
 
     .form-group {
@@ -271,22 +301,16 @@ import { AuthService } from '../../services/auth.service';
       gap: 6px;
     }
 
-    .input-label {
-      font-size: 0.75rem;
-      font-weight: 800;
-      color: #94a3b8;
-      letter-spacing: 0.05em;
+    .field-label {
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: #cbd5e1;
     }
 
-    .input-container {
-      position: relative;
-      width: 100%;
-    }
-
-    .form-input {
-      background: #0b1329 !important;
-      border: 1px solid rgba(255, 255, 255, 0.16) !important;
-      border-radius: 12px !important;
+    .clean-input {
+      background: #0f172a !important;
+      border: 1px solid rgba(255, 255, 255, 0.14) !important;
+      border-radius: 10px !important;
       padding: 0.85rem 1rem !important;
       color: #f8fafc !important;
       font-size: 0.95rem !important;
@@ -295,113 +319,93 @@ import { AuthService } from '../../services/auth.service';
       width: 100% !important;
     }
 
-    /* Fix Chrome / Browser Autofill White Box Issue */
-    .form-input:-webkit-autofill,
-    .form-input:-webkit-autofill:hover, 
-    .form-input:-webkit-autofill:focus,
-    .form-input:-webkit-autofill:active {
+    /* Fix Chrome Autofill White Background */
+    .clean-input:-webkit-autofill,
+    .clean-input:-webkit-autofill:hover, 
+    .clean-input:-webkit-autofill:focus,
+    .clean-input:-webkit-autofill:active {
       -webkit-text-fill-color: #f8fafc !important;
-      -webkit-box-shadow: 0 0 0px 1000px #0b1329 inset !important;
+      -webkit-box-shadow: 0 0 0px 1000px #0f172a inset !important;
       transition: background-color 5000s ease-in-out 0s;
-      border-color: rgba(59, 130, 246, 0.5) !important;
+      border-color: rgba(59, 130, 246, 0.4) !important;
     }
 
-    .form-input:focus {
+    .clean-input:focus {
       border-color: #3b82f6 !important;
-      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25) !important;
-      background: #0f172a !important;
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2) !important;
+      background: #1e293b !important;
     }
 
-    .password-wrapper {
+    .password-input-wrap {
+      position: relative;
       display: flex;
       align-items: center;
     }
 
-    .pwd-input {
+    .pwd-field {
       padding-right: 2.85rem !important;
     }
 
-    .toggle-pwd-btn {
+    .eye-toggle {
       position: absolute;
       right: 12px;
       background: transparent;
       border: none;
-      font-size: 1.1rem;
+      font-size: 1.05rem;
       cursor: pointer;
       padding: 4px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
       opacity: 0.7;
-      transition: opacity 0.15s ease, transform 0.15s ease;
+      transition: opacity 0.15s ease;
     }
 
-    .toggle-pwd-btn:hover {
+    .eye-toggle:hover {
       opacity: 1;
-      transform: scale(1.1);
     }
 
-    .error-banner {
-      background: rgba(239, 68, 68, 0.15);
-      border: 1px solid rgba(239, 68, 68, 0.35);
+    .error-box {
+      background: rgba(239, 68, 68, 0.12);
+      border: 1px solid rgba(239, 68, 68, 0.3);
       color: #fca5a5;
       padding: 0.75rem 0.9rem;
-      border-radius: 12px;
-      font-size: 0.82rem;
-      display: flex;
-      align-items: center;
-      gap: 8px;
+      border-radius: 10px;
+      font-size: 0.83rem;
     }
 
-    .submit-btn {
-      background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-      border: 1px solid rgba(59, 130, 246, 0.5);
+    .primary-btn {
+      background: #2563eb;
+      border: none;
       color: #ffffff;
-      padding: 0.95rem;
-      border-radius: 12px;
-      font-weight: 800;
-      font-size: 1rem;
+      padding: 0.9rem;
+      border-radius: 10px;
+      font-weight: 700;
+      font-size: 0.98rem;
       cursor: pointer;
-      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-      margin-top: 0.3rem;
-      box-shadow: 0 10px 25px rgba(59, 130, 246, 0.35);
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      transition: all 0.2s ease;
+      margin-top: 0.4rem;
+      box-shadow: 0 4px 14px rgba(37, 99, 235, 0.3);
     }
 
-    .submit-btn:hover:not(:disabled) {
-      transform: translateY(-2px);
-      box-shadow: 0 14px 30px rgba(59, 130, 246, 0.5);
-      background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
+    .primary-btn:hover:not(:disabled) {
+      background: #1d4ed8;
+      box-shadow: 0 6px 20px rgba(37, 99, 235, 0.45);
     }
 
-    .submit-btn:active:not(:disabled) {
-      transform: translateY(0);
-    }
-
-    .submit-btn:disabled {
-      opacity: 0.75;
+    .primary-btn:disabled {
+      opacity: 0.7;
       cursor: not-allowed;
     }
 
-    .btn-text {
+    .loading-state {
       display: flex;
       align-items: center;
-      gap: 8px;
-    }
-
-    .btn-loading {
-      display: flex;
-      align-items: center;
+      justify-content: center;
       gap: 10px;
-      font-size: 0.9rem;
     }
 
-    .spinner {
-      width: 18px;
-      height: 18px;
-      border: 2.5px solid rgba(255, 255, 255, 0.3);
+    .btn-spinner {
+      width: 16px;
+      height: 16px;
+      border: 2px solid rgba(255, 255, 255, 0.3);
       border-top-color: #ffffff;
       border-radius: 50%;
       animation: spin 0.8s linear infinite;
@@ -411,17 +415,10 @@ import { AuthService } from '../../services/auth.service';
       to { transform: rotate(360deg); }
     }
 
-    .security-footer {
-      margin-top: 1.75rem;
-      padding-top: 1rem;
-      border-top: 1px solid rgba(255, 255, 255, 0.08);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      font-size: 0.73rem;
-      color: #64748b;
-      font-weight: 600;
+    /* RESPONSIVE */
+    @media (max-width: 900px) {
+      .left-banner { display: none; }
+      .right-section { padding: 1.5rem; }
     }
   `]
 })
@@ -432,6 +429,7 @@ export class LoginComponent implements OnInit {
   loading = false;
   errorMsg = '';
   showPassword = false;
+  isMobile = false;
 
   constructor(
     private authService: AuthService,
@@ -439,9 +437,20 @@ export class LoginComponent implements OnInit {
   ) {}
 
   ngOnInit() {
+    this.checkScreenSize();
+    if (typeof window !== 'undefined') {
+      window.addEventListener('resize', () => this.checkScreenSize());
+    }
+
     const savedEmail = localStorage.getItem('remembered_email');
     if (savedEmail) {
       this.email = savedEmail;
+    }
+  }
+
+  checkScreenSize() {
+    if (typeof window !== 'undefined') {
+      this.isMobile = window.innerWidth <= 900;
     }
   }
 
