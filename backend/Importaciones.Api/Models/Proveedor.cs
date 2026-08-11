@@ -12,13 +12,21 @@ public class Proveedor
     public string Nombre { get; set; } = string.Empty;
 
     [MaxLength(100)]
-    public string CiudadChina { get; set; } = string.Empty;
+    public string CiudadChina { get; set; } = "Guangzhou";
+
+    [MaxLength(100)]
+    public string Categoria { get; set; } = "General";
 
     [MaxLength(100)]
     public string? ContactoEmail { get; set; }
 
     [MaxLength(50)]
     public string? ContactoTelefono { get; set; }
+
+    [MaxLength(100)]
+    public string? WeChatId { get; set; }
+
+    public int Calificacion { get; set; } = 5; // 1 to 5 stars
 
     [MaxLength(500)]
     public string? Notas { get; set; }

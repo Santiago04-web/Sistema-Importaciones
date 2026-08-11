@@ -3,7 +3,6 @@ using Importaciones.Api.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System.Security.Claims;
 
 namespace Importaciones.Api.Controllers;
 
@@ -48,8 +47,11 @@ public class ProveedoresController : ControllerBase
         {
             Nombre = System.Net.WebUtility.HtmlEncode(input.Nombre.Trim()),
             CiudadChina = System.Net.WebUtility.HtmlEncode(input.CiudadChina ?? "Guangzhou"),
+            Categoria = System.Net.WebUtility.HtmlEncode(input.Categoria ?? "General"),
             ContactoEmail = input.ContactoEmail,
             ContactoTelefono = input.ContactoTelefono,
+            WeChatId = input.WeChatId,
+            Calificacion = input.Calificacion > 0 ? input.Calificacion : 5,
             Notas = System.Net.WebUtility.HtmlEncode(input.Notas ?? ""),
             FechaCreacion = DateTime.UtcNow
         };
@@ -69,8 +71,11 @@ public class ProveedoresController : ControllerBase
 
         proveedor.Nombre = System.Net.WebUtility.HtmlEncode(input.Nombre.Trim());
         proveedor.CiudadChina = System.Net.WebUtility.HtmlEncode(input.CiudadChina ?? "Guangzhou");
+        proveedor.Categoria = System.Net.WebUtility.HtmlEncode(input.Categoria ?? "General");
         proveedor.ContactoEmail = input.ContactoEmail;
         proveedor.ContactoTelefono = input.ContactoTelefono;
+        proveedor.WeChatId = input.WeChatId;
+        proveedor.Calificacion = input.Calificacion;
         proveedor.Notas = System.Net.WebUtility.HtmlEncode(input.Notas ?? "");
 
         await _context.SaveChangesAsync();
