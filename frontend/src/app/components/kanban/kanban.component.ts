@@ -1025,7 +1025,7 @@ export class KanbanComponent implements OnInit {
         }
         this.nuevoPagoMonto = 0;
         this.nuevoPagoNota = '';
-        this.loadData();
+        this.cargarPedidos();
       }
     });
   }
@@ -1040,7 +1040,7 @@ export class KanbanComponent implements OnInit {
           this.selectedPedido.totalPagosParciales = totalPagos;
           this.selectedPedido.saldo = Math.max(0, (this.selectedPedido.total || 0) - (this.selectedPedido.pagoInicial || 0) - totalPagos);
         }
-        this.loadData();
+        this.cargarPedidos();
       }
     });
   }
