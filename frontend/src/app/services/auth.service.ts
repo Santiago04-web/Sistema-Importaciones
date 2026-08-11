@@ -22,6 +22,7 @@ export class AuthService {
     if (profileStr) {
       try {
         const profile = JSON.parse(profileStr);
+        this.accessToken = localStorage.getItem('access_token') || 'live_token_session';
         this.currentUserSubject.next(profile);
       } catch {
         this.clearSession();
@@ -44,6 +45,7 @@ export class AuthService {
     const profile = { username, roles };
     this.accessToken = 'live_token_' + Date.now();
     localStorage.setItem('user_profile', JSON.stringify(profile));
+    localStorage.setItem('access_token', this.accessToken);
     this.currentUserSubject.next(profile);
     return of({ token: this.accessToken, username, roles });
   }
@@ -53,11 +55,10 @@ export class AuthService {
       tap((res: any) => {
         if (res.token) {
           this.accessToken = res.token;
+          localStorage.setItem('access_token', res.token);
         }
       }),
       catchError((err) => {
-        // If refresh fails (session expired/invalid cookie), log out immediately
-        this.clearSession();
         return throwError(() => err);
       })
     );
@@ -78,11 +79,18 @@ export class AuthService {
   private clearSession() {
     this.accessToken = null;
     localStorage.removeItem('user_profile');
+    localStorage.removeItem('access_token');
     this.currentUserSubject.next(null);
   }
 
   getToken(): string | null {
-    return this.accessToken;
+    if (this.accessToken) return this.accessToken;
+    const profileStr = localStorage.getItem('user_profile');
+    if (profileStr) {
+      this.accessToken = localStorage.getItem('access_token') || 'live_token_session';
+      return this.accessToken;
+    }
+    return null;
   }
 
   getRoles(): string[] {
