@@ -24,6 +24,11 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
 
   return next(authReq).pipe(
     catchError((error) => {
+      // Do not force logout or redirect to login when using presentation/live token
+      if (token && (token.startsWith('live_token_') || token.startsWith('demo_token_'))) {
+        return throwError(() => error);
+      }
+
       if (error instanceof HttpErrorResponse && error.status === 401) {
         return handle401Error(authReq, next, authService, router);
       }
