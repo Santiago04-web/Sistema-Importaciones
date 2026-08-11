@@ -1407,31 +1407,16 @@ export class DashboardComponent implements OnInit {
   }
 
   loadData() {
-    this.pedidoService.getPedidos().subscribe({
+    this.pedidoService.getPedidos().pipe(
+      catchError(() => of([]))
+    ).subscribe({
       next: (pedidos) => {
-        if (pedidos && pedidos.length > 0) {
-          this.allPedidos = pedidos;
-        } else {
-          this.allPedidos = this.getSamplePedidos();
-        }
+        this.allPedidos = pedidos || [];
         this.computeAll();
         this.loading = false;
-      },
-      error: () => {
-        this.allPedidos = this.getSamplePedidos();
-        this.computeAll();
-        this.loading = false;
+        this.cdr.detectChanges();
       }
     });
-  }
-
-  getSamplePedidos(): Pedido[] {
-    return [
-      { id: 1, codigo: '1', ciudad: 'GZ', fechaNegociacion: new Date(), abono: true, descripcion: 'Silla Ergonómica Pro M1', observaciones: 'Color Negro, malla respirable', referencia: 'REF-001', totalQty: 500, yuanes: 120, piezasCaja: 2, cubica: 0.15, tasa: 580, precioMt3: 2300000, porcentajeEhuk: 0.12, etapa: 1 },
-      { id: 2, codigo: '1', ciudad: 'GZ', fechaNegociacion: new Date(), abono: false, descripcion: 'Escritorio Elevable Doble Motor', observaciones: 'Control táctil con memoria', referencia: 'REF-002', totalQty: 200, yuanes: 350, piezasCaja: 1, cubica: 0.25, tasa: 580, precioMt3: 2300000, porcentajeEhuk: 0.12, etapa: 2 },
-      { id: 3, codigo: '1', ciudad: 'YIWU', fechaNegociacion: new Date(), abono: true, descripcion: 'Lámpara LED Arquitectónica', observaciones: 'Luz neutra 4000K', referencia: 'REF-003', totalQty: 1000, yuanes: 45, piezasCaja: 20, cubica: 0.08, tasa: 580, precioMt3: 2300000, porcentajeEhuk: 0.12, etapa: 3 },
-      { id: 4, codigo: '1', ciudad: 'SHENZHEN', fechaNegociacion: new Date(), abono: true, descripcion: 'Cargador Rápido USB-C 65W GaN', observaciones: 'Conector EU / US universal', referencia: 'REF-004', totalQty: 2500, yuanes: 22, piezasCaja: 50, cubica: 0.04, tasa: 580, precioMt3: 2300000, porcentajeEhuk: 0.12, etapa: 4 }
-    ];
   }
 
   setFilter(category: 'ALL' | 'EHUK' | 'FLETE' | 'PRODUCTO' | 'PAGO_30' | 'SALDO') {
@@ -1547,7 +1532,31 @@ export class DashboardComponent implements OnInit {
     }
 
     this.totalPedidos = p.length;
-    if (p.length === 0) return;
+    if (p.length === 0) {
+      this.piezasTotal = 0;
+      this.pedidosRecibidos = 0;
+      this.pedidosActivos = 0;
+      this.totalInvertido = 0;
+      this.gananciaTotal = 0;
+      this.fleteTotal = 0;
+      this.mt3Total = 0;
+      this.saldoTotal = 0;
+      this.productoTotal = 0;
+      this.comisionTrabajoTotal = 0;
+      this.comisionApalancamientoTotal = 0;
+      this.comisionesTotal = 0;
+      this.pagoInicialTotal = 0;
+      this.finalVentaTotal = 0;
+      this.margenPct = 0;
+      this.displayInvertido = 0;
+      this.categoryStats = [];
+      this.totalQtySum = 0;
+      this.productCategories = [];
+      this.guangzhouVal = 0;
+      this.yiwuVal = 0;
+      this.otherCityVal = 0;
+      return;
+    }
 
     this.pedidosRecibidos = p.filter(x => x.etapa === 5).length;
     this.pedidosActivos = p.length - this.pedidosRecibidos;
