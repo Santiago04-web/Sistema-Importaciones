@@ -18,12 +18,19 @@ import { Pedido } from '../../services/pedido.service';
                  [(ngModel)]="query" 
                  (input)="onSearchChange()" 
                  (keydown)="onKeyDown($event)"
-                 placeholder="Buscar por código, descripción, ciudad, referencia o valor (Ctrl + K)..." 
+                 placeholder="Buscar por código, ropa, ciudad, referencia, valor o etapa (Ctrl + K)..." 
                  class="cmd-input">
           <kbd class="cmd-esc-tag">ESC</kbd>
         </div>
 
         <div class="cmd-results" *ngIf="filteredList.length > 0">
+          <div class="cmd-section-title" *ngIf="query">
+            Resultados ({{ filteredList.length }})
+          </div>
+          <div class="cmd-section-title" *ngIf="!query">
+            ⚡ Importaciones Recientes
+          </div>
+
           <div class="cmd-item" 
                *ngFor="let item of filteredList; let i = index" 
                [class.active]="i === selectedIndex"
@@ -45,8 +52,23 @@ import { Pedido } from '../../services/pedido.service';
           </div>
         </div>
 
+        <!-- SMART EMPTY SUGGESTIONS STATE -->
         <div class="cmd-empty" *ngIf="filteredList.length === 0 && query">
-          <span>🔍 No se encontraron importaciones coincidentes con "{{ query }}"</span>
+          <div class="empty-msg">
+            <span class="empty-icon">🔍</span>
+            <p>No encontramos nada exactamente con <strong>"{{ query }}"</strong></p>
+          </div>
+          <div class="sug-box">
+            <span class="sug-title">💡 Prueba buscar por estas sugerencias:</span>
+            <div class="sug-chips">
+              <button class="chip-btn" (click)="setQuery('Ropa')">👕 Ropa / Camisas</button>
+              <button class="chip-btn" (click)="setQuery('Relojes')">⌚ Relojes</button>
+              <button class="chip-btn" (click)="setQuery('Maquillaje')">💄 Maquillaje</button>
+              <button class="chip-btn" (click)="setQuery('Medellin')">📍 Medellín</button>
+              <button class="chip-btn" (click)="setQuery('Bogota')">📍 Bogotá</button>
+              <button class="chip-btn" (click)="setQuery('Transito')">🚚 En Tránsito</button>
+            </div>
+          </div>
         </div>
 
         <div class="cmd-footer">
@@ -59,23 +81,23 @@ import { Pedido } from '../../services/pedido.service';
     .cmd-overlay {
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(0, 0, 0, 0.75);
+      background: rgba(0, 0, 0, 0.78);
       backdrop-filter: blur(8px);
       z-index: 9999;
       display: flex;
       justify-content: center;
       align-items: flex-start;
-      padding-top: 5vh;
+      padding-top: 6vh;
       animation: fadeIn 0.15s ease;
     }
     .cmd-dialog {
-      width: 90%;
-      max-width: 680px;
+      width: 92%;
+      max-width: 700px;
       background: #0f172a;
-      border: 1px solid rgba(59, 130, 246, 0.3);
+      border: 1px solid rgba(59, 130, 246, 0.35);
       border-radius: 16px;
       overflow: hidden;
-      box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+      box-shadow: 0 20px 50px rgba(0,0,0,0.7);
     }
     .cmd-search-bar {
       display: flex;
@@ -83,6 +105,7 @@ import { Pedido } from '../../services/pedido.service';
       padding: 1rem 1.25rem;
       border-bottom: 1px solid rgba(255, 255, 255, 0.1);
       gap: 12px;
+      background: rgba(15, 23, 42, 0.95);
     }
     .cmd-search-icon {
       font-size: 1.2rem;
@@ -108,9 +131,17 @@ import { Pedido } from '../../services/pedido.service';
       font-size: 0.7rem;
     }
     .cmd-results {
-      max-height: 380px;
+      max-height: 400px;
       overflow-y: auto;
-      padding: 0.5rem;
+      padding: 0.5rem 0.75rem;
+    }
+    .cmd-section-title {
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: #64748b;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: 0.4rem 0.6rem 0.2rem 0.6rem;
     }
     .cmd-item {
       display: flex;
@@ -120,10 +151,12 @@ import { Pedido } from '../../services/pedido.service';
       border-radius: 10px;
       cursor: pointer;
       transition: background 0.15s ease;
-      margin-bottom: 2px;
+      margin-bottom: 4px;
+      border: 1px solid transparent;
     }
-    .cmd-item.active {
-      background: rgba(59, 130, 246, 0.2);
+    .cmd-item:hover, .cmd-item.active {
+      background: rgba(59, 130, 246, 0.15);
+      border-color: rgba(59, 130, 246, 0.3);
     }
     .cmd-item-left {
       display: flex;
@@ -131,13 +164,13 @@ import { Pedido } from '../../services/pedido.service';
       gap: 12px;
     }
     .cmd-code-pill {
-      background: rgba(59, 130, 246, 0.15);
-      color: #60a5fa;
-      border: 1px solid rgba(59, 130, 246, 0.3);
+      font-size: 0.72rem;
+      font-weight: 800;
+      color: #38bdf8;
+      background: rgba(56, 189, 248, 0.12);
+      border: 1px solid rgba(56, 189, 248, 0.25);
       padding: 3px 8px;
       border-radius: 6px;
-      font-size: 0.78rem;
-      font-weight: 700;
     }
     .cmd-item-info {
       display: flex;
@@ -149,32 +182,84 @@ import { Pedido } from '../../services/pedido.service';
       font-weight: 600;
     }
     .cmd-item-sub {
-      color: #64748b;
+      color: #94a3b8;
       font-size: 0.75rem;
     }
     .cmd-item-right {
       display: flex;
       flex-direction: column;
       align-items: flex-end;
+      gap: 2px;
     }
     .cmd-item-price {
       color: #10b981;
       font-weight: 700;
-      font-size: 0.9rem;
+      font-size: 0.88rem;
     }
     .cmd-stage-tag {
-      font-size: 0.7rem;
-      color: #94a3b8;
+      font-size: 0.68rem;
+      color: #cbd5e1;
+      background: rgba(255, 255, 255, 0.08);
+      padding: 1px 6px;
+      border-radius: 4px;
     }
+
+    /* EMPTY STATE & SUGGESTIONS */
     .cmd-empty {
-      padding: 2rem;
-      text-align: center;
-      color: #64748b;
+      padding: 1.5rem 1.25rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.2rem;
     }
+    .empty-msg {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: #94a3b8;
+      font-size: 0.9rem;
+    }
+    .empty-icon {
+      font-size: 1.5rem;
+    }
+    .sug-box {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      padding: 1rem;
+    }
+    .sug-title {
+      display: block;
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: #fbbf24;
+      margin-bottom: 0.75rem;
+    }
+    .sug-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .chip-btn {
+      background: rgba(59, 130, 246, 0.12);
+      border: 1px solid rgba(59, 130, 246, 0.3);
+      color: #60a5fa;
+      padding: 5px 12px;
+      border-radius: 20px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .chip-btn:hover {
+      background: rgba(59, 130, 246, 0.3);
+      color: #fff;
+      transform: translateY(-1px);
+    }
+
     .cmd-footer {
       padding: 0.6rem 1.25rem;
-      background: rgba(0, 0, 0, 0.3);
-      border-top: 1px solid rgba(255, 255, 255, 0.06);
+      background: rgba(15, 23, 42, 0.98);
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
       font-size: 0.72rem;
       color: #64748b;
       text-align: right;
@@ -211,7 +296,7 @@ export class CommandPaletteComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
-    this.filteredList = this.pedidos.slice(0, 8);
+    this.filteredList = this.pedidos.slice(0, 10);
   }
 
   ngOnDestroy() {}
@@ -220,7 +305,7 @@ export class CommandPaletteComponent implements OnInit, OnDestroy {
     this.isOpen = !this.isOpen;
     if (this.isOpen) {
       this.query = '';
-      this.filteredList = this.pedidos.slice(0, 8);
+      this.filteredList = this.pedidos.slice(0, 10);
       this.selectedIndex = 0;
     }
   }
@@ -229,20 +314,38 @@ export class CommandPaletteComponent implements OnInit, OnDestroy {
     this.isOpen = false;
   }
 
+  normalize(str: string): string {
+    return (str || '')
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .trim();
+  }
+
   onSearchChange() {
-    const q = this.query.trim().toLowerCase();
-    if (!q) {
-      this.filteredList = this.pedidos.slice(0, 8);
-    } else {
-      this.filteredList = this.pedidos.filter(p => 
-        (p.codigo || '').toLowerCase().includes(q) ||
-        (p.referencia || '').toLowerCase().includes(q) ||
-        (p.descripcion || '').toLowerCase().includes(q) ||
-        (p.ciudad || '').toLowerCase().includes(q) ||
-        (p.total || 0).toString().includes(q)
-      ).slice(0, 10);
+    const raw = this.normalize(this.query);
+    if (!raw) {
+      this.filteredList = this.pedidos.slice(0, 10);
+      this.selectedIndex = 0;
+      return;
     }
+
+    const tokens = raw.split(/\s+/).filter(t => t.length > 0);
+
+    this.filteredList = this.pedidos.filter(p => {
+      const searchableText = this.normalize(
+        `${p.codigo} ${p.referencia} ${p.descripcion} ${p.ciudad} ${p.observaciones} ${this.getEtapaName(p.etapa)} ${p.total} ${p.saldo} ${p.totalQty} ${p.yuanes} ${p.tasa}`
+      );
+      // Matches if all search tokens are found in any part of searchableText or partial prefix!
+      return tokens.every(t => searchableText.includes(t));
+    }).slice(0, 15);
+
     this.selectedIndex = 0;
+  }
+
+  setQuery(q: string) {
+    this.query = q;
+    this.onSearchChange();
   }
 
   onKeyDown(event: KeyboardEvent) {
