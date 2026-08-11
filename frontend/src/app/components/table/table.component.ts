@@ -498,13 +498,7 @@ import { SignalrService } from '../../services/signalr.service';
         </div>
       </div>
 
-      <!-- FOOTER ACTIONS (DEV ONLY) -->
-      <div style="padding: 1.25rem 1.5rem; display: flex; justify-content: flex-end; border-top: 1px solid rgba(255,255,255,0.02); background: rgba(0,0,0,0.04);">
-        <button (click)="borrarTodo()" style="background: none; border: none; color: #52525b; font-size: 0.72rem; font-weight: 500; cursor: pointer; transition: color 0.15s; font-family: inherit;" onmouseover="this.style.color='#f87171'" onmouseout="this.style.color='#52525b'">
-          ⚠️ Restablecer base de datos (Modo Pruebas)
-        </button>
-      </div>
-      
+
       <!-- CUSTOM CONFIRM MODAL -->
       <div class="confirm-modal-overlay" *ngIf="confirmModal.show" (click)="cancelConfirm()">
         <div class="confirm-modal-card" (click)="$event.stopPropagation()">
