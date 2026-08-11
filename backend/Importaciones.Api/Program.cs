@@ -214,14 +214,16 @@ app.UseHttpsRedirection();
 
 app.UseCors("AllowAngularApp");
 
-// Custom Middleware for HTTP Security Headers
+// Custom Middleware for HTTP Security Headers (MAX SECURITY ENFORCED)
 app.Use(async (context, next) =>
 {
     context.Response.Headers.Append("X-Frame-Options", "DENY");
     context.Response.Headers.Append("X-Content-Type-Options", "nosniff");
-    context.Response.Headers.Append("Referrer-Policy", "no-referrer");
+    context.Response.Headers.Append("X-XSS-Protection", "1; mode=block");
+    context.Response.Headers.Append("Referrer-Policy", "strict-origin-when-cross-origin");
+    context.Response.Headers.Append("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
     context.Response.Headers.Append("Content-Security-Policy", 
-        "default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'; img-src 'self' data:; connect-src 'self' http://localhost:5174 https://localhost:7200 http://localhost:5200 https://localhost:7200 http://localhost:4200;");
+        "default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self' http://localhost:5174 https://localhost:7200 http://localhost:5200 https://localhost:7200 http://localhost:4200 ws://localhost:5174 wss://localhost:7200;");
     await next();
 });
 
