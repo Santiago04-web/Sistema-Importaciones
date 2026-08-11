@@ -367,8 +367,9 @@ interface ColumnaEtapa {
     }
 
     .kanban-column {
-      flex: 1 1 260px;
-      min-width: 260px;
+      flex: 0 0 320px;
+      min-width: 300px;
+      max-width: 360px;
       display: flex;
       flex-direction: column;
       background: #0e0e11;
@@ -1075,7 +1076,7 @@ export class KanbanComponent implements OnInit {
     { id: 5, nombre: 'RECIBIDO', color: '#10b981', pedidos: [] }
   ];
 
-  ocultarVacias = true;
+  ocultarVacias = false;
 
   getColumnasVisibles(): ColumnaEtapa[] {
     if (this.ocultarVacias) {
