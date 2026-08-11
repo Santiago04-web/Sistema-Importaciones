@@ -56,9 +56,6 @@ import { LanguageService } from './services/language.service';
             <span class="live-dot"></span>
             ● EN VIVO
           </span>
-
-          <!-- TASA DE CAMBIO CNY EN VIVO (PILL NAVBAR) -->
-          <app-exchange-rate></app-exchange-rate>
         </div>
         
         <div class="nav-actions">
