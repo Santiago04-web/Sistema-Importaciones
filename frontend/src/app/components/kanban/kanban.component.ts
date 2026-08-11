@@ -174,12 +174,6 @@ interface ColumnaEtapa {
               <button class="ws-modal-btn" (click)="compartirWhatsApp(selectedPedido)" title="Enviar resumen por WhatsApp">
                 📲 WhatsApp
               </button>
-              <button class="pdf-modal-btn" (click)="selectedCourierPedido = selectedPedido" title="Ver Ficha de Rastreo Courier">
-                🚚 Courier
-              </button>
-              <button class="pdf-modal-btn" (click)="selectedQrPedido = selectedPedido" title="Ver Código QR">
-                📱 QR
-              </button>
               <button class="pdf-modal-btn" (click)="descargarPdf(selectedPedido)" title="Descargar PDF de esta importación">
                 📄 PDF
               </button>
