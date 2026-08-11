@@ -30,28 +30,7 @@ import { AuthService } from '../../services/auth.service';
 
           <div class="hero-box">
             <h1 class="hero-title">Gestión de Importaciones</h1>
-            <p class="hero-desc">
-              Control consolidado de mercancías, fletes marítimos, comisiones y costos puestos en Colombia desde China.
-            </p>
-
-            <div class="feature-list">
-              <div class="feature-item">
-                <span class="feat-icon">📦</span>
-                <span>Seguimiento en tiempo real por etapas de carga</span>
-              </div>
-              <div class="feature-item">
-                <span class="feat-icon">📊</span>
-                <span>Fórmulas financieras integradas con el Excel</span>
-              </div>
-              <div class="feature-item">
-                <span class="feat-icon">🔐</span>
-                <span>Acceso restringido para personal autorizado</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="banner-footer">
-            <span>LOGIGHO System v2.5 • Enterprise Import Platform</span>
+            <p class="hero-subtitle">Plataforma Consolidada Logística & Contable</p>
           </div>
         </div>
       </div>
@@ -66,7 +45,7 @@ import { AuthService } from '../../services/auth.service';
 
           <div class="form-header">
             <h2 class="form-title">Iniciar sesión</h2>
-            <p class="form-subtitle">Ingresa tus credenciales para acceder a la plataforma</p>
+            <p class="form-subtitle">Ingresa tus credenciales para acceder</p>
           </div>
 
           <form (ngSubmit)="login()" class="login-form">
@@ -128,13 +107,13 @@ import { AuthService } from '../../services/auth.service';
     /* LEFT BANNER */
     .left-banner {
       flex: 1;
-      max-width: 50%;
+      max-width: 48%;
       background: linear-gradient(135deg, #030712 0%, #091533 50%, #020617 100%);
       position: relative;
       display: flex;
       flex-direction: column;
-      justify-content: border-between;
-      padding: 3.5rem 4rem;
+      justify-content: space-between;
+      padding: 4rem 4.5rem;
       border-right: 1px solid rgba(255, 255, 255, 0.08);
       overflow: hidden;
     }
@@ -174,10 +153,10 @@ import { AuthService } from '../../services/auth.service';
     }
 
     .brand-symbol {
-      width: 38px;
-      height: 38px;
+      width: 40px;
+      height: 40px;
       background: #2563eb;
-      border-radius: 10px;
+      border-radius: 11px;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -186,7 +165,7 @@ import { AuthService } from '../../services/auth.service';
     }
 
     .brand-text {
-      font-size: 1.35rem;
+      font-size: 1.4rem;
       font-weight: 900;
       color: #f8fafc;
       letter-spacing: 0.08em;
@@ -198,57 +177,23 @@ import { AuthService } from '../../services/auth.service';
 
     .hero-box {
       margin: auto 0;
-      max-width: 480px;
+      max-width: 460px;
     }
 
     .hero-title {
-      font-size: 2.5rem;
+      font-size: 2.75rem;
       font-weight: 800;
       color: #f8fafc;
       line-height: 1.15;
-      margin-bottom: 1.25rem;
+      margin-bottom: 0.85rem;
       letter-spacing: -0.03em;
     }
 
-    .hero-desc {
+    .hero-subtitle {
       font-size: 1.05rem;
-      color: #94a3b8;
-      line-height: 1.6;
-      margin-bottom: 2.25rem;
-    }
-
-    .feature-list {
-      display: flex;
-      flex-direction: column;
-      gap: 1rem;
-    }
-
-    .feature-item {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      font-size: 0.92rem;
-      color: #cbd5e1;
-      font-weight: 500;
-    }
-
-    .feat-icon {
-      font-size: 1.1rem;
-      width: 32px;
-      height: 32px;
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 8px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-    }
-
-    .banner-footer {
-      font-size: 0.78rem;
-      color: #64748b;
-      font-weight: 500;
+      color: #60a5fa;
+      font-weight: 600;
+      letter-spacing: 0.01em;
     }
 
     /* RIGHT FORM SECTION */
@@ -263,7 +208,7 @@ import { AuthService } from '../../services/auth.service';
 
     .form-card {
       width: 100%;
-      max-width: 400px;
+      max-width: 380px;
     }
 
     .mobile-brand {
@@ -279,14 +224,13 @@ import { AuthService } from '../../services/auth.service';
       font-size: 1.75rem;
       font-weight: 800;
       color: #f8fafc;
-      margin-bottom: 0.4rem;
+      margin-bottom: 0.35rem;
       letter-spacing: -0.02em;
     }
 
     .form-subtitle {
       font-size: 0.88rem;
       color: #94a3b8;
-      line-height: 1.5;
     }
 
     .login-form {
