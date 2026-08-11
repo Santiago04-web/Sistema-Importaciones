@@ -58,6 +58,7 @@ public class PedidosController : ControllerBase
     {
         return await _context.Pedidos
             .Include(p => p.HistorialEtapas)
+            .Include(p => p.PagosParciales)
             .ToListAsync();
     }
 
@@ -67,6 +68,7 @@ public class PedidosController : ControllerBase
     {
         var pedido = await _context.Pedidos
             .Include(p => p.HistorialEtapas)
+            .Include(p => p.PagosParciales)
             .FirstOrDefaultAsync(p => p.Id == id);
         if (pedido == null) return NotFound();
         return pedido;
@@ -82,14 +84,14 @@ public class PedidosController : ControllerBase
         var ws = wb.Worksheets.Add("Importaciones");
 
         // ── Etapa helper ──
-        static string EtapaName(EtapaPedido e) => e switch
+        static string EtapaName(int e) => e switch
         {
-            EtapaPedido.PedidoConfirmado => "Confirmado",
-            EtapaPedido.Pagado           => "Pagado",
-            EtapaPedido.EnTransito       => "En Tránsito",
-            EtapaPedido.Aduana           => "Aduana",
-            EtapaPedido.Recibido         => "Recibido",
-            _                            => "Cotización"
+            1 => "Confirmado",
+            2 => "Pagado",
+            3 => "En Tránsito",
+            4 => "Aduana",
+            5 => "Recibido",
+            _ => "Cotización"
         };
 
         // ── Column definitions ──
@@ -364,8 +366,49 @@ public class PedidosController : ControllerBase
         return NoContent();
     }
 
-    [HttpPost("delete-batch")]
-    [Authorize(Roles = "Admin")]
+    [HttpPost("{id}/pagos")]
+    [Authorize(Roles = "Admin,Editor")]
+    public async Task<ActionResult<PagoParcial>> AddPagoParcial(int id, [FromBody] PagoParcial pagoInput)
+    {
+        SetAuditUserId();
+        var pedido = await _context.Pedidos.Include(p => p.PagosParciales).FirstOrDefaultAsync(p => p.Id == id);
+        if (pedido == null) return NotFound("Pedido no encontrado.");
+
+        if (pagoInput.Monto <= 0) return BadRequest("El monto del abono debe ser mayor a 0.");
+
+        var nuevoPago = new PagoParcial
+        {
+            PedidoId = id,
+            Monto = pagoInput.Monto,
+            FechaPago = DateTime.UtcNow,
+            Nota = System.Net.WebUtility.HtmlEncode(pagoInput.Nota ?? ""),
+            UsuarioId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value
+        };
+
+        _context.PagoParciales.Add(nuevoPago);
+        await _context.SaveChangesAsync();
+
+        await _hubContext.Clients.All.SendAsync("PedidoActualizado", pedido);
+
+        return Ok(nuevoPago);
+    }
+
+    [HttpDelete("{id}/pagos/{pagoId}")]
+    [Authorize(Roles = "Admin,Editor")]
+    public async Task<IActionResult> DeletePagoParcial(int id, int pagoId)
+    {
+        SetAuditUserId();
+        var pago = await _context.PagoParciales.FirstOrDefaultAsync(p => p.Id == pagoId && p.PedidoId == id);
+        if (pago == null) return NotFound();
+
+        _context.PagoParciales.Remove(pago);
+        await _context.SaveChangesAsync();
+
+        var pedido = await _context.Pedidos.Include(p => p.PagosParciales).FirstOrDefaultAsync(p => p.Id == id);
+        await _hubContext.Clients.All.SendAsync("PedidoActualizado", pedido);
+
+        return NoContent();
+    }
     public async Task<IActionResult> DeleteBatch([FromBody] DeleteBatchRequest request)
     {
         if (request?.Ids == null || request.Ids.Count == 0)
@@ -408,7 +451,7 @@ public class PedidosController : ControllerBase
             }
             if (request.Etapa.HasValue)
             {
-                p.Etapa = (EtapaPedido)request.Etapa.Value;
+                p.Etapa = request.Etapa.Value;
             }
             if (!string.IsNullOrWhiteSpace(request.Ciudad))
             {
@@ -576,7 +619,7 @@ public class PedidosController : ControllerBase
                 Cubica = dto.Cubica,
                 PrecioMt3 = dto.PrecioMt3,
                 PorcentajeEhuk = dto.PorcentajeEhuk > 0 ? dto.PorcentajeEhuk : 0.12m,
-                Etapa = EtapaPedido.Cotizacion
+                Etapa = 0
             };
             nuevosPedidos.Add(p);
         }

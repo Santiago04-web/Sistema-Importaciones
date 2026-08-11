@@ -2,6 +2,15 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
+export interface PagoParcial {
+  id?: number;
+  pedidoId?: number;
+  monto: number;
+  fechaPago?: string;
+  nota?: string;
+  usuarioId?: string;
+}
+
 export interface Pedido {
   id?: number;
   codigo: string;
@@ -22,6 +31,8 @@ export interface Pedido {
   etapa: number;
   fechaLimitePago?: string;
   historialEtapas?: { id: number; pedidoId: number; etapa: number; fechaCambio: string }[];
+  pagosParciales?: PagoParcial[];
+  totalPagosParciales?: number;
   
   // Calculated fields
   pesos?: number;
@@ -103,6 +114,14 @@ export class PedidoService {
     return this.http.post(`${this.apiUrl}/${id}/image`, formData);
   }
 
+  addPagoParcial(pedidoId: number, pago: { monto: number; nota?: string }): Observable<PagoParcial> {
+    return this.http.post<PagoParcial>(`${this.apiUrl}/${pedidoId}/pagos`, pago);
+  }
+
+  deletePagoParcial(pedidoId: number, pagoId: number): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/${pedidoId}/pagos/${pagoId}`);
+  }
+
   getCnyCopRate(): Observable<{ rateCnyCop: number; lastUpdated: string; source: string; isLive: boolean }> {
     return this.http.get<{ rateCnyCop: number; lastUpdated: string; source: string; isLive: boolean }>('http://localhost:5174/api/tasas/cny-cop');
   }
@@ -113,5 +132,40 @@ export class PedidoService {
 
   getDashboardData(): Observable<any> {
     return this.http.get(`${this.apiUrl}/dashboard`);
+  }
+
+  compartirWhatsApp(pedido: Pedido) {
+    const formatCurrency = (val?: number) => val ? '$' + Math.round(val).toLocaleString('es-CO') + ' COP' : '$0 COP';
+    const etapasMap: Record<number, string> = {
+      0: 'Cotización',
+      1: 'Pedido Confirmado',
+      2: 'Pagado',
+      3: 'En Tránsito',
+      4: 'En Aduana',
+      5: 'Recibido'
+    };
+
+    const etapaTxt = etapasMap[pedido.etapa] || 'Cotización';
+    const totalAbonado = (pedido.pagoInicial || 0) + (pedido.pagosParciales?.reduce((a, b) => a + b.monto, 0) || 0);
+
+    const message = 
+`📦 *IMPORTACIONES LOGIGHO - RESUMEN DE LOTE*
+--------------------------------------------
+🏷️ *Lote / Ref:* #${pedido.referencia || pedido.codigo}
+🛍️ *Producto:* ${pedido.descripcion || 'Sin descripción'}
+📍 *Destino:* ${pedido.ciudad}
+📊 *Cantidad:* ${pedido.totalQty ? pedido.totalQty.toLocaleString() : 0} unidades
+
+💵 *Total Inversión:* ${formatCurrency(pedido.total)}
+✅ *Pago Inicial (30%):* ${formatCurrency(pedido.pagoInicial)}
+💰 *Total Abonado Real:* ${formatCurrency(totalAbonado)}
+⏳ *Saldo Pendiente:* ${formatCurrency(pedido.saldo)}
+
+🚚 *Estado / Etapa:* ${etapaTxt}
+--------------------------------------------
+_Enviado desde Sistema de Gestión de Importaciones_`;
+
+    const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(message)}`;
+    window.open(url, '_blank');
   }
 }

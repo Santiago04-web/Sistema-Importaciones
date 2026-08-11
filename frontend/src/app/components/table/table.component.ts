@@ -1863,6 +1863,10 @@ export class TableComponent implements OnInit {
       .catch(() => this.showAlert('Error', 'No se pudo generar el archivo Excel.'));
   }
 
+  compartirWhatsApp(pedido: Pedido) {
+    this.pedidoService.compartirWhatsApp(pedido);
+  }
+
   aplicarFiltros() {
     this.pedidosFiltrados = this.pedidos.filter(p => {
       const q = (this.filtros.busqueda || '').toLowerCase().trim();

@@ -174,7 +174,10 @@ interface ColumnaEtapa {
               <h2>{{ formatTitleCase(selectedPedido.descripcion) || 'Sin descripción' }}</h2>
             </div>
             <div style="display: flex; align-items: center; gap: 0.5rem;">
-              <button class="pdf-modal-btn" (click)="selectedCourierPedido = selectedPedido" title="Ver Línea de Tiempo Courier">
+              <button class="ws-modal-btn" (click)="compartirWhatsApp(selectedPedido)" title="Enviar resumen por WhatsApp">
+                📲 WhatsApp
+              </button>
+              <button class="pdf-modal-btn" (click)="selectedCourierPedido = selectedPedido" title="Ver Ficha de Rastreo Courier">
                 🚚 Courier
               </button>
               <button class="pdf-modal-btn" (click)="selectedQrPedido = selectedPedido" title="Ver Código QR">
@@ -242,6 +245,31 @@ interface ColumnaEtapa {
               <div class="fin-row total-fin">
                 <span>TOTAL PEDIDO</span>
                 <strong>{{ (selectedPedido.total || 0) | currency:'COP':'symbol':'1.0-0' }}</strong>
+              </div>
+            </div>
+
+            <!-- REGISTRO Y HISTORIAL DE PAGOS PARCIALES -->
+            <div class="pagos-parciales-box">
+              <div class="pagos-head">
+                <span class="pagos-title">💰 Historial de Pagos / Abonos Parciales</span>
+                <span class="pagos-total-tag">Total Abonado: $ {{ ((selectedPedido.totalPagosParciales || 0) + (selectedPedido.pagoInicial || 0)) | number:'1.0-0' }} COP</span>
+              </div>
+
+              <div class="pagos-list" *ngIf="selectedPedido.pagosParciales && selectedPedido.pagosParciales.length > 0">
+                <div class="pago-item" *ngFor="let p of selectedPedido.pagosParciales">
+                  <div class="pago-info">
+                    <strong>$ {{ p.monto | number:'1.0-0' }} COP</strong>
+                    <span class="pago-note" *ngIf="p.nota">{{ p.nota }}</span>
+                    <span class="pago-date">{{ p.fechaPago | date:'short' }}</span>
+                  </div>
+                  <button class="del-pago-btn" (click)="eliminarPagoParcial(p.id!)" *ngIf="authService.canEdit()" title="Eliminar este abono">✕</button>
+                </div>
+              </div>
+
+              <div class="add-pago-form" *ngIf="authService.canEdit()">
+                <input type="number" [(ngModel)]="nuevoPagoMonto" placeholder="Monto $ COP" class="pago-input-num">
+                <input type="text" [(ngModel)]="nuevoPagoNota" placeholder="Nota / Ref (Ej: Transferencia Bancolombia)" class="pago-input-txt">
+                <button class="add-pago-btn" (click)="agregarPagoParcial()">+ Registrar Abono</button>
               </div>
             </div>
 
@@ -860,6 +888,110 @@ interface ColumnaEtapa {
       color: #fafafa;
       flex-shrink: 0;
     }
+
+    .ws-modal-btn {
+      background: rgba(34, 197, 94, 0.15);
+      border: 1px solid rgba(34, 197, 94, 0.35);
+      color: #4ade80;
+      padding: 0.35rem 0.75rem;
+      border-radius: 6px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .ws-modal-btn:hover {
+      background: rgba(34, 197, 94, 0.3);
+      color: #fff;
+    }
+    .pagos-parciales-box {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 10px;
+      padding: 0.85rem 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+    }
+    .pagos-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .pagos-title {
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: #fbbf24;
+    }
+    .pagos-total-tag {
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: #34d399;
+    }
+    .pagos-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+      max-height: 120px;
+      overflow-y: auto;
+    }
+    .pago-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(0, 0, 0, 0.3);
+      padding: 0.35rem 0.6rem;
+      border-radius: 6px;
+      font-size: 0.78rem;
+    }
+    .pago-info {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+    .pago-info strong { color: #10b981; }
+    .pago-note { color: #94a3b8; font-size: 0.72rem; }
+    .pago-date { color: #64748b; font-size: 0.68rem; }
+    .del-pago-btn {
+      background: none;
+      border: none;
+      color: #ef4444;
+      cursor: pointer;
+      font-size: 0.75rem;
+    }
+    .add-pago-form {
+      display: flex;
+      gap: 6px;
+      margin-top: 4px;
+    }
+    .pago-input-num {
+      width: 110px;
+      background: rgba(0, 0, 0, 0.4);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 6px;
+      padding: 4px 8px;
+      color: #fff;
+      font-size: 0.78rem;
+    }
+    .pago-input-txt {
+      flex: 1;
+      background: rgba(0, 0, 0, 0.4);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 6px;
+      padding: 4px 8px;
+      color: #fff;
+      font-size: 0.78rem;
+    }
+    .add-pago-btn {
+      background: rgba(245, 158, 11, 0.2);
+      border: 1px solid rgba(245, 158, 11, 0.4);
+      color: #fbbf24;
+      font-weight: 700;
+      border-radius: 6px;
+      padding: 4px 10px;
+      font-size: 0.75rem;
+      cursor: pointer;
+    }
   `]
 })
 export class KanbanComponent implements OnInit {
@@ -870,6 +1002,48 @@ export class KanbanComponent implements OnInit {
   showActionBar = true;
   selectedPedido: Pedido | null = null;
   hasPhotoError = false;
+  nuevoPagoMonto: number = 0;
+  nuevoPagoNota: string = '';
+
+  compartirWhatsApp(pedido: Pedido) {
+    this.pedidoService.compartirWhatsApp(pedido);
+  }
+
+  agregarPagoParcial() {
+    if (!this.selectedPedido || !this.selectedPedido.id || this.nuevoPagoMonto <= 0) return;
+    this.pedidoService.addPagoParcial(this.selectedPedido.id, {
+      monto: this.nuevoPagoMonto,
+      nota: this.nuevoPagoNota
+    }).subscribe({
+      next: (res) => {
+        if (this.selectedPedido) {
+          if (!this.selectedPedido.pagosParciales) this.selectedPedido.pagosParciales = [];
+          this.selectedPedido.pagosParciales.push(res);
+          const totalPagos = this.selectedPedido.pagosParciales.reduce((a, b) => a + b.monto, 0);
+          this.selectedPedido.totalPagosParciales = totalPagos;
+          this.selectedPedido.saldo = Math.max(0, (this.selectedPedido.total || 0) - (this.selectedPedido.pagoInicial || 0) - totalPagos);
+        }
+        this.nuevoPagoMonto = 0;
+        this.nuevoPagoNota = '';
+        this.loadData();
+      }
+    });
+  }
+
+  eliminarPagoParcial(pagoId: number) {
+    if (!this.selectedPedido || !this.selectedPedido.id) return;
+    this.pedidoService.deletePagoParcial(this.selectedPedido.id, pagoId).subscribe({
+      next: () => {
+        if (this.selectedPedido && this.selectedPedido.pagosParciales) {
+          this.selectedPedido.pagosParciales = this.selectedPedido.pagosParciales.filter(p => p.id !== pagoId);
+          const totalPagos = this.selectedPedido.pagosParciales.reduce((a, b) => a + b.monto, 0);
+          this.selectedPedido.totalPagosParciales = totalPagos;
+          this.selectedPedido.saldo = Math.max(0, (this.selectedPedido.total || 0) - (this.selectedPedido.pagoInicial || 0) - totalPagos);
+        }
+        this.loadData();
+      }
+    });
+  }
 
   openDetail(pedido: Pedido) {
     this.selectedPedido = pedido;
