@@ -2096,6 +2096,66 @@ import { SignalrService } from '../../services/signalr.service';
       cursor: pointer;
     }
 
+    .grouped-header-toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem 1.4rem;
+      margin-bottom: 1.5rem;
+      background: rgba(18, 18, 22, 0.85);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 14px;
+      backdrop-filter: blur(16px);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    }
+    .toolbar-left {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    .tb-title {
+      font-size: 1.05rem;
+      font-weight: 800;
+      color: #fafafa;
+      letter-spacing: -0.01em;
+    }
+    .tb-sub {
+      font-size: 0.85rem;
+      color: #a1a1aa;
+    }
+    .toolbar-right {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    .sort-select-label {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #cbd5e1;
+    }
+    .stage-order-select {
+      background: #18181b;
+      color: #f4f4f5;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 9px;
+      padding: 0.5rem 0.9rem;
+      font-size: 0.86rem;
+      font-weight: 600;
+      cursor: pointer;
+      outline: none;
+      transition: all 0.2s ease;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    }
+    .stage-order-select:hover, .stage-order-select:focus {
+      border-color: #3b82f6;
+      box-shadow: 0 0 12px rgba(59, 130, 246, 0.25);
+    }
+    .stage-order-select option {
+      background: #18181b;
+      color: #ffffff;
+      padding: 10px;
+    }
+
     @media (max-width: 768px) {
       .table-responsive { display: none; }
       .mobile-inventory-feed { display: flex; }
@@ -2860,6 +2920,13 @@ export class TableComponent implements OnInit {
   aplicarFiltros() {
     this.pedidosFiltrados = this.pedidos.filter(p => {
       const q = (this.filtros.busqueda || '').toLowerCase().trim();
+      const qNorm = q.replace(/[\s\-_]/g, '');
+
+      const codigoNorm = (p.codigo || '').toLowerCase().replace(/[\s\-_]/g, '');
+      const refNorm = (p.referencia || '').toLowerCase().replace(/[\s\-_]/g, '');
+      const descNorm = (p.descripcion || '').toLowerCase().replace(/[\s\-_]/g, '');
+      const obsNorm = (p.observaciones || '').toLowerCase().replace(/[\s\-_]/g, '');
+      const ciudadNorm = (p.ciudad || '').toLowerCase().replace(/[\s\-_]/g, '');
       
       const fechaStr = p.fechaNegociacion ? new Date(p.fechaNegociacion).toLocaleDateString().toLowerCase() : '';
       const fechaIso = p.fechaNegociacion ? new Date(p.fechaNegociacion).toISOString().split('T')[0].toLowerCase() : '';
@@ -2871,7 +2938,14 @@ export class TableComponent implements OnInit {
                           (p.observaciones || '').toLowerCase().includes(q) || 
                           (p.ciudad || '').toLowerCase().includes(q) || 
                           fechaStr.includes(q) || 
-                          fechaIso.includes(q);
+                          fechaIso.includes(q) ||
+                          (qNorm.length > 0 && (
+                            codigoNorm.includes(qNorm) ||
+                            refNorm.includes(qNorm) ||
+                            descNorm.includes(qNorm) ||
+                            obsNorm.includes(qNorm) ||
+                            ciudadNorm.includes(qNorm)
+                          ));
 
       const matchCiudad = !this.filtros.ciudad || (p.ciudad || '').toLowerCase().includes(this.filtros.ciudad.toLowerCase());
       const matchEtapa = this.filtros.etapa === null || Number(p.etapa) === Number(this.filtros.etapa);
