@@ -153,20 +153,12 @@ import { PedidoService, Pedido } from '../../services/pedido.service';
 
             <div class="preview-kpi-group">
               <div class="pkpi-item">
-                <span class="pkpi-num">{{ previewData?.totalRows }}</span>
-                <span class="pkpi-lbl">Productos</span>
-              </div>
-              <div class="pkpi-item">
                 <span class="pkpi-num green">{{ previewTotalQty | number }}</span>
                 <span class="pkpi-lbl">Piezas Totales</span>
               </div>
               <div class="pkpi-item">
-                <span class="pkpi-num blue">{{ previewTotalCOP | currency:'USD':'symbol':'1.0-0' }}</span>
+                <span class="pkpi-num blue">{{ previewTotalCOP | currency:'COP':'symbol':'1.0-0' }}</span>
                 <span class="pkpi-lbl">Inversión Estimada (COP)</span>
-              </div>
-              <div class="pkpi-item" [class.warn]="previewData?.warningsCount > 0">
-                <span class="pkpi-num">{{ previewData?.warningsCount }}</span>
-                <span class="pkpi-lbl">Advertencias</span>
               </div>
             </div>
           </div>
@@ -177,18 +169,17 @@ import { PedidoService, Pedido } from '../../services/pedido.service';
               <thead>
                 <tr>
                   <th style="width: 45px;">Fila</th>
-                  <th style="width: 80px;">Lote Orig.</th>
-                  <th style="width: 80px;">Ciudad</th>
+                  <th style="width: 85px;">Lote Orig.</th>
+                  <th style="width: 85px;">Ciudad</th>
                   <th>Descripción del Producto</th>
-                  <th style="width: 100px; text-align: right;">Piezas</th>
-                  <th style="width: 120px; text-align: right;">Yuanes (¥)</th>
-                  <th style="width: 90px; text-align: right;">Tasa ($)</th>
-                  <th style="width: 100px;">Estado</th>
-                  <th style="width: 40px; text-align: center;">Borrar</th>
+                  <th style="width: 110px; text-align: right;">Piezas</th>
+                  <th style="width: 130px; text-align: right;">Yuanes (¥)</th>
+                  <th style="width: 100px; text-align: right;">Tasa ($)</th>
+                  <th style="width: 45px; text-align: center;">Borrar</th>
                 </tr>
               </thead>
               <tbody>
-                <tr *ngFor="let item of previewData?.items; let i = index" [class.row-warn]="item.warnings && item.warnings.length > 0">
+                <tr *ngFor="let item of previewData?.items; let i = index">
                   <td>#{{ item.rowIndex || (i + 1) }}</td>
                   <td><strong class="code-pill">{{ item.codigo || overrideCodigo || 'S/N' }}</strong></td>
                   <td>
@@ -205,12 +196,6 @@ import { PedidoService, Pedido } from '../../services/pedido.service';
                   </td>
                   <td>
                     <input type="number" step="1" class="prev-edit-input num" [(ngModel)]="item.tasa" (ngModelChange)="recalcularTotalesPreview()" placeholder="535">
-                  </td>
-                  <td>
-                    <span *ngIf="!item.warnings || item.warnings.length === 0" class="badge-ok">✓ Válido</span>
-                    <div *ngIf="item.warnings && item.warnings.length > 0" class="warn-tags">
-                      <span class="badge-warn" *ngFor="let w of item.warnings">⚠️ {{ w }}</span>
-                    </div>
                   </td>
                   <td style="text-align: center;">
                     <button class="btn-del-row" (click)="eliminarFilaPreview(i)" title="Eliminar este producto del lote">✕</button>
