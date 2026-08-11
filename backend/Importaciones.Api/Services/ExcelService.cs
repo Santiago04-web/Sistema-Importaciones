@@ -28,9 +28,10 @@ public class ExcelService
         int colPedido = 1, colCiudad = 2, colFecha = 3, colAbono = 4;
         int colDesc = 5, colObs = 6, colRef = 7, colQty = 8;
         int colYuanes = 9, colPiezasCaja = 10, colCubica = 11, colTasa = 12;
+        int colPrecioMt3 = 16, colEhuk = 26;
 
-        // Auto-detect header columns dynamically
-        for (int c = 1; c <= 25; c++)
+        // Auto-detect header columns dynamically (loop up to 35)
+        for (int c = 1; c <= 35; c++)
         {
             var headerText = GetCellValueAsString(headerRow.Cell(c)).ToUpperInvariant();
             if (string.IsNullOrEmpty(headerText)) continue;
@@ -47,6 +48,8 @@ public class ExcelService
             else if (headerText.Contains("PIEZAS") || headerText.Contains("CAJA")) colPiezasCaja = c;
             else if (headerText.Contains("CUBICA")) colCubica = c;
             else if (headerText.Contains("TASA")) colTasa = c;
+            else if (headerText.Contains("PRECIO MT") || headerText.Contains("PRECIO M3")) colPrecioMt3 = c;
+            else if (headerText.Contains("EHUK") || headerText.Contains("%EHUK")) colEhuk = c;
         }
 
         var rows = worksheet.RangeUsed().RowsUsed().Skip(1); // Skip header row
@@ -97,6 +100,51 @@ public class ExcelService
             if (piezasCaja <= 0) piezasCaja = 1;
             if (tasa <= 0) tasa = 535m;
 
+            // Dynamically read precioMt3 per row if present
+            decimal precioMt3 = 2300000m;
+            if (colPrecioMt3 > 0)
+            {
+                var valP = (decimal)GetCellValueAsDouble(row.Cell(colPrecioMt3));
+                if (valP > 0)
+                {
+                    precioMt3 = valP;
+                }
+            }
+
+            // Dynamically read %Ehuk per row if present
+            decimal porcentajeEhuk = _defaultEhukPercent;
+            if (colEhuk > 0)
+            {
+                var cellEhuk = row.Cell(colEhuk);
+                if (!cellEhuk.IsEmpty())
+                {
+                    string ehukStr = GetCellValueAsString(cellEhuk).Trim();
+                    if (!string.IsNullOrEmpty(ehukStr))
+                    {
+                        if (ehukStr.Contains("%"))
+                        {
+                            ehukStr = ehukStr.Replace("%", "").Trim();
+                            if (decimal.TryParse(ehukStr, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out var p1))
+                            {
+                                porcentajeEhuk = p1 / 100m;
+                            }
+                            else if (decimal.TryParse(ehukStr, System.Globalization.NumberStyles.Any, new System.Globalization.CultureInfo("es-CO"), out var p2))
+                            {
+                                porcentajeEhuk = p2 / 100m;
+                            }
+                        }
+                        else
+                        {
+                            double dVal = GetCellValueAsDouble(cellEhuk);
+                            if (dVal > 0)
+                            {
+                                porcentajeEhuk = dVal > 1.0 ? (decimal)(dVal / 100.0) : (decimal)dVal;
+                            }
+                        }
+                    }
+                }
+            }
+
             var pedido = new Pedido
             {
                 Codigo = rawPedido,
@@ -111,8 +159,8 @@ public class ExcelService
                 PiezasCaja = piezasCaja,
                 Cubica = cubica,
                 Tasa = tasa,
-                PrecioMt3 = 2300000m,
-                PorcentajeEhuk = _defaultEhukPercent,
+                PrecioMt3 = precioMt3,
+                PorcentajeEhuk = porcentajeEhuk,
                 Etapa = EtapaPedido.Cotizacion
             };
 
