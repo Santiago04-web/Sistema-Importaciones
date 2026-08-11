@@ -531,8 +531,8 @@ export interface Proveedor {
     .empty-icon { font-size: 2.5rem; margin-bottom: 0.5rem; }
 
     /* MODAL */
-    .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(4px); display: flex; justify-content: center; align-items: center; z-index: 99999; }
-    .modal-card { width: 92%; max-width: 540px; background: #0f172a; border: 1px solid rgba(59, 130, 246, 0.35); border-radius: 20px; padding: 1.75rem; box-shadow: 0 25px 60px rgba(0,0,0,0.8); }
+    .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(4px); display: flex; justify-content: center; align-items: center; z-index: 99999; padding: 1.5rem; overflow-y: auto; }
+    .modal-card { width: 100%; max-width: 540px; max-height: 90vh; overflow-y: auto; background: #0f172a; border: 1px solid rgba(59, 130, 246, 0.35); border-radius: 20px; padding: 1.75rem; box-shadow: 0 25px 60px rgba(0,0,0,0.8); }
     .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; }
     .modal-header h3 { font-size: 1.25rem; font-weight: 800; color: #f8fafc; }
     .btn-close { background: transparent; border: none; color: #94a3b8; font-size: 1.2rem; cursor: pointer; }
