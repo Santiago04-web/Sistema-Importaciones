@@ -60,39 +60,150 @@ const API_ROOT = isLocal ? 'http://localhost:5174/api' : 'https://sistema-import
 })
 export class PedidoService {
   private apiUrl = `${API_ROOT}/pedidos`;
+  private localPedidos: Pedido[] = [];
 
-  constructor(private http: HttpClient) { }
+  constructor(private http: HttpClient) {
+    this.loadLocalPedidos();
+  }
+
+  private loadLocalPedidos() {
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem('user_imported_pedidos');
+      if (stored) {
+        try {
+          this.localPedidos = JSON.parse(stored);
+        } catch {
+          this.localPedidos = [];
+        }
+      }
+    }
+  }
+
+  private saveLocalPedidos(pedidos: Pedido[]) {
+    this.localPedidos = pedidos;
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('user_imported_pedidos', JSON.stringify(this.localPedidos));
+    }
+  }
+
+  addLocalItems(items: any[], overrideCodigo?: string): Pedido[] {
+    const codigoFinal = (overrideCodigo || '1').trim();
+    const existing = this.getLocalPedidos();
+    let maxId = existing.reduce((m, x) => Math.max(m, x.id || 0), 0);
+
+    const newPedidos: Pedido[] = items.map((item, idx) => {
+      maxId++;
+      return {
+        id: maxId,
+        codigo: codigoFinal,
+        ciudad: item.ciudad || 'GZ',
+        fechaNegociacion: item.fechaNegociacion ? new Date(item.fechaNegociacion) : new Date(),
+        abono: !!item.abono,
+        descripcion: item.descripcion || '',
+        observaciones: item.observaciones || '',
+        referencia: item.referencia || '',
+        totalQty: Number(item.totalQty) || 0,
+        yuanes: Number(item.yuanes) || 0,
+        piezasCaja: Number(item.piezasCaja) || 1,
+        cubica: Number(item.cubica) || 0,
+        tasa: Number(item.tasa) || 535,
+        precioMt3: Number(item.precioMt3) || 2300000,
+        porcentajeEhuk: Number(item.porcentajeEhuk) || 0.10,
+        etapa: Number(item.etapa) || 1
+      };
+    });
+
+    const combined = [...existing, ...newPedidos];
+    this.saveLocalPedidos(combined);
+    return newPedidos;
+  }
+
+  getLocalPedidos(): Pedido[] {
+    this.loadLocalPedidos();
+    return this.localPedidos;
+  }
 
   getPedidos(): Observable<Pedido[]> {
-    return this.http.get<Pedido[]>(this.apiUrl);
+    return this.http.get<Pedido[]>(this.apiUrl).pipe(
+      tap((res) => {
+        if (res && res.length > 0) {
+          this.saveLocalPedidos(res);
+        }
+      }),
+      catchError(() => {
+        return of(this.getLocalPedidos());
+      })
+    );
   }
 
   getPedido(id: number): Observable<Pedido> {
-    return this.http.get<Pedido>(`${this.apiUrl}/${id}`);
+    return this.http.get<Pedido>(`${this.apiUrl}/${id}`).pipe(
+      catchError(() => {
+        const found = this.getLocalPedidos().find(x => x.id === id);
+        return found ? of(found) : of({} as Pedido);
+      })
+    );
   }
 
   createPedido(pedido: Pedido): Observable<Pedido> {
-    return this.http.post<Pedido>(this.apiUrl, pedido);
+    const existing = this.getLocalPedidos();
+    pedido.id = existing.length > 0 ? Math.max(...existing.map(x => x.id || 0)) + 1 : 1;
+    this.saveLocalPedidos([...existing, pedido]);
+    return this.http.post<Pedido>(this.apiUrl, pedido).pipe(
+      catchError(() => of(pedido))
+    );
   }
 
   updatePedido(id: number, pedido: Pedido): Observable<Pedido> {
-    return this.http.put<Pedido>(`${this.apiUrl}/${id}`, pedido);
+    const existing = this.getLocalPedidos();
+    const idx = existing.findIndex(x => x.id === id);
+    if (idx !== -1) {
+      existing[idx] = { ...existing[idx], ...pedido };
+      this.saveLocalPedidos(existing);
+    }
+    return this.http.put<Pedido>(`${this.apiUrl}/${id}`, pedido).pipe(
+      catchError(() => of(pedido))
+    );
   }
 
   deletePedido(id: number): Observable<any> {
-    return this.http.delete(`${this.apiUrl}/${id}`);
+    const existing = this.getLocalPedidos().filter(x => x.id !== id);
+    this.saveLocalPedidos(existing);
+    return this.http.delete(`${this.apiUrl}/${id}`).pipe(
+      catchError(() => of({ success: true }))
+    );
   }
 
   deleteBatch(ids: number[]): Observable<any> {
-    return this.http.post(`${this.apiUrl}/delete-batch`, { ids });
+    const existing = this.getLocalPedidos().filter(x => !ids.includes(x.id || 0));
+    this.saveLocalPedidos(existing);
+    return this.http.post(`${this.apiUrl}/delete-batch`, { ids }).pipe(
+      catchError(() => of({ success: true }))
+    );
   }
 
   updateBatch(data: { ids: number[]; tasa?: number; etapa?: number; ciudad?: string; abono?: boolean; codigo?: string }): Observable<any> {
-    return this.http.post(`${this.apiUrl}/update-batch`, data);
+    const existing = this.getLocalPedidos();
+    existing.forEach(x => {
+      if (data.ids.includes(x.id || 0)) {
+        if (data.tasa !== undefined) x.tasa = data.tasa;
+        if (data.etapa !== undefined) x.etapa = data.etapa;
+        if (data.ciudad !== undefined) x.ciudad = data.ciudad;
+        if (data.abono !== undefined) x.abono = data.abono;
+        if (data.codigo !== undefined) x.codigo = data.codigo;
+      }
+    });
+    this.saveLocalPedidos(existing);
+    return this.http.post(`${this.apiUrl}/update-batch`, data).pipe(
+      catchError(() => of({ success: true }))
+    );
   }
 
   deleteAll(): Observable<any> {
-    return this.http.delete(`${this.apiUrl}/delete-all`);
+    this.saveLocalPedidos([]);
+    return this.http.delete(`${this.apiUrl}/delete-all`).pipe(
+      catchError(() => of({ success: true }))
+    );
   }
 
   uploadExcel(file: File): Observable<any> {
@@ -108,7 +219,10 @@ export class PedidoService {
   }
 
   confirmExcel(data: { overrideCodigo?: string; items: any[] }): Observable<any> {
-    return this.http.post(`${this.apiUrl}/excel-confirm`, data);
+    this.addLocalItems(data.items, data.overrideCodigo);
+    return this.http.post(`${this.apiUrl}/excel-confirm`, data).pipe(
+      catchError(() => of({ count: data.items.length, codigo: data.overrideCodigo || '1' }))
+    );
   }
 
   uploadPedidoImage(id: number, file: File): Observable<any> {
