@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { BehaviorSubject, Observable, tap, catchError, throwError } from 'rxjs';
+import { BehaviorSubject, Observable, tap, catchError, throwError, of } from 'rxjs';
 
 const isLocal = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
 const API_ROOT = isLocal ? 'http://localhost:5174/api' : 'https://sistema-importaciones.onrender.com/api';
@@ -40,8 +40,8 @@ export class AuthService {
         }
       }),
       catchError((err) => {
-        // Fallback for Vercel / Remote Demo mode when backend HTTP is not reachable
-        const email = (credentials?.email || '').trim().toLowerCase();
+        // Fallback for Vercel / Remote Demo mode when backend HTTP is not reachable or credentials mismatch
+        const email = (credentials?.email || credentials?.username || '').trim().toLowerCase();
         const pass = credentials?.password || '';
 
         let roles: string[] = [];
@@ -63,7 +63,7 @@ export class AuthService {
           this.accessToken = 'demo_token_' + Date.now();
           localStorage.setItem('user_profile', JSON.stringify(profile));
           this.currentUserSubject.next(profile);
-          return new BehaviorSubject({ token: this.accessToken, username, roles }).asObservable();
+          return of({ token: this.accessToken, username, roles });
         }
 
         return throwError(() => err);
