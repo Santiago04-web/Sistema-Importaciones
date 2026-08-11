@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy, HostListener, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Pedido } from '../../services/pedido.service';
+import { PedidoService, Pedido } from '../../services/pedido.service';
 
 @Component({
   selector: 'app-command-palette',
@@ -18,17 +18,17 @@ import { Pedido } from '../../services/pedido.service';
                  [(ngModel)]="query" 
                  (input)="onSearchChange()" 
                  (keydown)="onKeyDown($event)"
-                 placeholder="Buscar por código, ropa, ciudad, referencia, valor o etapa (Ctrl + K)..." 
+                 placeholder="Escribe código (cp, co, bs, ct), producto, ciudad o valor (Ctrl + K)..." 
                  class="cmd-input">
           <kbd class="cmd-esc-tag">ESC</kbd>
         </div>
 
         <div class="cmd-results" *ngIf="filteredList.length > 0">
           <div class="cmd-section-title" *ngIf="query">
-            Resultados ({{ filteredList.length }})
+            Resultados para "{{ query }}" ({{ filteredList.length }})
           </div>
           <div class="cmd-section-title" *ngIf="!query">
-            ⚡ Importaciones Recientes
+            ⚡ Importaciones Disponibles ({{ _pedidos.length }})
           </div>
 
           <div class="cmd-item" 
@@ -41,7 +41,7 @@ import { Pedido } from '../../services/pedido.service';
               <span class="cmd-code-pill">{{ item.referencia || item.codigo || 'S/N' }}</span>
               <div class="cmd-item-info">
                 <strong class="cmd-item-desc">{{ item.descripcion || 'Sin Descripción' }}</strong>
-                <span class="cmd-item-sub">📍 {{ item.ciudad }} · Qty {{ item.totalQty | number }}</span>
+                <span class="cmd-item-sub">📍 {{ item.ciudad }} · Qty {{ item.totalQty | number }} · Lote: {{ item.codigo }}</span>
               </div>
             </div>
 
@@ -53,20 +53,21 @@ import { Pedido } from '../../services/pedido.service';
         </div>
 
         <!-- SMART EMPTY SUGGESTIONS STATE -->
-        <div class="cmd-empty" *ngIf="filteredList.length === 0 && query">
+        <div class="cmd-empty" *ngIf="filteredList.length === 0">
           <div class="empty-msg">
             <span class="empty-icon">🔍</span>
-            <p>No encontramos nada exactamente con <strong>"{{ query }}"</strong></p>
+            <p>No se encontraron resultados para <strong>"{{ query }}"</strong></p>
           </div>
           <div class="sug-box">
-            <span class="sug-title">💡 Prueba buscar por estas sugerencias:</span>
+            <span class="sug-title">💡 Sugerencias rápidas de búsqueda:</span>
             <div class="sug-chips">
-              <button class="chip-btn" (click)="setQuery('Ropa')">👕 Ropa / Camisas</button>
-              <button class="chip-btn" (click)="setQuery('Relojes')">⌚ Relojes</button>
-              <button class="chip-btn" (click)="setQuery('Maquillaje')">💄 Maquillaje</button>
-              <button class="chip-btn" (click)="setQuery('Medellin')">📍 Medellín</button>
-              <button class="chip-btn" (click)="setQuery('Bogota')">📍 Bogotá</button>
-              <button class="chip-btn" (click)="setQuery('Transito')">🚚 En Tránsito</button>
+              <button class="chip-btn" (click)="setQuery('cp')">🏷️ cp-3 (Filtro cp)</button>
+              <button class="chip-btn" (click)="setQuery('co')">🏷️ co-1 (Filtro co)</button>
+              <button class="chip-btn" (click)="setQuery('ct')">🏷️ ct-1 (Filtro ct)</button>
+              <button class="chip-btn" (click)="setQuery('bs')">🏷️ bs-1 (Filtro bs)</button>
+              <button class="chip-btn" (click)="setQuery('Camiseta')">👕 Camisetas</button>
+              <button class="chip-btn" (click)="setQuery('Buzo')">🧥 Buzos</button>
+              <button class="chip-btn" (click)="setQuery('GZ')">📍 Guangzhou (GZ)</button>
             </div>
           </div>
         </div>
@@ -81,7 +82,7 @@ import { Pedido } from '../../services/pedido.service';
     .cmd-overlay {
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(0, 0, 0, 0.78);
+      background: rgba(0, 0, 0, 0.82);
       backdrop-filter: blur(8px);
       z-index: 9999;
       display: flex;
@@ -131,7 +132,7 @@ import { Pedido } from '../../services/pedido.service';
       font-size: 0.7rem;
     }
     .cmd-results {
-      max-height: 400px;
+      max-height: 420px;
       overflow-y: auto;
       padding: 0.5rem 0.75rem;
     }
@@ -155,8 +156,8 @@ import { Pedido } from '../../services/pedido.service';
       border: 1px solid transparent;
     }
     .cmd-item:hover, .cmd-item.active {
-      background: rgba(59, 130, 246, 0.15);
-      border-color: rgba(59, 130, 246, 0.3);
+      background: rgba(59, 130, 246, 0.18);
+      border-color: rgba(59, 130, 246, 0.4);
     }
     .cmd-item-left {
       display: flex;
@@ -164,11 +165,11 @@ import { Pedido } from '../../services/pedido.service';
       gap: 12px;
     }
     .cmd-code-pill {
-      font-size: 0.72rem;
+      font-size: 0.75rem;
       font-weight: 800;
       color: #38bdf8;
-      background: rgba(56, 189, 248, 0.12);
-      border: 1px solid rgba(56, 189, 248, 0.25);
+      background: rgba(56, 189, 248, 0.14);
+      border: 1px solid rgba(56, 189, 248, 0.3);
       padding: 3px 8px;
       border-radius: 6px;
     }
@@ -277,13 +278,23 @@ import { Pedido } from '../../services/pedido.service';
   `]
 })
 export class CommandPaletteComponent implements OnInit, OnDestroy {
-  @Input() pedidos: Pedido[] = [];
+  _pedidos: Pedido[] = [];
+  
+  @Input() set pedidos(val: Pedido[]) {
+    if (val && val.length > 0) {
+      this._pedidos = val;
+      this.onSearchChange();
+    }
+  }
+  
   @Output() selectPedido = new EventEmitter<Pedido>();
 
   isOpen = false;
   query = '';
   filteredList: Pedido[] = [];
   selectedIndex = 0;
+
+  constructor(private pedidoService: PedidoService) {}
 
   @HostListener('window:keydown', ['$event'])
   handleKeyboardEvent(event: KeyboardEvent) {
@@ -296,17 +307,27 @@ export class CommandPaletteComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
-    this.filteredList = this.pedidos.slice(0, 10);
+    this.refreshData();
   }
 
   ngOnDestroy() {}
+
+  refreshData() {
+    this.pedidoService.getPedidos().subscribe({
+      next: (data) => {
+        if (data && data.length > 0) {
+          this._pedidos = data;
+          this.onSearchChange();
+        }
+      }
+    });
+  }
 
   toggle() {
     this.isOpen = !this.isOpen;
     if (this.isOpen) {
       this.query = '';
-      this.filteredList = this.pedidos.slice(0, 10);
-      this.selectedIndex = 0;
+      this.refreshData();
     }
   }
 
@@ -322,22 +343,37 @@ export class CommandPaletteComponent implements OnInit, OnDestroy {
       .trim();
   }
 
+  normalizeClean(str: string): string {
+    return this.normalize(str).replace(/[^a-z0-9]/g, '');
+  }
+
   onSearchChange() {
     const raw = this.normalize(this.query);
+    const cleanRaw = this.normalizeClean(this.query);
+
     if (!raw) {
-      this.filteredList = this.pedidos.slice(0, 10);
+      this.filteredList = this._pedidos.slice(0, 12);
       this.selectedIndex = 0;
       return;
     }
 
     const tokens = raw.split(/\s+/).filter(t => t.length > 0);
 
-    this.filteredList = this.pedidos.filter(p => {
-      const searchableText = this.normalize(
+    this.filteredList = this._pedidos.filter(p => {
+      const fullText = this.normalize(
         `${p.codigo} ${p.referencia} ${p.descripcion} ${p.ciudad} ${p.observaciones} ${this.getEtapaName(p.etapa)} ${p.total} ${p.saldo} ${p.totalQty} ${p.yuanes} ${p.tasa}`
       );
-      // Matches if all search tokens are found in any part of searchableText or partial prefix!
-      return tokens.every(t => searchableText.includes(t));
+      const cleanFullText = this.normalizeClean(
+        `${p.codigo} ${p.referencia} ${p.descripcion} ${p.ciudad} ${p.observaciones}`
+      );
+
+      // Match 1: Token match (all query words present anywhere)
+      const matchesTokens = tokens.every(t => fullText.includes(t));
+      
+      // Match 2: Hyphen-insensitive prefix/substring match (e.g. 'cp' matches 'cp-3' or 'CP 3')
+      const matchesClean = cleanRaw.length >= 1 && cleanFullText.includes(cleanRaw);
+
+      return matchesTokens || matchesClean;
     }).slice(0, 15);
 
     this.selectedIndex = 0;
