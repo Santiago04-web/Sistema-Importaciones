@@ -1555,6 +1555,10 @@ export class DashboardComponent implements OnInit {
       this.guangzhouVal = 0;
       this.yiwuVal = 0;
       this.otherCityVal = 0;
+      this.topPedidos = [];
+      this.etapaStats = [];
+      this.ciudadStats = [];
+      this.costBreakdown = [];
       return;
     }
 
