@@ -54,10 +54,10 @@ import { ExchangeRateComponent } from './components/exchange-rate/exchange-rate.
             </div>
           </a>
 
-          <!-- SIGNALR LIVE STATUS BADGE -->
-          <span class="live-signal-badge" [class.connected]="signalrService.isConnected$ | async" title="Estado de la conexión SignalR en tiempo real">
+          <!-- SIGNALR LIVE STATUS BADGE (SOLO EN VIVO) -->
+          <span class="live-signal-badge connected" *ngIf="signalrService.isConnected$ | async" title="Conexión en tiempo real activa">
             <span class="live-dot"></span>
-            {{ (signalrService.isConnected$ | async) ? '● EN VIVO' : 'CONNECTING...' }}
+            ● EN VIVO
           </span>
 
           <!-- TASA DE CAMBIO CNY EN VIVO (PILL NAVBAR) -->
