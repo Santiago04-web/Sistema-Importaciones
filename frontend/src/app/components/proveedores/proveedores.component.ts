@@ -26,15 +26,11 @@ export interface Proveedor {
       <!-- HEADER CONSOLE TITLE -->
       <div class="console-header">
         <div>
-          <div class="header-badge">
-            <span class="live-dot"></span>
-            <span>DIRECTORIO Y RENDIMIENTO DE FABRICANTES CHINOS</span>
-          </div>
-          <h2 class="title">Consola de Proveedores & Fabricantes 🇨🇳</h2>
-          <p class="subtitle">Análisis comparativo de costos, calificación y red de compras internacionales</p>
+          <h2 class="title">Proveedores</h2>
+          <p class="subtitle">Gestión de proveedores y directorio de contactos</p>
         </div>
         <button class="btn-primary-add" (click)="openModal()">
-          <span>+ Nuevo Fabricante</span>
+          <span>+ Agregar Proveedor</span>
         </button>
       </div>
 
@@ -43,36 +39,36 @@ export interface Proveedor {
         <div class="kpi-card glass-card">
           <div class="kpi-icon-box blue">🏬</div>
           <div class="kpi-info">
-            <span class="kpi-label">Fabricantes Registrados</span>
+            <span class="kpi-label">Total Proveedores</span>
             <strong class="kpi-value">{{ proveedores.length }}</strong>
-            <span class="kpi-sub">En 5 ciudades clave de China</span>
+            <span class="kpi-sub">Proveedores activos</span>
           </div>
         </div>
 
         <div class="kpi-card glass-card">
           <div class="kpi-icon-box green">💰</div>
           <div class="kpi-info">
-            <span class="kpi-label">Inversión en Fabricación</span>
+            <span class="kpi-label">Inversión Total</span>
             <strong class="kpi-value">$ {{ formatNum(totalSpentAll) }}</strong>
-            <span class="kpi-sub">Consolidado general de pedidos</span>
+            <span class="kpi-sub">Total en pedidos</span>
           </div>
         </div>
 
         <div class="kpi-card glass-card">
           <div class="kpi-icon-box purple">📦</div>
           <div class="kpi-info">
-            <span class="kpi-label">Pedidos en Fabricación</span>
+            <span class="kpi-label">Total Pedidos</span>
             <strong class="kpi-value">{{ totalOrdersCount }}</strong>
-            <span class="kpi-sub">{{ totalQtyAll | number }} unidades totales</span>
+            <span class="kpi-sub">{{ totalQtyAll | number }} unidades</span>
           </div>
         </div>
 
         <div class="kpi-card glass-card">
           <div class="kpi-icon-box yellow">⭐</div>
           <div class="kpi-info">
-            <span class="kpi-label">Calificación Promedio</span>
+            <span class="kpi-label">Calificación</span>
             <strong class="kpi-value">{{ avgRating | number:'1.1-1' }} / 5.0</strong>
-            <span class="kpi-sub">Fiabilidad y calidad de entrega</span>
+            <span class="kpi-sub">Promedio general</span>
           </div>
         </div>
       </div>
@@ -82,21 +78,21 @@ export interface Proveedor {
         <div class="search-box">
           <span class="search-icon">🔍</span>
           <input type="text" [(ngModel)]="searchQuery" (input)="filterProveedores()" 
-                 placeholder="Buscar fabricante, ciudad (Guangzhou, Yiwu), WeChat, producto..." class="search-input">
+                 placeholder="Buscar por proveedor, ciudad, WeChat, teléfono..." class="search-input">
         </div>
 
         <div class="city-filters">
-          <button class="city-chip" [class.active]="selectedCity === 'ALL'" (click)="setCity('ALL')">🌐 Todas</button>
-          <button class="city-chip" [class.active]="selectedCity === 'Guangzhou'" (click)="setCity('Guangzhou')">📍 Guangzhou</button>
-          <button class="city-chip" [class.active]="selectedCity === 'Yiwu'" (click)="setCity('Yiwu')">📍 Yiwu</button>
-          <button class="city-chip" [class.active]="selectedCity === 'Shenzhen'" (click)="setCity('Shenzhen')">📍 Shenzhen</button>
-          <button class="city-chip" [class.active]="selectedCity === 'Ningbo'" (click)="setCity('Ningbo')">📍 Ningbo</button>
-          <button class="city-chip" [class.active]="selectedCity === 'Foshan'" (click)="setCity('Foshan')">📍 Foshan</button>
+          <button class="city-chip" [class.active]="selectedCity === 'ALL'" (click)="setCity('ALL')">Todas</button>
+          <button class="city-chip" [class.active]="selectedCity === 'Guangzhou'" (click)="setCity('Guangzhou')">Guangzhou</button>
+          <button class="city-chip" [class.active]="selectedCity === 'Yiwu'" (click)="setCity('Yiwu')">Yiwu</button>
+          <button class="city-chip" [class.active]="selectedCity === 'Shenzhen'" (click)="setCity('Shenzhen')">Shenzhen</button>
+          <button class="city-chip" [class.active]="selectedCity === 'Ningbo'" (click)="setCity('Ningbo')">Ningbo</button>
+          <button class="city-chip" [class.active]="selectedCity === 'Foshan'" (click)="setCity('Foshan')">Foshan</button>
         </div>
 
         <div class="view-toggle">
-          <button class="toggle-btn" [class.active]="viewMode === 'cards'" (click)="viewMode = 'cards'">🎴 Tarjetas</button>
-          <button class="toggle-btn" [class.active]="viewMode === 'table'" (click)="viewMode = 'table'">📊 Tabla</button>
+          <button class="toggle-btn" [class.active]="viewMode === 'cards'" (click)="viewMode = 'cards'">Tarjetas</button>
+          <button class="toggle-btn" [class.active]="viewMode === 'table'" (click)="viewMode = 'table'">Tabla</button>
         </div>
       </div>
 
@@ -106,7 +102,6 @@ export interface Proveedor {
           
           <div class="card-top-bar">
             <div class="city-tag">
-              <span class="flag">🇨🇳</span>
               <span>{{ p.ciudadChina || 'Guangzhou' }}</span>
             </div>
             <div class="stars-box" [title]="'Calificación: ' + p.calificacion + ' estrellas'">
@@ -116,7 +111,6 @@ export interface Proveedor {
 
           <div class="card-main-info">
             <div class="cat-pill">
-              <span>{{ getCategoryIcon(p.categoria) }}</span>
               <span>{{ p.categoria || 'General' }}</span>
             </div>
             <h3 class="supp-title">{{ p.nombre }}</h3>
@@ -141,27 +135,24 @@ export interface Proveedor {
           <!-- CONTACT INFO -->
           <div class="contact-box">
             <div class="contact-row" *ngIf="p.weChatId">
-              <span class="c-icon">💬</span>
               <span class="c-lbl">WeChat:</span>
               <strong class="c-val text-green">{{ p.weChatId }}</strong>
             </div>
             <div class="contact-row" *ngIf="p.contactoTelefono">
-              <span class="c-icon">📱</span>
               <span class="c-lbl">Teléfono:</span>
               <a [href]="'https://wa.me/' + p.contactoTelefono" target="_blank" class="c-val link-blue">{{ p.contactoTelefono }}</a>
             </div>
             <div class="contact-row" *ngIf="p.contactoEmail">
-              <span class="c-icon">📧</span>
               <span class="c-lbl">Email:</span>
               <span class="c-val">{{ p.contactoEmail }}</span>
             </div>
-            <p *ngIf="p.notas" class="supp-notes">📝 "{{ p.notas }}"</p>
+            <p *ngIf="p.notas" class="supp-notes">"{{ p.notas }}"</p>
           </div>
 
           <!-- ACTIONS FOOTER -->
           <div class="card-actions-footer">
-            <button class="action-btn edit" (click)="editProveedor(p)">✏️ Editar</button>
-            <button class="action-btn delete" (click)="deleteProveedor(p)">🗑️ Eliminar</button>
+            <button class="action-btn edit" (click)="editProveedor(p)">Editar</button>
+            <button class="action-btn delete" (click)="deleteProveedor(p)">Eliminar</button>
           </div>
 
         </div>
@@ -172,8 +163,8 @@ export interface Proveedor {
         <table class="comp-table">
           <thead>
             <tr>
-              <th>FABRICANTE / PROVEEDOR</th>
-              <th>CIUDAD CHINA</th>
+              <th>PROVEEDOR</th>
+              <th>CIUDAD</th>
               <th>CATEGORÍA</th>
               <th>PEDIDOS</th>
               <th>INVERSIÓN TOTAL</th>
@@ -189,10 +180,10 @@ export interface Proveedor {
                 <strong class="tbl-name">{{ p.nombre }}</strong>
               </td>
               <td>
-                <span class="tbl-city">🇨🇳 {{ p.ciudadChina }}</span>
+                <span class="tbl-city">{{ p.ciudadChina }}</span>
               </td>
               <td>
-                <span class="cat-pill sm">{{ getCategoryIcon(p.categoria) }} {{ p.categoria }}</span>
+                <span class="cat-pill sm">{{ p.categoria }}</span>
               </td>
               <td><strong>{{ p.pedidos?.length || 0 }}</strong></td>
               <td><strong class="text-green">$ {{ formatNum(getProveedorTotal(p)) }}</strong></td>
@@ -204,8 +195,8 @@ export interface Proveedor {
               </td>
               <td>
                 <div class="tbl-contact">
-                  <span *ngIf="p.weChatId" class="text-green">💬 {{ p.weChatId }}</span>
-                  <span *ngIf="p.contactoTelefono" class="text-blue">📱 {{ p.contactoTelefono }}</span>
+                  <span *ngIf="p.weChatId" class="text-green">WeChat: {{ p.weChatId }}</span>
+                  <span *ngIf="p.contactoTelefono" class="text-blue">Tel: {{ p.contactoTelefono }}</span>
                 </div>
               </td>
               <td class="text-right">
@@ -220,9 +211,9 @@ export interface Proveedor {
       <!-- EMPTY STATE -->
       <div class="empty-state glass-card" *ngIf="filteredProveedores.length === 0">
         <div class="empty-icon">🏬</div>
-        <h3>No se encontraron fabricantes</h3>
-        <p>Prueba con otros términos de búsqueda o agrega un nuevo proveedor a la base de datos.</p>
-        <button class="btn-primary-add" (click)="openModal()">+ Agregar Fabricante</button>
+        <h3>No se encontraron proveedores</h3>
+        <p>Prueba con otros términos de búsqueda o agrega un nuevo proveedor.</p>
+        <button class="btn-primary-add" (click)="openModal()">+ Agregar Proveedor</button>
       </div>
 
       <!-- MODAL FORM CREATE / EDIT -->
@@ -230,44 +221,44 @@ export interface Proveedor {
         <div class="modal-card glass-card" (click)="$event.stopPropagation()">
           
           <div class="modal-header">
-            <h3>{{ editingId ? '✏️ Editar Fabricante' : '🏭 Registar Nuevo Fabricante Chino' }}</h3>
+            <h3>{{ editingId ? 'Editar Proveedor' : 'Agregar Proveedor' }}</h3>
             <button class="btn-close" (click)="showModal = false">✕</button>
           </div>
 
           <div class="form-grid">
             
             <div class="form-group full">
-              <label>Nombre de la Fábrica / Empresa *</label>
+              <label>Nombre del Proveedor *</label>
               <input type="text" [(ngModel)]="formData.nombre" placeholder="ej. Guangzhou Xingwang Garment Co., Ltd." class="form-input">
             </div>
 
             <div class="form-group">
-              <label>Ciudad en China</label>
+              <label>Ciudad</label>
               <select [(ngModel)]="formData.ciudadChina" class="form-input">
-                <option value="Guangzhou">📍 Guangzhou (Cantón)</option>
-                <option value="Yiwu">📍 Yiwu (Mercado Internacional)</option>
-                <option value="Shenzhen">📍 Shenzhen (Electrónica)</option>
-                <option value="Ningbo">📍 Ningbo (Puerto / Calzado)</option>
-                <option value="Foshan">📍 Foshan (Muebles / Ropa)</option>
-                <option value="Dongguan">📍 Dongguan</option>
+                <option value="Guangzhou">Guangzhou</option>
+                <option value="Yiwu">Yiwu</option>
+                <option value="Shenzhen">Shenzhen</option>
+                <option value="Ningbo">Ningbo</option>
+                <option value="Foshan">Foshan</option>
+                <option value="Dongguan">Dongguan</option>
               </select>
             </div>
 
             <div class="form-group">
-              <label>Categoría Principal</label>
+              <label>Categoría</label>
               <select [(ngModel)]="formData.categoria" class="form-input">
-                <option value="Ropa">👕 Ropa / Textiles</option>
-                <option value="Relojes">⌚ Relojes / Joyería</option>
-                <option value="Maquillaje">💄 Cosméticos / Maquillaje</option>
-                <option value="Calzado">👟 Calzado / Zapatos</option>
-                <option value="Bolsos">👜 Bolsos / Accesorios</option>
-                <option value="Electrónica">🎧 Electrónica / Gadgets</option>
-                <option value="General">📦 General / Varios</option>
+                <option value="Ropa">Ropa / Textiles</option>
+                <option value="Relojes">Relojes / Joyería</option>
+                <option value="Maquillaje">Cosméticos / Maquillaje</option>
+                <option value="Calzado">Calzado / Zapatos</option>
+                <option value="Bolsos">Bolsos / Accesorios</option>
+                <option value="Electrónica">Electrónica</option>
+                <option value="General">General / Varios</option>
               </select>
             </div>
 
             <div class="form-group">
-              <label>WeChat ID (Muy Importante en China)</label>
+              <label>WeChat ID</label>
               <input type="text" [(ngModel)]="formData.weChatId" placeholder="ej. wxid_gz_textile88" class="form-input">
             </div>
 
@@ -282,7 +273,7 @@ export interface Proveedor {
             </div>
 
             <div class="form-group full">
-              <label>Calificación de Fiabilidad (1 a 5 estrellas)</label>
+              <label>Calificación (1 a 5 estrellas)</label>
               <div class="rating-picker">
                 <span *ngFor="let star of [1,2,3,4,5]" 
                       class="pick-star" 
@@ -293,8 +284,8 @@ export interface Proveedor {
             </div>
 
             <div class="form-group full">
-              <label>Observaciones & Notas de Calidad</label>
-              <textarea [(ngModel)]="formData.notas" rows="3" placeholder="Tiempos de producción, plazos de pago, calidad de empaque..." class="form-input"></textarea>
+              <label>Notas</label>
+              <textarea [(ngModel)]="formData.notas" rows="3" placeholder="Observaciones adicionales..." class="form-input"></textarea>
             </div>
 
           </div>
