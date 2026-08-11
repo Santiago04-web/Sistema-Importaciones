@@ -229,7 +229,7 @@ import { SignalrService } from '../../services/signalr.service';
               <!-- PHOTO -->
               <td>
                 <div class="photo-cell">
-                  <ng-container *ngIf="pedido.fotoUrl; else uploadTpl">
+                  <ng-container *ngIf="pedido.fotoUrl; else categoryTpl">
                     <div class="thumb-container">
                       <img [src]="'http://localhost:5174' + pedido.fotoUrl" class="table-thumb" (click)="openPreview('http://localhost:5174' + pedido.fotoUrl)">
                       
@@ -240,14 +240,15 @@ import { SignalrService } from '../../services/signalr.service';
                       
                       <!-- Tiny blue edit badge in the corner -->
                       <label class="edit-photo-badge" title="Cambiar foto">
-                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                        📷
                         <input type="file" style="display: none" (change)="uploadPhoto($event, pedido.id)" accept="image/*">
                       </label>
                     </div>
                   </ng-container>
-                  <ng-template #uploadTpl>
-                    <label class="inline-upload-label" *ngIf="pedido.id">
-                      <i class="fas fa-plus" style="font-size: 0.7rem;"></i>
+                  <ng-template #categoryTpl>
+                    <label class="category-icon-btn" [title]="'Subir foto para ' + (pedido.descripcion || 'este producto')">
+                      <span class="cat-emoji">{{ getCategoryIcon(pedido.descripcion) }}</span>
+                      <span class="upload-hover-icon">📷</span>
                       <input type="file" style="display: none" (change)="uploadPhoto($event, pedido.id)" accept="image/*">
                     </label>
                   </ng-template>
@@ -916,6 +917,43 @@ import { SignalrService } from '../../services/signalr.service';
     .inline-edit-input:hover {
       background: rgba(255, 255, 255, 0.03);
       border-color: rgba(255, 255, 255, 0.08);
+    }
+    .inline-upload-label:hover {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: #3b82f6;
+      color: #fafafa;
+    }
+
+    .category-icon-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 34px;
+      height: 34px;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      cursor: pointer;
+      position: relative;
+      transition: all 0.2s ease;
+    }
+    .category-icon-btn:hover {
+      background: rgba(59, 130, 246, 0.15);
+      border-color: rgba(59, 130, 246, 0.35);
+      transform: scale(1.08);
+    }
+    .cat-emoji {
+      font-size: 1.05rem;
+    }
+    .upload-hover-icon {
+      display: none;
+      font-size: 0.8rem;
+    }
+    .category-icon-btn:hover .cat-emoji {
+      display: none;
+    }
+    .category-icon-btn:hover .upload-hover-icon {
+      display: inline;
     }
     .inline-edit-input:focus {
       outline: none;
@@ -1861,6 +1899,17 @@ export class TableComponent implements OnInit {
         URL.revokeObjectURL(a.href);
       })
       .catch(() => this.showAlert('Error', 'No se pudo generar el archivo Excel.'));
+  }
+
+  getCategoryIcon(descripcion: string): string {
+    const d = (descripcion || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    if (/camisa|camiseta|ropa|buzo|polo|sueter|pantalon|jeans|hoodie|chaqueta/.test(d)) return '👕';
+    if (/reloj|watch|smartwatch/.test(d)) return '⌚';
+    if (/maquillaje|cosmetico|skincare|labial|sombra|crema/.test(d)) return '💄';
+    if (/tenis|zapato|calzado|sneaker|bota|sandalia/.test(d)) return '👟';
+    if (/bolso|maleta|cartera|mochila|morral/.test(d)) return '👜';
+    if (/celular|iphone|cable|audifono|gadget|electronica|laptop|cargador/.test(d)) return '🎧';
+    return '📦';
   }
 
   compartirWhatsApp(pedido: Pedido) {
