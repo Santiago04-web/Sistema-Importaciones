@@ -526,6 +526,24 @@ import { SignalrService } from '../../services/signalr.service';
 
       <!-- VISTA AGRUPADA POR PRODUCTO -->
       <div class="grouped-products-container" *ngIf="agruparPorProducto && !loading">
+
+        <!-- STAGE ORDERING TOOLBAR -->
+        <div class="grouped-header-toolbar glass-card">
+          <div class="toolbar-left">
+            <span class="tb-title">📑 Agrupación por Tipo de Producto</span>
+            <span class="tb-sub">({{ gruposProductos.length }} categorías consolidadas)</span>
+          </div>
+
+          <div class="toolbar-right">
+            <label class="sort-select-label">🔀 Ordenar etapas por:</label>
+            <select [(ngModel)]="criterioOrdenEtapa" (change)="computeGrupos()" class="stage-order-select">
+              <option value="ACTIVAS">🚚 Cargas Activas Primero (En Tránsito → Aduana → Pagado)</option>
+              <option value="CICLO">📝 Ciclo de Compra Primero (Cotización → Confirmado → Pagado)</option>
+              <option value="RECIBIDAS">📦 Mercancía Recibida Primero (Recibido → En Tránsito)</option>
+            </select>
+          </div>
+        </div>
+
         <div class="group-card glass-card" *ngFor="let g of gruposProductos">
           <div class="group-header" (click)="g.expanded = !g.expanded">
             
@@ -2332,6 +2350,8 @@ export class TableComponent implements OnInit {
     this.galeriaModalOpen = true;
   }
 
+  criterioOrdenEtapa: 'ACTIVAS' | 'CICLO' | 'RECIBIDAS' = 'ACTIVAS';
+
   computeGrupos() {
     const map = new Map<string, Pedido[]>();
     
@@ -2342,21 +2362,44 @@ export class TableComponent implements OnInit {
     });
 
     const getStageOrder = (etapa: any) => {
-      const e = Number(etapa);
-      switch(e) {
-        case 3: return 1; // En Tránsito (prioridad visual)
-        case 4: return 2; // Aduana
-        case 2: return 3; // Pagado
-        case 1: return 4; // Confirmado
-        case 0: return 5; // Cotización
-        case 5: return 6; // Recibido
-        default: return 99;
+      const e = Number(etapa) || 0;
+      if (this.criterioOrdenEtapa === 'CICLO') {
+        switch(e) {
+          case 0: return 1; // Cotización
+          case 1: return 2; // Confirmado
+          case 2: return 3; // Pagado
+          case 3: return 4; // En Tránsito
+          case 4: return 5; // Aduana
+          case 5: return 6; // Recibido
+          default: return 99;
+        }
+      } else if (this.criterioOrdenEtapa === 'RECIBIDAS') {
+        switch(e) {
+          case 5: return 1; // Recibido
+          case 3: return 2; // En Tránsito
+          case 4: return 3; // Aduana
+          case 2: return 4; // Pagado
+          case 1: return 5; // Confirmado
+          case 0: return 6; // Cotización
+          default: return 99;
+        }
+      } else {
+        // ACTIVAS (default)
+        switch(e) {
+          case 3: return 1; // En Tránsito (prioridad activa)
+          case 4: return 2; // Aduana
+          case 2: return 3; // Pagado
+          case 1: return 4; // Confirmado
+          case 0: return 5; // Cotización
+          case 5: return 6; // Recibido
+          default: return 99;
+        }
       }
     };
 
     this.gruposProductos = Array.from(map.entries()).map(([desc, items]) => {
       // Sort items by stage priority so identical stages stay grouped together ("pegados")
-      const sortedItems = [...items].sort((a, b) => getStageOrder(a.etapa) - getStageOrder(b.etapa));
+      const sortedItems = [...items].sort((a, b) => getStageOrder(a.etapa) - getStageOrder(b.etapa) || (a.id || 0) - (b.id || 0));
 
       const firstWithPhoto = sortedItems.find(p => p.fotoUrl);
       const totalQty = sortedItems.reduce((s, x) => s + (x.totalQty || 0), 0);
