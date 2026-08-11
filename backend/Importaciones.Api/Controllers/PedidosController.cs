@@ -44,11 +44,14 @@ public class PedidosController : ControllerBase
     public async Task<ActionResult<IEnumerable<Pedido>>> GetPedidos()
     {
         return await _context.Pedidos
+            .AsNoTracking()
+            .Where(p => !p.Eliminado)
             .Include(p => p.HistorialEtapas)
             .Include(p => p.PagosParciales)
             .Include(p => p.Proveedor)
             .Include(p => p.Contenedor)
             .Include(p => p.Documentos)
+            .AsSplitQuery()
             .ToListAsync();
     }
 
@@ -56,12 +59,14 @@ public class PedidosController : ControllerBase
     public async Task<ActionResult<Pedido>> GetPedido(int id)
     {
         var pedido = await _context.Pedidos
+            .AsNoTracking()
             .Include(p => p.HistorialEtapas)
             .Include(p => p.PagosParciales)
             .Include(p => p.Proveedor)
             .Include(p => p.Contenedor)
             .Include(p => p.Documentos)
-            .FirstOrDefaultAsync(p => p.Id == id);
+            .AsSplitQuery()
+            .FirstOrDefaultAsync(p => p.Id == id && !p.Eliminado);
 
         if (pedido == null) return NotFound();
         return pedido;
