@@ -597,15 +597,30 @@ import { SignalrService } from '../../services/signalr.service';
             <table class="table inner-group-table">
               <thead>
                 <tr>
-                  <th>Pedido #</th>
-                  <th>Referencia</th>
-                  <th>Ciudad</th>
-                  <th>Fecha</th>
-                  <th>Qty</th>
-                  <th>Yuanes</th>
-                  <th>Tasa</th>
-                  <th>Etapa</th>
-                  <th>Total COP</th>
+                  <th (click)="sortGroup(g, 'codigo')" class="sortable-th" title="Ordenar por Código/Pedido #">
+                    Pedido # <span class="sort-icon" *ngIf="g.sortCol === 'codigo'">{{ g.sortAsc ? '▲' : '▼' }}</span>
+                  </th>
+                  <th (click)="sortGroup(g, 'referencia')" class="sortable-th" title="Ordenar por Referencia">
+                    Referencia <span class="sort-icon" *ngIf="g.sortCol === 'referencia'">{{ g.sortAsc ? '▲' : '▼' }}</span>
+                  </th>
+                  <th (click)="sortGroup(g, 'ciudad')" class="sortable-th" title="Ordenar por Ciudad">
+                    Ciudad <span class="sort-icon" *ngIf="g.sortCol === 'ciudad'">{{ g.sortAsc ? '▲' : '▼' }}</span>
+                  </th>
+                  <th (click)="sortGroup(g, 'totalQty')" class="sortable-th" title="Ordenar por Cantidad">
+                    Qty <span class="sort-icon" *ngIf="g.sortCol === 'totalQty'">{{ g.sortAsc ? '▲' : '▼' }}</span>
+                  </th>
+                  <th (click)="sortGroup(g, 'yuanes')" class="sortable-th" title="Ordenar por Yuanes">
+                    Yuanes <span class="sort-icon" *ngIf="g.sortCol === 'yuanes'">{{ g.sortAsc ? '▲' : '▼' }}</span>
+                  </th>
+                  <th (click)="sortGroup(g, 'tasa')" class="sortable-th" title="Ordenar por Tasa">
+                    Tasa <span class="sort-icon" *ngIf="g.sortCol === 'tasa'">{{ g.sortAsc ? '▲' : '▼' }}</span>
+                  </th>
+                  <th (click)="sortGroup(g, 'etapa')" class="sortable-th" title="Ordenar por Etapa">
+                    Etapa <span class="sort-icon" *ngIf="g.sortCol === 'etapa'">{{ g.sortAsc ? '▲' : '▼' }}</span>
+                  </th>
+                  <th (click)="sortGroup(g, 'total')" class="sortable-th" title="Ordenar por Total COP">
+                    Total COP <span class="sort-icon" *ngIf="g.sortCol === 'total'">{{ g.sortAsc ? '▲' : '▼' }}</span>
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -2368,11 +2383,37 @@ export class TableComponent implements OnInit {
     });
   }
 
-  getFilteredGroupPedidos(g: any): Pedido[] {
-    if (!g || !g.filterEtapa || g.filterEtapa === 'TODOS') {
-      return g.pedidos || [];
+  sortGroup(g: any, col: string) {
+    if (g.sortCol === col) {
+      g.sortAsc = !g.sortAsc;
+    } else {
+      g.sortCol = col;
+      g.sortAsc = true;
     }
-    return (g.pedidos || []).filter((p: Pedido) => String(p.etapa) === String(g.filterEtapa));
+  }
+
+  getFilteredGroupPedidos(g: any): Pedido[] {
+    let list = g.pedidos || [];
+    if (g && g.filterEtapa && g.filterEtapa !== 'TODOS') {
+      list = list.filter((p: Pedido) => String(p.etapa) === String(g.filterEtapa));
+    }
+    if (g && g.sortCol) {
+      const col = g.sortCol;
+      const dir = g.sortAsc ? 1 : -1;
+      list = [...list].sort((a: any, b: any) => {
+        let valA = a[col] ?? '';
+        let valB = b[col] ?? '';
+        if (typeof valA === 'number' && typeof valB === 'number') {
+          return (valA - valB) * dir;
+        }
+        valA = String(valA).toLowerCase();
+        valB = String(valB).toLowerCase();
+        if (valA < valB) return -1 * dir;
+        if (valA > valB) return 1 * dir;
+        return 0;
+      });
+    }
+    return list;
   }
 
   actualizarPedido(pedido: Pedido) {
