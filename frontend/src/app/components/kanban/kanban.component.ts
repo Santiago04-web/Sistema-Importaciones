@@ -1131,10 +1131,9 @@ export class KanbanComponent implements OnInit {
   cargarPedidos() {
     this.pedidoService.getPedidos().subscribe({
       next: (pedidos) => {
-        const sorted = [...pedidos].sort((a, b) => (a.id || 0) - (b.id || 0));
         this.columnas.forEach(c => c.pedidos = []);
-        sorted.forEach(p => {
-          const col = this.columnas.find(c => c.id === Number(p.etapa));
+        pedidos.forEach(p => {
+          const col = this.columnas.find(c => c.id === p.etapa);
           if (col) col.pedidos.push(p);
         });
       },
@@ -1194,16 +1193,12 @@ export class KanbanComponent implements OnInit {
   }
 
   getFilteredList(list: Pedido[]): Pedido[] {
-    let result = list;
-    if (this.searchQuery.trim()) {
-      const q = this.searchQuery.toLowerCase().trim();
-      result = list.filter(p =>
-        (p.codigo || '').toLowerCase().includes(q) ||
-        (p.referencia || '').toLowerCase().includes(q) ||
-        (p.descripcion || '').toLowerCase().includes(q) ||
-        (p.ciudad || '').toLowerCase().includes(q)
-      );
-    }
-    return [...result].sort((a, b) => (a.id || 0) - (b.id || 0));
+    if (!this.searchQuery.trim()) return list;
+    const q = this.searchQuery.toLowerCase().trim();
+    return list.filter(p =>
+      (p.codigo || '').toLowerCase().includes(q) ||
+      (p.descripcion || '').toLowerCase().includes(q) ||
+      (p.ciudad || '').toLowerCase().includes(q)
+    );
   }
 }
