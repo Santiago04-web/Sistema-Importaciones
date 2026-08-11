@@ -7,7 +7,20 @@ using Microsoft.AspNetCore.RateLimiting;
 using System.Threading.RateLimiting;
 using Importaciones.Api.Data;
 
-var builder = WebApplication.CreateBuilder(args);
+var builder = WebApplication.CreateBuilder(new WebApplicationOptions
+{
+    Args = args,
+    ContentRootPath = Directory.GetCurrentDirectory()
+});
+
+builder.Host.ConfigureAppConfiguration((hostingContext, config) =>
+{
+    config.Sources.Clear();
+    config.SetBasePath(Directory.GetCurrentDirectory())
+          .AddJsonFile("appsettings.json", optional: true, reloadOnChange: false)
+          .AddJsonFile($"appsettings.{hostingContext.HostingEnvironment.EnvironmentName}.json", optional: true, reloadOnChange: false)
+          .AddEnvironmentVariables();
+});
 
 // Add services to the container.
 builder.Services.AddControllers().AddJsonOptions(options =>
@@ -15,8 +28,25 @@ builder.Services.AddControllers().AddJsonOptions(options =>
     options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
 });
 builder.Services.AddHttpContextAccessor();
+
 builder.Services.AddDbContext<ImportacionesDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("ImportacionesDb")));
+{
+    var connStr = builder.Configuration.GetConnectionString("ImportacionesDb") 
+                  ?? builder.Configuration.GetConnectionString("DefaultConnection")
+                  ?? builder.Configuration["DATABASE_URL"];
+
+    var isLinux = System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(System.Runtime.InteropServices.OSPlatform.Linux);
+
+    if (isLinux || string.IsNullOrWhiteSpace(connStr) || connStr.Contains("SQLEXPRESS"))
+    {
+        var dbPath = Path.Combine(Directory.GetCurrentDirectory(), "importaciones_cloud.db");
+        options.UseSqlite($"Data Source={dbPath}");
+    }
+    else
+    {
+        options.UseSqlServer(connStr);
+    }
+});
 
 // Configure Identity with Strong Password & Lockout Policies
 builder.Services.AddIdentity<IdentityUser, IdentityRole>(options =>
@@ -140,19 +170,23 @@ using (var scope = app.Services.CreateScope())
     var context = scope.ServiceProvider.GetRequiredService<ImportacionesDbContext>();
     try
     {
-        await context.Database.ExecuteSqlRawAsync(@"
-            IF EXISTS (SELECT * FROM sys.tables WHERE name = 'Pedidos')
-            BEGIN
-                IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('Pedidos') AND name = 'FotoUrl')
-                    ALTER TABLE Pedidos ADD FotoUrl nvarchar(max) NULL;
+        await context.Database.EnsureCreatedAsync();
+        if (context.Database.IsSqlServer())
+        {
+            await context.Database.ExecuteSqlRawAsync(@"
+                IF EXISTS (SELECT * FROM sys.tables WHERE name = 'Pedidos')
+                BEGIN
+                    IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('Pedidos') AND name = 'FotoUrl')
+                        ALTER TABLE Pedidos ADD FotoUrl nvarchar(max) NULL;
 
-                IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('Pedidos') AND name = 'RowVersion')
-                    ALTER TABLE Pedidos ADD RowVersion rowversion NULL;
+                    IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('Pedidos') AND name = 'RowVersion')
+                        ALTER TABLE Pedidos ADD RowVersion rowversion NULL;
 
-                IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('Pedidos') AND name = 'Abono')
-                    ALTER TABLE Pedidos ADD Abono bit NOT NULL DEFAULT 0;
-            END
-        ");
+                    IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('Pedidos') AND name = 'Abono')
+                        ALTER TABLE Pedidos ADD Abono bit NOT NULL DEFAULT 0;
+                END
+            ");
+        }
     }
     catch (Exception ex)
     {
