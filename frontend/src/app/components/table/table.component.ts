@@ -290,12 +290,26 @@ import { SignalrService } from '../../services/signalr.service';
                        (change)="actualizarPedido(pedido)">
               </td>
 
-              <!-- DESCRIPCION -->
-              <td style="min-width: 220px;">
-                <input type="text" class="inline-edit-input desc-input" 
-                       [(ngModel)]="pedido.descripcion" 
-                       (change)="actualizarPedido(pedido)"
-                       placeholder="Producto...">
+              <!-- DESCRIPCION & OBSERVACIONES -->
+              <td style="min-width: 240px;">
+                <div class="desc-cell-group">
+                  <input type="text" class="inline-edit-input desc-input" 
+                         [(ngModel)]="pedido.descripcion" 
+                         (change)="actualizarPedido(pedido)"
+                         placeholder="Producto...">
+                  
+                  <div class="obs-subrow" *ngIf="pedido.observaciones || editField === pedido.id + '-obs'">
+                    <span class="obs-tag">Obs:</span>
+                    <input type="text" class="inline-edit-input obs-input"
+                           [(ngModel)]="pedido.observaciones"
+                           (change)="actualizarPedido(pedido)"
+                           (blur)="editField = null"
+                           placeholder="Observación...">
+                  </div>
+                  <span class="add-obs-btn" *ngIf="!pedido.observaciones && editField !== pedido.id + '-obs'" (click)="editField = pedido.id + '-obs'">
+                    + Obs
+                  </span>
+                </div>
               </td>
 
               <!-- QTY -->
@@ -1236,6 +1250,13 @@ import { SignalrService } from '../../services/signalr.service';
       transform: translateY(-50%) scale(1);
     }
     
+    .desc-cell-group { display: flex; flex-direction: column; gap: 2px; width: 100%; }
+    .obs-subrow { display: flex; align-items: center; gap: 4px; width: 100%; margin-top: 1px; }
+    .obs-tag { font-size: 0.65rem; color: #38bdf8; font-weight: 700; background: rgba(56, 189, 248, 0.12); padding: 1px 4px; border-radius: 3px; flex-shrink: 0; }
+    .obs-input { font-size: 0.74rem !important; color: #94a3b8 !important; padding: 2px 4px !important; }
+    .add-obs-btn { font-size: 0.68rem; color: #52525b; cursor: pointer; opacity: 0.6; transition: opacity 0.2s; display: inline-block; margin-top: 1px; }
+    .add-obs-btn:hover { opacity: 1; color: #60a5fa; }
+
     .edit-photo-badge {
       position: absolute;
       top: -3px;
@@ -2582,6 +2603,7 @@ export class TableComponent implements OnInit {
                           (p.codigo || '').toLowerCase().includes(q) || 
                           (p.referencia || '').toLowerCase().includes(q) || 
                           (p.descripcion || '').toLowerCase().includes(q) || 
+                          (p.observaciones || '').toLowerCase().includes(q) || 
                           (p.ciudad || '').toLowerCase().includes(q) || 
                           fechaStr.includes(q) || 
                           fechaIso.includes(q);

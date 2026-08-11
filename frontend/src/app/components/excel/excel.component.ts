@@ -870,12 +870,16 @@ export class ExcelComponent implements OnInit {
   }
 
   handleFile(file: File) {
-    if (file.name.endsWith('.xlsx') || file.name.endsWith('.xls') || file.name.endsWith('.csv')) {
+    const name = file.name.toLowerCase();
+    if (name.endsWith('.xlsx') || name.endsWith('.xls') || name.endsWith('.csv')) {
       this.selectedFile = file;
       this.error = '';
       this.successMsg = '';
+    } else if (name.endsWith('.pdf')) {
+      this.error = '💡 Para procesar y calcular automáticamente todas las fórmulas (Yuanes, Tasa, Flete, Comisiones, Costo Colombia), por favor sube el manifiesto en formato Excel (.xlsx o .xls).';
+      this.selectedFile = null;
     } else {
-      this.error = 'Por favor, sube un archivo de Excel o CSV válido (.xlsx, .xls o .csv)';
+      this.error = 'Por favor, sube un archivo de Excel (.xlsx, .xls o .csv)';
       this.selectedFile = null;
     }
   }

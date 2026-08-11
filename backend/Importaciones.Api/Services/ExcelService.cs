@@ -23,47 +23,79 @@ public class ExcelService
         var pedidos = new List<Pedido>();
         using var workbook = new XLWorkbook(stream);
         var worksheet = workbook.Worksheet(1);
+        
+        var headerRow = worksheet.Row(1);
+        int colPedido = 1, colCiudad = 2, colFecha = 3, colAbono = 4;
+        int colDesc = 5, colObs = 6, colRef = 7, colQty = 8;
+        int colYuanes = 9, colPiezasCaja = 10, colCubica = 11, colTasa = 12;
+
+        // Auto-detect header columns dynamically
+        for (int c = 1; c <= 25; c++)
+        {
+            var headerText = GetCellValueAsString(headerRow.Cell(c)).ToUpperInvariant();
+            if (string.IsNullOrEmpty(headerText)) continue;
+
+            if (headerText.Contains("PEDIDO")) colPedido = c;
+            else if (headerText.Contains("CIUDAD")) colCiudad = c;
+            else if (headerText.Contains("FECHA")) colFecha = c;
+            else if (headerText.Contains("ABONO")) colAbono = c;
+            else if (headerText.Contains("DESCRIPCION") || headerText.Contains("品名")) colDesc = c;
+            else if (headerText.Contains("OBSERVACION") || headerText.Contains("要求")) colObs = c;
+            else if (headerText.Contains("REFERENCIA")) colRef = c;
+            else if (headerText.Contains("QTY") || headerText.Contains("CANTIDAD") || headerText.Contains("总数量")) colQty = c;
+            else if (headerText.Contains("YUAN")) colYuanes = c;
+            else if (headerText.Contains("PIEZAS") || headerText.Contains("CAJA")) colPiezasCaja = c;
+            else if (headerText.Contains("CUBICA")) colCubica = c;
+            else if (headerText.Contains("TASA")) colTasa = c;
+        }
+
         var rows = worksheet.RangeUsed().RowsUsed().Skip(1); // Skip header row
 
         foreach (var row in rows)
         {
-            var rawPedido = row.Cell(1).GetString().Trim();
+            var rawPedido = GetCellValueAsString(row.Cell(colPedido));
             if (string.IsNullOrWhiteSpace(rawPedido) || 
                 rawPedido.Equals("TOTAL", StringComparison.OrdinalIgnoreCase) ||
                 rawPedido.Equals("TOTALES", StringComparison.OrdinalIgnoreCase) ||
                 rawPedido.Equals("NOTAS", StringComparison.OrdinalIgnoreCase) ||
-                rawPedido.StartsWith("NOTA", StringComparison.OrdinalIgnoreCase))
+                rawPedido.StartsWith("NOTA", StringComparison.OrdinalIgnoreCase) ||
+                rawPedido.StartsWith("El rojo", StringComparison.OrdinalIgnoreCase) ||
+                rawPedido.StartsWith("Morado", StringComparison.OrdinalIgnoreCase))
             {
                 continue; // Skip empty rows, notes, and totals
             }
 
-            var ciudad = row.Cell(2).GetString().Trim();
-            if (string.IsNullOrWhiteSpace(ciudad)) ciudad = "Guangzhou";
+            var ciudad = GetCellValueAsString(row.Cell(colCiudad));
+            if (string.IsNullOrWhiteSpace(ciudad)) ciudad = "GZ";
 
             DateTime fechaNegociacion = DateTime.UtcNow;
-            if (row.Cell(3).DataType == XLDataType.DateTime)
+            var cellFecha = row.Cell(colFecha);
+            if (cellFecha.DataType == XLDataType.DateTime)
             {
-                fechaNegociacion = row.Cell(3).GetDateTime();
+                fechaNegociacion = cellFecha.GetDateTime();
             }
-            else if (DateTime.TryParse(row.Cell(3).GetString(), out var parsedDate))
+            else if (DateTime.TryParse(GetCellValueAsString(cellFecha), out var parsedDate))
             {
                 fechaNegociacion = parsedDate;
             }
 
-            var abonoStr = row.Cell(4).GetString().Trim().ToLower();
+            var abonoStr = GetCellValueAsString(row.Cell(colAbono)).ToLower();
             bool abono = abonoStr == "si" || abonoStr == "sí" || abonoStr == "yes" || abonoStr == "true" || abonoStr == "1";
 
-            var descripcion = row.Cell(5).GetString().Trim();
-            var observaciones = row.Cell(6).GetString().Trim();
-            var referencia = row.Cell(7).GetString().Trim();
+            var descripcion = GetCellValueAsString(row.Cell(colDesc));
+            var observaciones = GetCellValueAsString(row.Cell(colObs));
+            var referencia = GetCellValueAsString(row.Cell(colRef));
 
-            int totalQty = (int)row.Cell(8).GetDouble();
-            decimal yuanes = (decimal)row.Cell(9).GetDouble();
-            int piezasCaja = (int)row.Cell(10).GetDouble();
-            decimal cubica = (decimal)row.Cell(11).GetDouble();
-            decimal tasa = (decimal)row.Cell(12).GetDouble();
+            int totalQty = (int)GetCellValueAsDouble(row.Cell(colQty));
+            decimal yuanes = (decimal)GetCellValueAsDouble(row.Cell(colYuanes));
+            int piezasCaja = (int)GetCellValueAsDouble(row.Cell(colPiezasCaja));
+            decimal cubica = (decimal)GetCellValueAsDouble(row.Cell(colCubica));
+            decimal tasa = (decimal)GetCellValueAsDouble(row.Cell(colTasa));
 
             if (totalQty <= 0 && yuanes <= 0) continue; // Skip invalid rows
+
+            if (piezasCaja <= 0) piezasCaja = 1;
+            if (tasa <= 0) tasa = 535m;
 
             var pedido = new Pedido
             {
@@ -88,6 +120,26 @@ public class ExcelService
         }
 
         return pedidos;
+    }
+
+    private string GetCellValueAsString(IXLCell cell)
+    {
+        if (cell == null || cell.IsEmpty()) return string.Empty;
+        if (cell.DataType == XLDataType.Text) return cell.GetString().Trim();
+        if (cell.DataType == XLDataType.Number) return cell.GetDouble().ToString(System.Globalization.CultureInfo.InvariantCulture).Trim();
+        if (cell.DataType == XLDataType.Boolean) return cell.GetBoolean() ? "true" : "false";
+        if (cell.DataType == XLDataType.DateTime) return cell.GetDateTime().ToString("yyyy-MM-dd");
+        return cell.Value.ToString()?.Trim() ?? string.Empty;
+    }
+
+    private double GetCellValueAsDouble(IXLCell cell)
+    {
+        if (cell == null || cell.IsEmpty()) return 0;
+        if (cell.DataType == XLDataType.Number) return cell.GetDouble();
+        var str = cell.GetString().Trim().Replace("$", "").Replace(",", "").Replace(" ", "");
+        if (double.TryParse(str, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out var d)) return d;
+        if (double.TryParse(str, System.Globalization.NumberStyles.Any, new System.Globalization.CultureInfo("es-CO"), out var d2)) return d2;
+        return 0;
     }
 
     public byte[] ExportPedidosToExcel(IEnumerable<Pedido> pedidos)
