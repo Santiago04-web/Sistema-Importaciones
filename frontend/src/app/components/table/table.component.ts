@@ -686,10 +686,16 @@ import { SignalrService } from '../../services/signalr.service';
       <div class="modal-overlay" *ngIf="galeriaModalOpen" (click)="galeriaModalOpen = false">
         <div class="modal-card glass-card catalog-modal" (click)="$event.stopPropagation()">
           <div class="modal-header">
-            <h3>✨ Catálogo de Productos Importados</h3>
+            <div>
+              <h3>✨ Catálogo de Productos Importados</h3>
+              <p class="sub-hdr" style="font-size: 0.8rem; color: #a1a1aa; margin: 4px 0 0 0;">
+                Catálogo consolidado de productos en inventario y cargas en curso
+              </p>
+            </div>
             <button class="btn-close" (click)="galeriaModalOpen = false">✕</button>
           </div>
-          <div class="catalog-grid">
+          
+          <div class="catalog-grid" *ngIf="gruposProductos.length > 0">
             <div class="catalog-card glass-card" *ngFor="let g of gruposProductos">
               <div class="cat-img-wrap">
                 <img *ngIf="g.fotoUrl" [src]="'http://localhost:5174' + g.fotoUrl" class="cat-img">
@@ -706,6 +712,12 @@ import { SignalrService } from '../../services/signalr.service';
                 </div>
               </div>
             </div>
+          </div>
+
+          <div class="cat-empty" *ngIf="gruposProductos.length === 0" style="text-align: center; padding: 3rem 1.5rem;">
+            <span style="font-size: 2.8rem; display: block; margin-bottom: 0.75rem;">📦</span>
+            <h4 style="color: #fafafa; font-size: 1.1rem; font-weight: 700; margin-bottom: 0.3rem;">Sin Productos Registrados</h4>
+            <p style="color: #a1a1aa; font-size: 0.85rem; margin: 0;">Sube un archivo Excel de importación para poblar el catálogo de productos.</p>
           </div>
         </div>
       </div>
@@ -2428,16 +2440,17 @@ export class TableComponent implements OnInit {
   }
 
   abrirGaleriaModal() {
-    this.computeGrupos();
+    this.computeGrupos(true);
     this.galeriaModalOpen = true;
   }
 
   criterioOrdenEtapa: 'ACTIVAS' | 'CICLO' | 'RECIBIDAS' = 'ACTIVAS';
 
-  computeGrupos() {
+  computeGrupos(forceAll = false) {
+    const listToGroup = (forceAll || this.pedidosFiltrados.length === 0) ? this.pedidos : this.pedidosFiltrados;
     const map = new Map<string, Pedido[]>();
     
-    this.pedidosFiltrados.forEach(p => {
+    listToGroup.forEach(p => {
       const key = (p.descripcion || 'Sin Descripción').trim();
       if (!map.has(key)) map.set(key, []);
       map.get(key)!.push(p);
