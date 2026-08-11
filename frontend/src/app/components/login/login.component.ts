@@ -413,8 +413,11 @@ export class LoginComponent implements OnInit {
 
     this.authService.login({ username: this.email, password: this.password }).subscribe({
       next: () => {
-        this.loading = false;
-        this.router.navigate(['/dashboard']);
+        if (this.authService.isViewer()) {
+          this.router.navigate(['/inversionistas']);
+        } else {
+          this.router.navigate(['/dashboard']);
+        }
       },
       error: (err) => {
         this.loading = false;
