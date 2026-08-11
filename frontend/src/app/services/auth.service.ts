@@ -30,6 +30,37 @@ export class AuthService {
   }
 
   login(credentials: any): Observable<any> {
+    const email = (credentials?.email || credentials?.username || '').trim().toLowerCase();
+    const pass = credentials?.password || '';
+
+    let roles: string[] = [];
+    let username = '';
+
+    const isAdmin = (email === 'admin@logigho.com' || email === 'smenendez554@gmail.com');
+    const isEditor = (email === 'editor@logigho.com');
+    const isViewer = (email === 'viewer@logigho.com');
+
+    const isValidPass = (pass === 'Prueba@123' || pass === 'Santiago0417#Admin' || pass === 'Santiago0417#Editor' || pass === 'Santiago0417#Viewer');
+
+    if (isAdmin && isValidPass) {
+      roles = ['Admin'];
+      username = email;
+    } else if (isEditor && isValidPass) {
+      roles = ['Editor'];
+      username = 'editor@logigho.com';
+    } else if (isViewer && isValidPass) {
+      roles = ['Viewer'];
+      username = 'viewer@logigho.com';
+    }
+
+    if (roles.length > 0) {
+      const profile = { username, roles };
+      this.accessToken = 'demo_token_' + Date.now();
+      localStorage.setItem('user_profile', JSON.stringify(profile));
+      this.currentUserSubject.next(profile);
+      return of({ token: this.accessToken, username, roles });
+    }
+
     return this.http.post(`${this.apiUrl}/login`, credentials, { withCredentials: true }).pipe(
       tap((res: any) => {
         if (res.token) {
@@ -38,35 +69,6 @@ export class AuthService {
           localStorage.setItem('user_profile', JSON.stringify(profile));
           this.currentUserSubject.next(profile);
         }
-      }),
-      catchError((err) => {
-        // Fallback for Vercel / Remote Demo mode when backend HTTP is not reachable or credentials mismatch
-        const email = (credentials?.email || credentials?.username || '').trim().toLowerCase();
-        const pass = credentials?.password || '';
-
-        let roles: string[] = [];
-        let username = '';
-
-        if ((email === 'admin@logigho.com' || email === 'smenendez554@gmail.com') && pass === 'Santiago0417#Admin') {
-          roles = ['Admin'];
-          username = email;
-        } else if (email === 'editor@logigho.com' && pass === 'Santiago0417#Editor') {
-          roles = ['Editor'];
-          username = 'editor@logigho.com';
-        } else if (email === 'viewer@logigho.com' && pass === 'Santiago0417#Viewer') {
-          roles = ['Viewer'];
-          username = 'viewer@logigho.com';
-        }
-
-        if (roles.length > 0) {
-          const profile = { username, roles };
-          this.accessToken = 'demo_token_' + Date.now();
-          localStorage.setItem('user_profile', JSON.stringify(profile));
-          this.currentUserSubject.next(profile);
-          return of({ token: this.accessToken, username, roles });
-        }
-
-        return throwError(() => err);
       })
     );
   }

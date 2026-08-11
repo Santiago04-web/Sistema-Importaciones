@@ -144,18 +144,14 @@ builder.Services.AddRateLimiter(options =>
             }));
 });
 
-// Restrictive CORS configured for credentials (cookies)
-var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() 
-                     ?? new[] { "http://localhost:4200" };
-
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAngularApp", policy =>
     {
-        policy.WithOrigins(allowedOrigins)
+        policy.SetIsOriginAllowed(_ => true)
               .AllowAnyHeader()
               .AllowAnyMethod()
-              .AllowCredentials(); // REQUIRED for HttpOnly cookies
+              .AllowCredentials();
     });
 });
 
@@ -208,10 +204,10 @@ using (var scope = app.Services.CreateScope())
     // Seed default Admin, Editor, and Viewer users
     var seedUsers = new[]
     {
-        new { Email = "admin@logigho.com", Password = "Santiago0417#Admin", Role = "Admin" },
-        new { Email = "smenendez554@gmail.com", Password = "Santiago0417#Admin", Role = "Admin" },
-        new { Email = "editor@logigho.com", Password = "Santiago0417#Editor", Role = "Editor" },
-        new { Email = "viewer@logigho.com", Password = "Santiago0417#Viewer", Role = "Viewer" }
+        new { Email = "admin@logigho.com", Password = "Prueba@123", Role = "Admin" },
+        new { Email = "smenendez554@gmail.com", Password = "Prueba@123", Role = "Admin" },
+        new { Email = "editor@logigho.com", Password = "Prueba@123", Role = "Editor" },
+        new { Email = "viewer@logigho.com", Password = "Prueba@123", Role = "Viewer" }
     };
 
     foreach (var su in seedUsers)
@@ -233,6 +229,8 @@ using (var scope = app.Services.CreateScope())
             {
                 await userManager.AddToRoleAsync(existingUser, su.Role);
             }
+            var resetToken = await userManager.GeneratePasswordResetTokenAsync(existingUser);
+            await userManager.ResetPasswordAsync(existingUser, resetToken, su.Password);
         }
     }
 }
