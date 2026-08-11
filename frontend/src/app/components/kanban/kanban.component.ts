@@ -801,7 +801,30 @@ interface ColumnaEtapa {
       border-radius: 6px;
       letter-spacing: 0.03em;
     }
-    .modal-close-btn:hover { color: #fafafa; }
+    .modal-close-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: #94a3b8;
+      font-size: 0.9rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      margin-left: 0.5rem;
+      flex-shrink: 0;
+    }
+    .modal-close-btn:hover {
+      background: rgba(239, 68, 68, 0.2);
+      border-color: rgba(239, 68, 68, 0.4);
+      color: #ef4444;
+      transform: rotate(90deg) scale(1.05);
+      box-shadow: 0 0 12px rgba(239, 68, 68, 0.3);
+    }
     .pdf-modal-btn {
       background: rgba(59, 130, 246, 0.12);
       border: 1px solid rgba(59, 130, 246, 0.3);
