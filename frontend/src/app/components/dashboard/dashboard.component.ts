@@ -3,6 +3,8 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { PedidoService, Pedido } from '../../services/pedido.service';
 import { SignalrService } from '../../services/signalr.service';
+import { of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 import { BaseChartDirective } from 'ng2-charts';
 import { ChartConfiguration } from 'chart.js';
 import { ExchangeRateComponent } from '../exchange-rate/exchange-rate.component';
@@ -1533,7 +1535,6 @@ export class DashboardComponent implements OnInit {
 
     this.totalPedidos = p.length;
     if (p.length === 0) {
-      this.piezasTotal = 0;
       this.pedidosRecibidos = 0;
       this.pedidosActivos = 0;
       this.totalInvertido = 0;
@@ -1549,12 +1550,8 @@ export class DashboardComponent implements OnInit {
       this.finalVentaTotal = 0;
       this.margenPct = 0;
       this.displayInvertido = 0;
-      this.categoryStats = [];
       this.totalQtySum = 0;
       this.productCategories = [];
-      this.guangzhouVal = 0;
-      this.yiwuVal = 0;
-      this.otherCityVal = 0;
       this.topPedidos = [];
       this.etapaStats = [];
       this.ciudadStats = [];

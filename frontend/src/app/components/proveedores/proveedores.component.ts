@@ -659,6 +659,80 @@ export class ProveedoresComponent implements OnInit {
     }
   }
 
+  computeStats() {
+    this.totalSpentAll = 0;
+    this.totalOrdersCount = 0;
+    this.totalQtyAll = 0;
+    let sumRating = 0;
+
+    this.proveedores.forEach(p => {
+      sumRating += p.calificacion || 5;
+      if (p.pedidos) {
+        this.totalOrdersCount += p.pedidos.length;
+        p.pedidos.forEach(ord => {
+          this.totalSpentAll += ord.total || 0;
+          this.totalQtyAll += ord.totalQty || 0;
+        });
+      }
+    });
+
+    this.avgRating = this.proveedores.length > 0 ? (sumRating / this.proveedores.length) : 5.0;
+  }
+
+  filterProveedores() {
+    const q = (this.searchQuery || '').trim().toLowerCase();
+    
+    this.filteredProveedores = this.proveedores.filter(p => {
+      const matchCity = this.selectedCity === 'ALL' || p.ciudadChina === this.selectedCity;
+      const matchQuery = !q || 
+        p.nombre.toLowerCase().includes(q) ||
+        p.ciudadChina.toLowerCase().includes(q) ||
+        p.categoria.toLowerCase().includes(q) ||
+        (p.weChatId && p.weChatId.toLowerCase().includes(q)) ||
+        (p.contactoTelefono && p.contactoTelefono.toLowerCase().includes(q));
+
+      return matchCity && matchQuery;
+    });
+  }
+
+  setCity(city: string) {
+    this.selectedCity = city;
+    this.filterProveedores();
+  }
+
+  getProveedorTotal(p: Proveedor): number {
+    if (!p.pedidos) return 0;
+    return p.pedidos.reduce((s, ord) => s + (ord.total || 0), 0);
+  }
+
+  getProveedorQty(p: Proveedor): number {
+    if (!p.pedidos) return 0;
+    return p.pedidos.reduce((s, ord) => s + (ord.totalQty || 0), 0);
+  }
+
+  getCategoryIcon(cat: string): string {
+    const c = (cat || '').toLowerCase();
+    if (c.includes('ropa') || c.includes('textil')) return '👕';
+    if (c.includes('reloj') || c.includes('joy')) return '⌚';
+    if (c.includes('maquillaje') || c.includes('cosmet')) return '💄';
+    if (c.includes('calzado') || c.includes('zapato')) return '👟';
+    if (c.includes('bolso') || c.includes('malet')) return '👜';
+    if (c.includes('electr') || c.includes('celular')) return '🎧';
+    return '📦';
+  }
+
+  openModal() {
+    this.editingId = null;
+    this.formData = { nombre: '', ciudadChina: 'Guangzhou', categoria: 'Ropa', calificacion: 5 };
+    this.showModal = true;
+  }
+
+  editProveedor(p: Proveedor) {
+    this.editingId = p.id || null;
+    this.formData = { ...p };
+    this.showModal = true;
+  }
+
   formatNum(n: number): string {
     return (n || 0).toLocaleString('en-US', { maximumFractionDigits: 0 });
   }

@@ -2348,6 +2348,21 @@ export class TableComponent implements OnInit {
     };
   }
 
+  executeConfirm() {
+    this.confirmModal.show = false;
+    if (this.confirmModal.onConfirm) {
+      this.confirmModal.onConfirm();
+    }
+  }
+
+  cancelConfirm() {
+    this.confirmModal.show = false;
+  }
+
+  agregarFilaRapida() {
+    this.agregarFila();
+  }
+
   agregarFila() {
     const primerCodigo = this.pedidos.length > 0 ? (this.pedidos[0].codigo || '1') : '1';
     const nuevo: Pedido = {
