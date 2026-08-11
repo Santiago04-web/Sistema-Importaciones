@@ -655,27 +655,46 @@ import { SignalrService } from '../../services/signalr.service';
 
       <!-- SMART PHOTO AUTO-SYNC MODAL -->
       <div class="modal-overlay" *ngIf="syncFotoModal.show" (click)="syncFotoModal.show = false">
-        <div class="modal-card glass-card sync-photo-modal" (click)="$event.stopPropagation()">
-          <div class="modal-header">
-            <h3>🖼️ Asignación Masiva de Foto</h3>
-            <button class="btn-close" (click)="syncFotoModal.show = false">✕</button>
+        <div class="sync-photo-modal-card" (click)="$event.stopPropagation()">
+          
+          <!-- HEADER -->
+          <div class="sync-modal-header">
+            <div class="sync-title-badge">
+              <span class="sync-icon">✨</span>
+              <h3>Sincronización Inteligente de Foto</h3>
+            </div>
+            <button class="sync-close-btn" (click)="syncFotoModal.show = false" title="Cerrar">✕</button>
           </div>
-          <div class="modal-body">
-            <div class="sync-photo-preview">
-              <img [src]="'http://localhost:5174' + syncFotoModal.fotoUrl" alt="Foto subida" class="sync-img-thumb">
-              <div class="sync-details">
-                <strong>{{ syncFotoModal.descripcion }}</strong>
-                <p>Se detectaron <strong>{{ syncFotoModal.count }}</strong> productos más de este tipo.</p>
-                <p class="sync-question">¿Deseas aplicar esta foto a {{ getPluralQuestion(syncFotoModal.descripcion) }}?</p>
+
+          <!-- BODY CONTENT -->
+          <div class="sync-modal-body">
+            <div class="sync-hero-card">
+              <div class="sync-img-container">
+                <img [src]="'http://localhost:5174' + syncFotoModal.fotoUrl" alt="Foto recién subida" class="sync-img-main">
+                <span class="sync-img-badge">Nueva Foto</span>
+              </div>
+              <div class="sync-info-content">
+                <h4 class="sync-prod-title">{{ syncFotoModal.descripcion }}</h4>
+                <p class="sync-detect-desc">
+                  Se detectaron <span class="highlight-count">{{ syncFotoModal.count }}</span> productos adicionales de esta categoría.
+                </p>
+                <div class="sync-question-pill">
+                  ¿Deseas aplicar esta foto a {{ getPluralQuestion(syncFotoModal.descripcion) }}?
+                </div>
               </div>
             </div>
           </div>
-          <div class="modal-footer">
-            <button class="btn-modal-sync cancel" (click)="syncFotoModal.show = false">Solo a este pedido</button>
-            <button class="btn-modal-sync save" (click)="confirmBulkSyncByDesc()">
+
+          <!-- FOOTER ACTIONS -->
+          <div class="sync-modal-footer">
+            <button class="sync-btn sync-btn-cancel" (click)="syncFotoModal.show = false">
+              Solo a este pedido
+            </button>
+            <button class="sync-btn sync-btn-confirm" (click)="confirmBulkSyncByDesc()">
               🚀 {{ getPluralButtonText(syncFotoModal.descripcion, syncFotoModal.count + 1) }}
             </button>
           </div>
+
         </div>
       </div>
 
@@ -1489,36 +1508,202 @@ import { SignalrService } from '../../services/signalr.service';
       font-size: 0.8rem;
     }
 
-    /* Smart Photo Auto-Sync Modal Styles */
-    .sync-photo-modal { max-width: 480px; background: #0f172a; border: 1px solid rgba(59, 130, 246, 0.4); border-radius: 16px; padding: 1.5rem; }
-    .sync-photo-preview { display: flex; gap: 1.15rem; align-items: center; margin: 1rem 0; background: rgba(255,255,255,0.03); padding: 1rem; border-radius: 12px; border: 1px solid rgba(255,255,255,0.08); }
-    .sync-img-thumb { width: 84px; height: 84px; object-fit: cover; border-radius: 12px; border: 1px solid rgba(59, 130, 246, 0.5); box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
-    .sync-details { display: flex; flex-direction: column; gap: 4px; font-size: 0.85rem; color: #cbd5e1; }
-    .sync-details strong { color: #f8fafc; font-size: 1rem; font-weight: 800; }
-    .sync-question { color: #60a5fa; font-weight: 700; margin-top: 6px; }
+    /* ── ULTRA-PREMIUM SMART PHOTO SYNC MODAL ── */
+    .sync-photo-modal-card {
+      max-width: 520px;
+      width: 92%;
+      background: rgba(15, 23, 42, 0.95);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border: 1px solid rgba(59, 130, 246, 0.35);
+      box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.8), 0 0 30px rgba(59, 130, 246, 0.15);
+      border-radius: 20px;
+      padding: 1.75rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+      animation: modalPopIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
 
-    .btn-modal-sync {
-      padding: 0.6rem 1.2rem;
-      border-radius: 8px;
-      font-weight: 700;
-      font-size: 0.85rem;
+    @keyframes modalPopIn {
+      from { opacity: 0; transform: scale(0.94) translateY(10px); }
+      to { opacity: 1; transform: scale(1) translateY(0); }
+    }
+
+    .sync-modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      padding-bottom: 1rem;
+    }
+
+    .sync-title-badge {
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+    }
+
+    .sync-icon {
+      font-size: 1.25rem;
+      background: rgba(59, 130, 246, 0.15);
+      padding: 6px 10px;
+      border-radius: 10px;
+      border: 1px solid rgba(59, 130, 246, 0.3);
+    }
+
+    .sync-title-badge h3 {
+      font-size: 1.1rem;
+      font-weight: 800;
+      color: #f8fafc;
+      margin: 0;
+      letter-spacing: -0.02em;
+    }
+
+    .sync-close-btn {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: #94a3b8;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.9rem;
       cursor: pointer;
-      border: none;
       transition: all 0.2s ease;
     }
-    .btn-modal-sync.cancel {
-      background: rgba(255, 255, 255, 0.08);
-      border: 1px solid rgba(255, 255, 255, 0.15);
+
+    .sync-close-btn:hover {
+      background: rgba(239, 68, 68, 0.2);
+      border-color: rgba(239, 68, 68, 0.4);
+      color: #ef4444;
+      transform: rotate(90deg);
+    }
+
+    .sync-hero-card {
+      display: flex;
+      gap: 1.25rem;
+      align-items: center;
+      background: linear-gradient(135deg, rgba(30, 41, 59, 0.6) 0%, rgba(15, 23, 42, 0.8) 100%);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 16px;
+      padding: 1.25rem;
+    }
+
+    .sync-img-container {
+      position: relative;
+      width: 96px;
+      height: 96px;
+      flex-shrink: 0;
+      border-radius: 14px;
+      overflow: hidden;
+      border: 2px solid rgba(59, 130, 246, 0.5);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+    }
+
+    .sync-img-main {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .sync-img-badge {
+      position: absolute;
+      bottom: 4px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(59, 130, 246, 0.9);
+      color: #ffffff;
+      font-size: 0.62rem;
+      font-weight: 800;
+      padding: 2px 6px;
+      border-radius: 4px;
+      white-space: nowrap;
+      text-transform: uppercase;
+    }
+
+    .sync-info-content {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+    }
+
+    .sync-prod-title {
+      font-size: 1.15rem;
+      font-weight: 800;
+      color: #ffffff;
+      margin: 0;
+    }
+
+    .sync-detect-desc {
+      font-size: 0.85rem;
+      color: #94a3b8;
+      margin: 0;
+      line-height: 1.4;
+    }
+
+    .highlight-count {
+      color: #60a5fa;
+      font-weight: 800;
+      font-size: 0.95rem;
+    }
+
+    .sync-question-pill {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: #38bdf8;
+      background: rgba(56, 189, 248, 0.1);
+      border: 1px solid rgba(56, 189, 248, 0.25);
+      padding: 6px 12px;
+      border-radius: 8px;
+      margin-top: 4px;
+    }
+
+    .sync-modal-footer {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 0.75rem;
+      padding-top: 0.75rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .sync-btn {
+      padding: 0.75rem 1.35rem;
+      border-radius: 12px;
+      font-weight: 700;
+      font-size: 0.88rem;
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      border: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .sync-btn-cancel {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.12);
       color: #cbd5e1;
     }
-    .btn-modal-sync.save {
-      background: #3b82f6;
+
+    .sync-btn-cancel:hover {
+      background: rgba(255, 255, 255, 0.12);
+      color: #ffffff;
+    }
+
+    .sync-btn-confirm {
+      background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
       color: #ffffff;
       box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
     }
-    .btn-modal-sync.save:hover {
-      background: #2563eb;
-      box-shadow: 0 6px 20px rgba(59, 130, 246, 0.6);
+
+    .sync-btn-confirm:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 8px 25px rgba(59, 130, 246, 0.6);
+      background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
     }
 
     /* Lightbox Styles */
