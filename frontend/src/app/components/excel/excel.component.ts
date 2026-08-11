@@ -827,6 +827,10 @@ import { PedidoService, Pedido } from '../../services/pedido.service';
     .btn-confirm-save:hover:not(:disabled) {
       background: #34d399;
       transform: translateY(-1px);
+      box-shadow: 0 0 24px rgba(16, 185, 129, 0.6);
+    }
+    .btn-confirm-save:disabled { opacity: 0.5; cursor: not-allowed; }
+
     .prev-edit-input {
       background: rgba(255, 255, 255, 0.05);
       border: 1px solid rgba(255, 255, 255, 0.12);
