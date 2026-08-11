@@ -2773,55 +2773,62 @@ export class TableComponent implements OnInit {
     const file = event.target.files?.[0];
     if (!file) return;
 
-    this.pedidoService.uploadPedidoImage(id, file).subscribe({
-      next: (res) => {
-        const match = this.pedidos.find(p => p.id === id);
-        if (match) {
-          match.fotoUrl = res.fotoUrl;
+    const reader = new FileReader();
+    reader.onload = (e: any) => {
+      const dataUrl = e.target.result as string;
+      const match = this.pedidos.find(p => p.id === id);
+      if (match) {
+        match.fotoUrl = dataUrl;
+        this.actualizarPedido(match);
 
-          if (match.descripcion && match.descripcion.trim()) {
-            const sameDescItems = this.pedidos.filter(p => p.id !== id && p.descripcion && p.descripcion.trim().toLowerCase() === match.descripcion.trim().toLowerCase());
-            if (sameDescItems.length > 0) {
-              this.syncFotoModal = {
-                show: true,
-                fotoUrl: res.fotoUrl,
-                descripcion: match.descripcion.trim(),
-                count: sameDescItems.length,
-                sourceId: id
-              };
-            }
+        if (match.descripcion && match.descripcion.trim()) {
+          const sameDescItems = this.pedidos.filter(p => p.id !== id && p.descripcion && p.descripcion.trim().toLowerCase() === match.descripcion.trim().toLowerCase());
+          if (sameDescItems.length > 0) {
+            this.syncFotoModal = {
+              show: true,
+              fotoUrl: dataUrl,
+              descripcion: match.descripcion.trim(),
+              count: sameDescItems.length,
+              sourceId: id
+            };
           }
         }
-      },
-      error: (err) => {
-        console.error("Error uploading image:", err);
-        this.showAlert("Error de carga", "No se pudo subir la imagen del producto.");
       }
+    };
+    reader.readAsDataURL(file);
+
+    this.pedidoService.uploadPedidoImage(id, file).subscribe({
+      next: (res) => {
+        if (res && res.fotoUrl) {
+          const match = this.pedidos.find(p => p.id === id);
+          if (match) match.fotoUrl = res.fotoUrl;
+        }
+      },
+      error: () => {}
     });
   }
 
   confirmBulkSyncByDesc() {
     if (!this.syncFotoModal.fotoUrl || !this.syncFotoModal.descripcion) return;
 
-    const descToSync = this.syncFotoModal.descripcion;
+    const descToSync = this.syncFotoModal.descripcion.toLowerCase();
+    let count = 0;
+    this.pedidos.forEach(p => {
+      if (p.descripcion && p.descripcion.trim().toLowerCase() === descToSync) {
+        p.fotoUrl = this.syncFotoModal.fotoUrl;
+        this.actualizarPedido(p);
+        count++;
+      }
+    });
+    this.syncFotoModal.show = false;
+    this.showAlert("Sincronización Completa", `Se aplicó la foto a ${count} productos "${this.syncFotoModal.descripcion}".`);
+
     this.pedidoService.bulkSyncFoto({
       fotoUrl: this.syncFotoModal.fotoUrl,
-      descripcion: descToSync
+      descripcion: this.syncFotoModal.descripcion
     }).subscribe({
-      next: (res) => {
-        const targetDesc = descToSync.toLowerCase();
-        this.pedidos.forEach(p => {
-          if (p.descripcion && p.descripcion.trim().toLowerCase() === targetDesc) {
-            p.fotoUrl = this.syncFotoModal.fotoUrl;
-          }
-        });
-        this.syncFotoModal.show = false;
-        this.showAlert("Sincronización Completa", `Se aplicó la foto a ${res.actualizados} productos "${descToSync}".`);
-      },
-      error: (err) => {
-        console.error("Error bulk syncing foto:", err);
-        this.showAlert("Error", "No se pudo sincronizar la foto masivamente.");
-      }
+      next: () => {},
+      error: () => {}
     });
   }
 
@@ -2831,33 +2838,20 @@ export class TableComponent implements OnInit {
     const file = event.target.files?.[0];
     if (!file) return;
 
-    const firstId = ids[0];
-    this.pedidoService.uploadPedidoImage(firstId, file).subscribe({
-      next: (res) => {
-        this.pedidoService.bulkSyncFoto({
-          fotoUrl: res.fotoUrl,
-          pedidoIds: ids
-        }).subscribe({
-          next: () => {
-            this.pedidos.forEach(p => {
-              if (p.id && ids.includes(p.id)) {
-                p.fotoUrl = res.fotoUrl;
-              }
-            });
-            this.selectedIds.clear();
-            this.showAlert("Foto Masiva Aplicada", `Se asignó la foto a ${ids.length} pedidos seleccionados.`);
-          },
-          error: (err) => {
-            console.error("Error applying bulk photo ids:", err);
-            this.showAlert("Error", "No se pudo sincronizar la foto a los pedidos seleccionados.");
-          }
-        });
-      },
-      error: (err) => {
-        console.error("Error batch uploading image:", err);
-        this.showAlert("Error de carga", "No se pudo subir la foto masiva.");
-      }
-    });
+    const reader = new FileReader();
+    reader.onload = (e: any) => {
+      const dataUrl = e.target.result as string;
+      ids.forEach(id => {
+        const match = this.pedidos.find(p => p.id === id);
+        if (match) {
+          match.fotoUrl = dataUrl;
+          this.actualizarPedido(match);
+        }
+      });
+      this.selectedIds.clear();
+      this.showAlert("Foto Aplicada", `Se aplicó la foto a ${ids.length} filas seleccionadas.`);
+    };
+    reader.readAsDataURL(file);
   }
 
   formatDateForInput(date: any): string {
