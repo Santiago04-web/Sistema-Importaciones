@@ -415,14 +415,14 @@ import { SignalrService } from '../../services/signalr.service';
               <!-- ETAPA -->
               <td>
                 <select [class]="'inline-select etapa-select ' + getEtapaClass(pedido.etapa)"
-                        [(ngModel)]="pedido.etapa" 
-                        (change)="actualizarPedido(pedido)">
-                  <option [value]="0">Cotización</option>
-                  <option [value]="1">Confirmado</option>
-                  <option [value]="2">Pagado</option>
-                  <option [value]="3">En Tránsito</option>
-                  <option [value]="4">Aduana</option>
-                  <option [value]="5">Recibido</option>
+                        [ngModel]="pedido.etapa" 
+                        (ngModelChange)="onEtapaChange(pedido, $event)">
+                  <option [ngValue]="0">Cotización</option>
+                  <option [ngValue]="1">Confirmado</option>
+                  <option [ngValue]="2">Pagado</option>
+                  <option [ngValue]="3">En Tránsito</option>
+                  <option [ngValue]="4">Aduana</option>
+                  <option [ngValue]="5">Recibido</option>
                 </select>
               </td>
 
@@ -650,7 +650,18 @@ import { SignalrService } from '../../services/signalr.service';
                   <td>{{ sub.totalQty | number }}</td>
                   <td>¥{{ sub.yuanes | number:'1.2-2' }}</td>
                   <td>{{ sub.tasa }}</td>
-                  <td><span [class]="'badge-etapa ' + getEtapaClass(sub.etapa)">{{ getEtapaLabel(sub.etapa) }}</span></td>
+                  <td>
+                    <select [class]="'inline-select etapa-select ' + getEtapaClass(sub.etapa)"
+                            [ngModel]="sub.etapa" 
+                            (ngModelChange)="onEtapaChange(sub, $event)">
+                      <option [ngValue]="0">Cotización</option>
+                      <option [ngValue]="1">Confirmado</option>
+                      <option [ngValue]="2">Pagado</option>
+                      <option [ngValue]="3">En Tránsito</option>
+                      <option [ngValue]="4">Aduana</option>
+                      <option [ngValue]="5">Recibido</option>
+                    </select>
+                  </td>
                   <td><strong class="text-green">$ {{ sub.total | number:'1.0-0' }}</strong></td>
                 </tr>
               </tbody>
@@ -2459,12 +2470,23 @@ export class TableComponent implements OnInit {
     return list;
   }
 
+  onEtapaChange(pedido: Pedido, newEtapa: any) {
+    pedido.etapa = Number(newEtapa);
+    this.actualizarPedido(pedido);
+  }
+
   actualizarPedido(pedido: Pedido) {
     if (!this.canEdit()) return;
     if (!pedido.id) return;
+    
+    pedido.etapa = Number(pedido.etapa);
+
     this.pedidoService.updatePedido(pedido.id, pedido).subscribe({
       next: (updated) => {
-        Object.assign(pedido, updated);
+        if (updated) {
+          Object.assign(pedido, updated);
+        }
+        this.computeGrupos();
         this.aplicarFiltros();
       },
       error: (err) => console.error("Error auto-saving cell:", err)
