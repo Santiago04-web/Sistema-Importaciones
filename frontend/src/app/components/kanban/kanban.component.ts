@@ -35,7 +35,7 @@ interface ColumnaEtapa {
           <div class="metric-box">
             <div class="metric-info">
               <span class="metric-label">VALOR EN CURSO</span>
-              <span class="metric-val">{{ calcValorEnCurso() | currency:'COP':'symbol':'1.0-0' }}</span>
+              <span class="metric-val">{{ calcValorEnCurso() | currency:'COP':'symbol-narrow':'1.0-0' }}</span>
             </div>
           </div>
           <div class="metric-box">
@@ -144,7 +144,7 @@ interface ColumnaEtapa {
                     </span>
                     <span class="qty-tag">Qty {{ pedido.totalQty || 0 }}</span>
                   </div>
-                  <span class="total-amount">{{ (pedido.total || 0) | currency:'COP':'symbol':'1.0-0' }}</span>
+                  <span class="total-amount">{{ (pedido.total || 0) | currency:'COP':'symbol-narrow':'1.0-0' }}</span>
                 </div>
               </ng-container>
 
@@ -154,7 +154,7 @@ interface ColumnaEtapa {
                   <span class="ref-pill-sm" *ngIf="pedido.referencia">{{ pedido.referencia }}</span>
                   <span class="codigo-sm" *ngIf="!pedido.referencia">{{ pedido.codigo || 'S/N' }}</span>
                   <span class="desc-sm">{{ truncateDesc(pedido.descripcion || pedido.ciudad || '') }}</span>
-                  <span class="total-sm">{{ (pedido.total || 0) | currency:'COP':'symbol':'1.0-0' }}</span>
+                  <span class="total-sm">{{ (pedido.total || 0) | currency:'COP':'symbol-narrow':'1.0-0' }}</span>
                 </div>
               </ng-container>
 
@@ -229,15 +229,15 @@ interface ColumnaEtapa {
             <div class="financial-summary-card">
               <div class="fin-row">
                 <span>Producto ($)</span>
-                <strong>{{ (selectedPedido.producto || 0) | currency:'COP':'symbol':'1.0-0' }}</strong>
+                <strong>{{ (selectedPedido.producto || 0) | currency:'COP':'symbol-narrow':'1.0-0' }}</strong>
               </div>
               <div class="fin-row">
                 <span>Flete / Logística ($)</span>
-                <strong>{{ (selectedPedido.flete || 0) | currency:'COP':'symbol':'1.0-0' }}</strong>
+                <strong>{{ (selectedPedido.flete || 0) | currency:'COP':'symbol-narrow':'1.0-0' }}</strong>
               </div>
               <div class="fin-row total-fin">
                 <span>TOTAL PEDIDO</span>
-                <strong>{{ (selectedPedido.total || 0) | currency:'COP':'symbol':'1.0-0' }}</strong>
+                <strong>{{ (selectedPedido.total || 0) | currency:'COP':'symbol-narrow':'1.0-0' }}</strong>
               </div>
             </div>
 

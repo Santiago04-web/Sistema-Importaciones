@@ -111,7 +111,7 @@ import { PedidoService, Pedido } from '../../services/pedido.service';
                   <td><strong class="text-highlight">{{ p.codigo }}</strong></td>
                   <td class="text-truncate" [title]="p.descripcion">{{ p.descripcion || 'Sin descripción' }}</td>
                   <td>{{ p.ciudad }}</td>
-                  <td class="text-right font-mono">{{ (p.total || 0) | currency:'COP':'symbol':'1.0-0' }}</td>
+                  <td class="text-right font-mono">{{ (p.total || 0) | currency:'COP':'symbol-narrow':'1.0-0' }}</td>
                 </tr>
               </tbody>
             </table>
@@ -162,7 +162,7 @@ import { PedidoService, Pedido } from '../../services/pedido.service';
                 <span class="pkpi-lbl">Piezas Totales</span>
               </div>
               <div class="pkpi-item">
-                <span class="pkpi-num blue">{{ previewTotalCOP | currency:'COP':'symbol':'1.0-0' }}</span>
+                <span class="pkpi-num blue">{{ previewTotalCOP | currency:'COP':'symbol-narrow':'1.0-0' }}</span>
                 <span class="pkpi-lbl">Inversión Estimada (COP)</span>
               </div>
             </div>

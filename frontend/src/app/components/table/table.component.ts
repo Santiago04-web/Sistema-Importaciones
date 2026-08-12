@@ -51,7 +51,7 @@ const API_ROOT = isLocal ? 'http://localhost:5174/api' : 'https://sistema-import
           </div>
           <div class="metric-info">
             <span class="metric-label">Inversión Estimada</span>
-            <h4 class="metric-value">{{ totalInversionCop | currency:'COP':'symbol':'1.0-0' }}</h4>
+            <h4 class="metric-value">{{ totalInversionCop | currency:'COP':'symbol-narrow':'1.0-0' }}</h4>
           </div>
         </div>
 
@@ -221,7 +221,7 @@ const API_ROOT = isLocal ? 'http://localhost:5174/api' : 'https://sistema-import
               <th style="width: 100px;">Precio m³</th>
               <th style="width: 80px;">% EHUK</th>
               <th style="width: 130px;">Etapa</th>
-              <th style="width: 100px; text-align: right;">Total ($)</th>
+              <th style="width: 140px; text-align: right;">Total ($)</th>
               <th style="width: 40px;"></th>
             </tr>
           </thead>
@@ -405,7 +405,7 @@ const API_ROOT = isLocal ? 'http://localhost:5174/api' : 'https://sistema-import
                 <span *ngIf="editField !== pedido.id + '-precioMt3'"
                       class="inline-edit-display text-right"
                       (click)="startEdit(pedido.id + '-precioMt3')">
-                  {{ (pedido.precioMt3 || 0) | currency:'COP':'symbol':'1.0-0' }}
+                  {{ (pedido.precioMt3 || 0) | currency:'COP':'symbol-narrow':'1.0-0' }}
                 </span>
               </td>
 
@@ -442,7 +442,7 @@ const API_ROOT = isLocal ? 'http://localhost:5174/api' : 'https://sistema-import
 
               <!-- TOTAL (calculated) -->
               <td class="text-right text-highlight" style="padding-right: 1.5rem; font-variant-numeric: tabular-nums;">
-                {{ (pedido.total || 0) | currency:'COP':'symbol':'1.0-0' }}
+                {{ (pedido.total || 0) | currency:'COP':'symbol-narrow':'1.0-0' }}
               </td>
 
               <!-- ACTIONS (PDF & DELETE) -->
@@ -489,8 +489,8 @@ const API_ROOT = isLocal ? 'http://localhost:5174/api' : 'https://sistema-import
               <h4 class="m-title">{{ pedido.descripcion || 'Producto de Importación' }}</h4>
               <p class="m-sub">{{ pedido.ciudad }} · {{ (pedido.totalQty || 0) | number }} uds · {{ pedido.abono ? '✅ Abono Pagado' : '⏳ Abono Pendiente' }}</p>
               <div class="m-prices">
-                <span class="m-total">{{ (pedido.total || 0) | currency:'COP':'symbol':'1.0-0' }}</span>
-                <span class="m-unit">Costo: {{ (pedido.costoFinal || 0) | currency:'COP':'symbol':'1.0-0' }}/ud</span>
+                <span class="m-total">{{ (pedido.total || 0) | currency:'COP':'symbol-narrow':'1.0-0' }}</span>
+                <span class="m-unit">Costo: {{ (pedido.costoFinal || 0) | currency:'COP':'symbol-narrow':'1.0-0' }}/ud</span>
               </div>
             </div>
           </div>
@@ -1087,6 +1087,7 @@ const API_ROOT = isLocal ? 'http://localhost:5174/api' : 'https://sistema-import
     
     .table {
       width: 100%;
+      min-width: 1450px;
       border-collapse: separate;
       border-spacing: 0;
       text-align: left;
