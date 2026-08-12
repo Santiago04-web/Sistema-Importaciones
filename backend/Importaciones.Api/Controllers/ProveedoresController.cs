@@ -45,14 +45,14 @@ public class ProveedoresController : ControllerBase
 
         var proveedor = new Proveedor
         {
-            Nombre = System.Net.WebUtility.HtmlEncode(input.Nombre.Trim()),
-            CiudadChina = System.Net.WebUtility.HtmlEncode(input.CiudadChina ?? "Guangzhou"),
-            Categoria = System.Net.WebUtility.HtmlEncode(input.Categoria ?? "General"),
+            Nombre = input.Nombre.Trim(),
+            CiudadChina = (input.CiudadChina ?? "Guangzhou").Trim(),
+            Categoria = (input.Categoria ?? "General").Trim(),
             ContactoEmail = input.ContactoEmail,
             ContactoTelefono = input.ContactoTelefono,
             WeChatId = input.WeChatId,
             Calificacion = input.Calificacion > 0 ? input.Calificacion : 5,
-            Notas = System.Net.WebUtility.HtmlEncode(input.Notas ?? ""),
+            Notas = (input.Notas ?? "").Trim(),
             FechaCreacion = DateTime.UtcNow
         };
 
@@ -69,14 +69,14 @@ public class ProveedoresController : ControllerBase
         var proveedor = await _context.Proveedores.FindAsync(id);
         if (proveedor == null) return NotFound();
 
-        proveedor.Nombre = System.Net.WebUtility.HtmlEncode(input.Nombre.Trim());
-        proveedor.CiudadChina = System.Net.WebUtility.HtmlEncode(input.CiudadChina ?? "Guangzhou");
-        proveedor.Categoria = System.Net.WebUtility.HtmlEncode(input.Categoria ?? "General");
+        proveedor.Nombre = input.Nombre.Trim();
+        proveedor.CiudadChina = (input.CiudadChina ?? "Guangzhou").Trim();
+        proveedor.Categoria = (input.Categoria ?? "General").Trim();
         proveedor.ContactoEmail = input.ContactoEmail;
         proveedor.ContactoTelefono = input.ContactoTelefono;
         proveedor.WeChatId = input.WeChatId;
         proveedor.Calificacion = input.Calificacion;
-        proveedor.Notas = System.Net.WebUtility.HtmlEncode(input.Notas ?? "");
+        proveedor.Notas = (input.Notas ?? "").Trim();
 
         await _context.SaveChangesAsync();
         return NoContent();

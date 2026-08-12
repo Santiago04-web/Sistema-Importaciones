@@ -87,11 +87,11 @@ public class PedidosController : ControllerBase
         SetAuditUserId();
         if (!ModelState.IsValid) return BadRequest(ModelState);
 
-        pedido.Codigo = System.Net.WebUtility.HtmlEncode(pedido.Codigo.Trim());
-        pedido.Ciudad = System.Net.WebUtility.HtmlEncode(pedido.Ciudad.Trim());
+        pedido.Codigo = pedido.Codigo.Trim();
+        pedido.Ciudad = pedido.Ciudad.Trim();
         pedido.Descripcion = FormatTitleCase(pedido.Descripcion);
         pedido.Observaciones = FormatTitleCase(pedido.Observaciones);
-        pedido.Referencia = System.Net.WebUtility.HtmlEncode(pedido.Referencia ?? "");
+        pedido.Referencia = (pedido.Referencia ?? "").Trim();
 
         _context.Pedidos.Add(pedido);
         await _context.SaveChangesAsync();
@@ -117,11 +117,11 @@ public class PedidosController : ControllerBase
 
         bool etapaCambio = pedido.Etapa != pedidoInput.Etapa;
 
-        pedido.Codigo = System.Net.WebUtility.HtmlEncode(pedidoInput.Codigo.Trim());
-        pedido.Ciudad = System.Net.WebUtility.HtmlEncode(pedidoInput.Ciudad.Trim());
+        pedido.Codigo = pedidoInput.Codigo.Trim();
+        pedido.Ciudad = pedidoInput.Ciudad.Trim();
         pedido.Descripcion = FormatTitleCase(pedidoInput.Descripcion);
         pedido.Observaciones = FormatTitleCase(pedidoInput.Observaciones);
-        pedido.Referencia = System.Net.WebUtility.HtmlEncode(pedidoInput.Referencia ?? "");
+        pedido.Referencia = (pedidoInput.Referencia ?? "").Trim();
         pedido.TotalQty = pedidoInput.TotalQty;
         pedido.Yuanes = pedidoInput.Yuanes;
         pedido.PiezasCaja = pedidoInput.PiezasCaja;
@@ -457,7 +457,7 @@ public class PedidosController : ControllerBase
             PedidoId = id,
             Monto = pagoInput.Monto,
             FechaPago = DateTime.UtcNow,
-            Nota = System.Net.WebUtility.HtmlEncode(pagoInput.Nota ?? ""),
+            Nota = (pagoInput.Nota ?? "").Trim(),
             UsuarioId = User.FindFirstValue(ClaimTypes.NameIdentifier)
         };
 
@@ -491,11 +491,10 @@ public class PedidosController : ControllerBase
         var decoded = System.Net.WebUtility.HtmlDecode(input).Trim();
         if (string.IsNullOrEmpty(decoded)) return string.Empty;
 
-        var lower = decoded.ToLowerInvariant();
-        var textInfo = System.Globalization.CultureInfo.InvariantCulture.TextInfo;
-        var titleCased = textInfo.ToTitleCase(lower);
-
-        return System.Net.WebUtility.HtmlEncode(titleCased);
+        var culture = new System.Globalization.CultureInfo("es-CO");
+        var lower = decoded.ToLower(culture);
+        var textInfo = culture.TextInfo;
+        return textInfo.ToTitleCase(lower);
     }
 }
 

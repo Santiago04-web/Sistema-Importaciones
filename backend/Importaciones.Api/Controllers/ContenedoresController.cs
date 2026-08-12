@@ -46,12 +46,12 @@ public class ContenedoresController : ControllerBase
 
         var contenedor = new Contenedor
         {
-            NumeroContenedor = System.Net.WebUtility.HtmlEncode(input.NumeroContenedor.Trim()),
+            NumeroContenedor = input.NumeroContenedor.Trim(),
             FechaZarpe = input.FechaZarpe,
             FechaEstimadaLlegada = input.FechaEstimadaLlegada,
-            Naviera = System.Net.WebUtility.HtmlEncode(input.Naviera ?? ""),
+            Naviera = (input.Naviera ?? "").Trim(),
             Estado = input.Estado ?? "EnPuerto",
-            Notas = System.Net.WebUtility.HtmlEncode(input.Notas ?? ""),
+            Notas = (input.Notas ?? "").Trim(),
             FechaCreacion = DateTime.UtcNow
         };
 
@@ -68,12 +68,12 @@ public class ContenedoresController : ControllerBase
         var contenedor = await _context.Contenedores.FindAsync(id);
         if (contenedor == null) return NotFound();
 
-        contenedor.NumeroContenedor = System.Net.WebUtility.HtmlEncode(input.NumeroContenedor.Trim());
+        contenedor.NumeroContenedor = input.NumeroContenedor.Trim();
         contenedor.FechaZarpe = input.FechaZarpe;
         contenedor.FechaEstimadaLlegada = input.FechaEstimadaLlegada;
-        contenedor.Naviera = System.Net.WebUtility.HtmlEncode(input.Naviera ?? "");
+        contenedor.Naviera = (input.Naviera ?? "").Trim();
         contenedor.Estado = input.Estado ?? "EnPuerto";
-        contenedor.Notas = System.Net.WebUtility.HtmlEncode(input.Notas ?? "");
+        contenedor.Notas = (input.Notas ?? "").Trim();
 
         await _context.SaveChangesAsync();
         return NoContent();

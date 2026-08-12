@@ -251,6 +251,32 @@ using (var scope = app.Services.CreateScope())
             await userManager.ResetPasswordAsync(existingUser, resetToken, su.Password);
         }
     }
+
+    // Clean up any historical HTML entities in Pedidos (e.g. &#241; -> ñ)
+    try
+    {
+        var pedidosConEntidades = await context.Pedidos
+            .Where(p => (p.Descripcion != null && p.Descripcion.Contains("&#")) || 
+                        (p.Observaciones != null && p.Observaciones.Contains("&#")) ||
+                        (p.Referencia != null && p.Referencia.Contains("&#")))
+            .ToListAsync();
+
+        if (pedidosConEntidades.Any())
+        {
+            foreach (var p in pedidosConEntidades)
+            {
+                if (!string.IsNullOrEmpty(p.Descripcion)) p.Descripcion = System.Net.WebUtility.HtmlDecode(p.Descripcion);
+                if (!string.IsNullOrEmpty(p.Observaciones)) p.Observaciones = System.Net.WebUtility.HtmlDecode(p.Observaciones);
+                if (!string.IsNullOrEmpty(p.Referencia)) p.Referencia = System.Net.WebUtility.HtmlDecode(p.Referencia);
+            }
+            await context.SaveChangesAsync();
+            Console.WriteLine($"===> {pedidosConEntidades.Count} registros restaurados correctamente con caracteres especiales (ñ, tildes).");
+        }
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Nota de limpieza de caracteres: {ex.Message}");
+    }
 }
 
 // Configure the HTTP request pipeline.
