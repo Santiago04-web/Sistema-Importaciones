@@ -154,6 +154,11 @@ const API_ROOT = isLocal ? 'http://localhost:5174/api' : 'https://sistema-import
             </button>
             <div class="dropdown-menu glass-card" *ngIf="showColDropdown" (click)="$event.stopPropagation()">
               <span class="dropdown-title">Visibilidad de Columnas</span>
+              <label class="dropdown-item select-all-item">
+                <input type="checkbox" [checked]="todasColumnasVisibles" (change)="toggleTodasColumnas($event)">
+                <span>Seleccionar Todas</span>
+              </label>
+              <div class="dropdown-divider"></div>
               <label class="dropdown-item" *ngIf="mostrarFotos">
                 <input type="checkbox" [(ngModel)]="columnasVisibles.foto"> Foto
               </label>
@@ -1469,7 +1474,9 @@ const API_ROOT = isLocal ? 'http://localhost:5174/api' : 'https://sistema-import
       position: absolute;
       top: calc(100% + 8px);
       right: 0;
-      width: 200px;
+      width: 215px;
+      max-height: calc(100vh - 200px);
+      overflow-y: auto;
       background: #111827;
       border: 1px solid rgba(255, 255, 255, 0.1);
       border-radius: 12px;
@@ -1478,8 +1485,27 @@ const API_ROOT = isLocal ? 'http://localhost:5174/api' : 'https://sistema-import
       box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.6);
       display: flex;
       flex-direction: column;
-      gap: 0.5rem;
+      gap: 0.4rem;
       animation: dropdownFade 0.2s ease;
+    }
+    .col-selector-dropdown .dropdown-menu::-webkit-scrollbar {
+      width: 5px;
+    }
+    .col-selector-dropdown .dropdown-menu::-webkit-scrollbar-thumb {
+      background: rgba(59, 130, 246, 0.3);
+      border-radius: 4px;
+    }
+    .select-all-item {
+      color: #60a5fa !important;
+      font-weight: 700;
+      background: rgba(59, 130, 246, 0.08);
+      border-radius: 6px;
+      padding: 6px 8px !important;
+    }
+    .dropdown-divider {
+      height: 1px;
+      background: rgba(255, 255, 255, 0.08);
+      margin: 2px 0 4px;
     }
     @keyframes dropdownFade {
       from { opacity: 0; transform: translateY(-8px); }
@@ -2649,6 +2675,17 @@ export class TableComponent implements OnInit {
   toggleColDropdown(event: Event) {
     event.stopPropagation();
     this.showColDropdown = !this.showColDropdown;
+  }
+
+  get todasColumnasVisibles(): boolean {
+    return Object.values(this.columnasVisibles).every(v => v);
+  }
+
+  toggleTodasColumnas(event: any) {
+    const checked = event.target.checked;
+    for (const key of Object.keys(this.columnasVisibles)) {
+      (this.columnasVisibles as any)[key] = checked;
+    }
   }
 
   formatPhotoUrl(url: string | null | undefined): string {
