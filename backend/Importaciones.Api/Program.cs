@@ -31,18 +31,17 @@ builder.Services.AddHttpContextAccessor();
 
 builder.Services.AddDbContext<ImportacionesDbContext>(options =>
 {
-    // 1. Si hay DATABASE_URL (Render PostgreSQL) → usarla directamente
+    // 1. Si hay DATABASE_URL (Render PostgreSQL) → usarla
     var databaseUrl = Environment.GetEnvironmentVariable("DATABASE_URL")
                    ?? builder.Configuration["DATABASE_URL"];
 
-    // 2. Connection string local (SQL Server en Windows dev)
+    // 2. Connection string local SQL Server
     var connStr = builder.Configuration.GetConnectionString("ImportacionesDb")
                ?? builder.Configuration.GetConnectionString("DefaultConnection");
 
     if (!string.IsNullOrWhiteSpace(databaseUrl) && 
         (databaseUrl.StartsWith("postgres://") || databaseUrl.StartsWith("postgresql://")))
     {
-        // Npgsql acepta la URL directamente si la convertimos a formato de connection string
         var uri = new Uri(databaseUrl);
         var userInfo = uri.UserInfo.Split(':');
         var host = uri.Host;
@@ -55,19 +54,17 @@ builder.Services.AddDbContext<ImportacionesDbContext>(options =>
         options.UseNpgsql(pgConnStr);
         Console.WriteLine($"===> Usando PostgreSQL: {host}/{database}");
     }
-    else if (string.IsNullOrWhiteSpace(connStr) || connStr.Contains("SQLEXPRESS"))
-    {
-        // Fallback: SQLite solo para desarrollo local sin SQL Server
-        var dbPath = Path.Combine(Directory.GetCurrentDirectory(), "importaciones_cloud.db");
-        options.UseSqlite($"Data Source={dbPath}");
-        Console.WriteLine($"===> Usando SQLite local: {dbPath}");
-    }
     else
     {
-        options.UseSqlServer(connStr);
+        // SQL Server local (Windows dev) o SQL Server en la nube
+        var sqlConnStr = (!string.IsNullOrWhiteSpace(connStr) && !connStr.Contains("SQLEXPRESS"))
+            ? connStr
+            : "Server=.\\SQLEXPRESS;Database=ImportacionesDb_xd;Trusted_Connection=True;TrustServerCertificate=True;";
+        options.UseSqlServer(sqlConnStr);
         Console.WriteLine("===> Usando SQL Server local");
     }
 });
+
 
 
 // Configure Identity with Strong Password & Lockout Policies
