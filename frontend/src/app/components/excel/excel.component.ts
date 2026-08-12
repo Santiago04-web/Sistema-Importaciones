@@ -257,7 +257,7 @@ import { PedidoService, Pedido } from '../../services/pedido.service';
       display: grid;
       grid-template-columns: 1fr;
       gap: 2rem;
-      align-items: start;
+      align-items: stretch;
       width: 100%;
     }
     
@@ -276,6 +276,9 @@ import { PedidoService, Pedido } from '../../services/pedido.service';
       position: relative;
       overflow: hidden;
       box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+      display: flex;
+      flex-direction: column;
+      box-sizing: border-box;
     }
 
     /* Header */
@@ -437,6 +440,7 @@ import { PedidoService, Pedido } from '../../services/pedido.service';
       border: 1px solid rgba(255,255,255,0.04);
       border-radius: 8px;
       background: rgba(0,0,0,0.15);
+      flex: 1;
     }
     .mini-table {
       width: 100%;
@@ -487,6 +491,7 @@ import { PedidoService, Pedido } from '../../services/pedido.service';
       color: #71717a;
       gap: 0.5rem;
       text-align: center;
+      flex: 1;
     }
     .empty-preview .empty-icon {
       font-size: 2rem;
@@ -937,15 +942,11 @@ export class ExcelComponent implements OnInit {
   cargarRecientes() {
     this.pedidoService.getPedidos().subscribe({
       next: (data) => {
-        if (data && data.length > 0) {
-          this.recientes = [...data].sort((a, b) => (b.id || 0) - (a.id || 0)).slice(0, 10);
-        } else {
-          this.recientes = this.pedidoService.getLocalPedidos().slice(0, 10);
-        }
+        this.recientes = (data || []).sort((a, b) => (b.id || 0) - (a.id || 0)).slice(0, 10);
         this.cdr.detectChanges();
       },
       error: () => {
-        this.recientes = this.pedidoService.getLocalPedidos().slice(0, 10);
+        this.recientes = this.pedidoService.getLocalPedidos().sort((a, b) => (b.id || 0) - (a.id || 0)).slice(0, 10);
         this.cdr.detectChanges();
       }
     });
