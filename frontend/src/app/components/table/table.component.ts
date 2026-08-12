@@ -2850,37 +2850,75 @@ export class TableComponent implements OnInit {
 
     const reader = new FileReader();
     reader.onload = (e: any) => {
-      const dataUrl = e.target.result as string;
-      const match = this.pedidos.find(p => p.id === id);
-      if (match) {
-        match.fotoUrl = dataUrl;
-        this.actualizarPedido(match);
-
-        if (match.descripcion && match.descripcion.trim()) {
-          const sameDescItems = this.pedidos.filter(p => p.id !== id && p.descripcion && p.descripcion.trim().toLowerCase() === match.descripcion.trim().toLowerCase());
-          if (sameDescItems.length > 0) {
-            this.syncFotoModal = {
-              show: true,
-              fotoUrl: dataUrl,
-              descripcion: match.descripcion.trim(),
-              count: sameDescItems.length,
-              sourceId: id
-            };
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        let width = img.width;
+        let height = img.height;
+        
+        // Downscale to max 800px to keep base64 string size small
+        const maxDim = 800;
+        if (width > maxDim || height > maxDim) {
+          if (width > height) {
+            height = Math.round((height * maxDim) / width);
+            width = maxDim;
+          } else {
+            width = Math.round((width * maxDim) / height);
+            height = maxDim;
           }
         }
-      }
+        
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          ctx.drawImage(img, 0, 0, width, height);
+          const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.7);
+          
+          const match = this.pedidos.find(p => p.id === id);
+          if (match) {
+            match.fotoUrl = compressedDataUrl;
+            this.actualizarPedido(match);
+
+            if (match.descripcion && match.descripcion.trim()) {
+              const sameDescItems = this.pedidos.filter(p => p.id !== id && p.descripcion && p.descripcion.trim().toLowerCase() === match.descripcion.trim().toLowerCase());
+              if (sameDescItems.length > 0) {
+                this.syncFotoModal = {
+                  show: true,
+                  fotoUrl: compressedDataUrl,
+                  descripcion: match.descripcion.trim(),
+                  count: sameDescItems.length,
+                  sourceId: id
+                };
+              }
+            }
+          }
+          
+          // Convert base64 data URL to Blob to upload to the server
+          const byteString = atob(compressedDataUrl.split(',')[1]);
+          const mimeString = compressedDataUrl.split(',')[0].split(':')[1].split(';')[0];
+          const ab = new ArrayBuffer(byteString.length);
+          const ia = new Uint8Array(ab);
+          for (let i = 0; i < byteString.length; i++) {
+            ia[i] = byteString.charCodeAt(i);
+          }
+          const compressedBlob = new Blob([ab], { type: mimeString });
+          const compressedFile = new File([compressedBlob], file.name, { type: mimeString });
+
+          this.pedidoService.uploadPedidoImage(id, compressedFile).subscribe({
+            next: (res) => {
+              if (res && res.fotoUrl) {
+                const match = this.pedidos.find(p => p.id === id);
+                if (match) match.fotoUrl = res.fotoUrl;
+              }
+            },
+            error: () => {}
+          });
+        }
+      };
+      img.src = e.target.result as string;
     };
     reader.readAsDataURL(file);
-
-    this.pedidoService.uploadPedidoImage(id, file).subscribe({
-      next: (res) => {
-        if (res && res.fotoUrl) {
-          const match = this.pedidos.find(p => p.id === id);
-          if (match) match.fotoUrl = res.fotoUrl;
-        }
-      },
-      error: () => {}
-    });
   }
 
   confirmBulkSyncByDesc() {
