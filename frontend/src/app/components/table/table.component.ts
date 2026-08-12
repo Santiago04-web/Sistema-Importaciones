@@ -477,7 +477,7 @@ const API_ROOT = isLocal ? 'http://localhost:5174/api' : 'https://sistema-import
               <span class="m-ref" *ngIf="pedido.referencia">#{{ pedido.referencia }}</span>
             </div>
             <span [class]="'m-etapa ' + getEtapaClass(pedido.etapa)">
-              {{ pedido.etapa === 5 ? 'Recibido' : (pedido.etapa === 3 ? 'En Tránsito' : (pedido.etapa === 4 ? 'Aduana' : 'Cotización')) }}
+              {{ getEtapaLabel(pedido.etapa) }}
             </span>
           </div>
 
