@@ -780,6 +780,8 @@ interface ColumnaEtapa {
       border-radius: 16px;
       width: 100%;
       max-width: 580px;
+      max-height: 90vh;
+      overflow-y: auto;
       padding: 1.5rem;
       box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8);
       display: flex;
@@ -1020,6 +1022,27 @@ interface ColumnaEtapa {
       padding: 4px 10px;
       font-size: 0.75rem;
       cursor: pointer;
+    }
+    
+    @media (max-width: 580px) {
+      .detail-modal-overlay {
+        padding: 0.5rem;
+      }
+      .detail-modal-card {
+        padding: 1rem;
+        gap: 1rem;
+        border-radius: 12px;
+      }
+      .details-info-grid {
+        grid-template-columns: 1fr;
+        gap: 0.5rem;
+      }
+      .add-pago-form {
+        flex-direction: column;
+      }
+      .pago-input-num {
+        width: 100%;
+      }
     }
   `]
 })
