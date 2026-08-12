@@ -2180,8 +2180,10 @@ const API_ROOT = isLocal ? 'http://localhost:5174/api' : 'https://sistema-import
     }
 
     @media (max-width: 768px) {
-      .table-responsive { display: none; }
-      .mobile-inventory-feed { display: flex; }
+      .table-responsive {
+        padding: 0 0.5rem 0.5rem 0.5rem !important;
+      }
+      .mobile-inventory-feed { display: none !important; }
       .metrics-grid { grid-template-columns: repeat(2, 1fr); }
     }
   `]
