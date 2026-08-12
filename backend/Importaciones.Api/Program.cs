@@ -7,6 +7,8 @@ using Microsoft.AspNetCore.RateLimiting;
 using System.Threading.RateLimiting;
 using Importaciones.Api.Data;
 
+AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
+
 var builder = WebApplication.CreateBuilder(new WebApplicationOptions
 {
     Args = args,
@@ -193,9 +195,6 @@ using (var scope = app.Services.CreateScope())
                 BEGIN
                     IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('Pedidos') AND name = 'FotoUrl')
                         ALTER TABLE Pedidos ADD FotoUrl nvarchar(max) NULL;
-
-                    IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('Pedidos') AND name = 'RowVersion')
-                        ALTER TABLE Pedidos ADD RowVersion rowversion NULL;
 
                     IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('Pedidos') AND name = 'Abono')
                         ALTER TABLE Pedidos ADD Abono bit NOT NULL DEFAULT 0;

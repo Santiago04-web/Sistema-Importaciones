@@ -80,9 +80,6 @@ public class Pedido
     [ForeignKey(nameof(ContenedorId))]
     public Contenedor? Contenedor { get; set; }
 
-    [Timestamp]
-    public byte[]? RowVersion { get; set; }
-
     public ICollection<EtapaHistorial> HistorialEtapas { get; set; } = new List<EtapaHistorial>();
     public ICollection<PagoParcial> PagosParciales { get; set; } = new List<PagoParcial>();
     public ICollection<DocumentoAdjunto> Documentos { get; set; } = new List<DocumentoAdjunto>();
