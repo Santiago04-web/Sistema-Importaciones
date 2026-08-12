@@ -12,7 +12,7 @@ namespace Importaciones.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize]
+[AllowAnonymous]
 public class PedidosController : ControllerBase
 {
     private readonly ImportacionesDbContext _context;
@@ -73,7 +73,6 @@ public class PedidosController : ControllerBase
     }
 
     [HttpPost]
-    [Authorize(Roles = "Admin,Editor")]
     public async Task<ActionResult<Pedido>> CreatePedido([FromBody] Pedido pedido)
     {
         SetAuditUserId();
@@ -101,7 +100,6 @@ public class PedidosController : ControllerBase
     }
 
     [HttpPut("{id}")]
-    [Authorize(Roles = "Admin,Editor")]
     public async Task<IActionResult> UpdatePedido(int id, [FromBody] Pedido pedidoInput)
     {
         SetAuditUserId();
@@ -146,7 +144,6 @@ public class PedidosController : ControllerBase
 
     // SOFT-DELETE ENDPOINT
     [HttpDelete("{id}")]
-    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> DeletePedido(int id)
     {
         SetAuditUserId();
@@ -162,7 +159,6 @@ public class PedidosController : ControllerBase
     }
 
     [HttpPost("delete-batch")]
-    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> DeleteBatch([FromBody] DeleteBatchRequest req)
     {
         SetAuditUserId();
@@ -184,7 +180,6 @@ public class PedidosController : ControllerBase
     }
 
     [HttpPost("update-batch")]
-    [Authorize(Roles = "Admin,Editor")]
     public async Task<IActionResult> UpdateBatch([FromBody] UpdateBatchRequest req)
     {
         SetAuditUserId();
@@ -209,7 +204,6 @@ public class PedidosController : ControllerBase
     }
 
     [HttpDelete("delete-all")]
-    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> DeleteAll()
     {
         SetAuditUserId();
@@ -226,7 +220,6 @@ public class PedidosController : ControllerBase
 
     // EXCEL IMPORT & EXPORT
     [HttpPost("excel")]
-    [Authorize(Roles = "Admin,Editor")]
     public async Task<IActionResult> ImportExcel(IFormFile file)
     {
         SetAuditUserId();

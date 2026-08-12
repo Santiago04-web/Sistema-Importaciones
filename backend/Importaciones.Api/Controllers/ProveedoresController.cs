@@ -8,7 +8,7 @@ namespace Importaciones.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize]
+[AllowAnonymous]
 public class ProveedoresController : ControllerBase
 {
     private readonly ImportacionesDbContext _context;
