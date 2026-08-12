@@ -20,7 +20,7 @@ const API_ROOT = isLocal ? 'http://localhost:5174/api' : 'https://sistema-import
       <div class="table-header-actions">
         <div>
           <h3>Lista de Importaciones</h3>
-          <p class="header-sub">Haz clic en cualquier celda para editar · Los cambios se guardan automáticamente</p>
+          <p class="header-sub">Gestión y control detallado de manifiestos y órdenes de importación.</p>
         </div>
         <div class="header-buttons">
           <button class="btn-ghost" (click)="exportarExcel()" title="Exportar tabla actual a Excel">
