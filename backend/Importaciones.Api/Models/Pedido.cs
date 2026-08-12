@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
@@ -96,7 +98,7 @@ public class Pedido
     public decimal ComisionApalancamiento => (Producto - PagoInicial) * 0.07m;
     public decimal Total => Flete + Producto + ComisionTrabajo + ComisionApalancamiento;
     public decimal TotalPagosParciales => PagosParciales?.Sum(p => p.Monto) ?? 0m;
-    public decimal Saldo => Math.Max(0, Total - PagoInicial - TotalPagosParciales);
+    public decimal Saldo => Etapa >= EtapaPedido.Pagado ? 0m : Math.Max(0, Total - (Abono ? PagoInicial : 0m) - TotalPagosParciales);
     public decimal CostoFinal => TotalQty > 0 ? Total / TotalQty : 0;
     public decimal CostoVenta => CostoFinal * (1 + PorcentajeEhuk);
     public decimal FinalVenta => CostoVenta * TotalQty;

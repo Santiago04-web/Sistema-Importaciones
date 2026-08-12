@@ -75,7 +75,13 @@ export function calculateFinancials(item: any): Pedido {
   const pagoInicial = item.abono ? producto * 0.30 : 0;
   const comisionApalancamiento = (producto - (producto * 0.30)) * 0.07;
   const total = flete + producto + comisionTrabajo + comisionApalancamiento;
-  const saldo = Math.max(0, total - pagoInicial);
+  
+  const totalPagosParciales = item.pagosParciales?.reduce((sum: number, p: any) => sum + (Number(p.monto) || 0), 0) || 0;
+  let saldo = Math.max(0, total - pagoInicial - totalPagosParciales);
+  
+  if (Number(item.etapa) >= 2) {
+    saldo = 0;
+  }
   const costoFinal = totalQty > 0 ? total / totalQty : 0;
   const costoVenta = costoFinal * (1 + porcentajeEhuk);
   const finalVenta = costoVenta * totalQty;
