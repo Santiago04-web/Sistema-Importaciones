@@ -185,9 +185,8 @@ interface ColumnaEtapa {
           </div>
 
           <div class="modal-body-grid">
-            <!-- PHOTO PREVIEW IF AVAILABLE & NOT BROKEN -->
             <div class="modal-photo-box" *ngIf="selectedPedido.fotoUrl && !hasPhotoError">
-              <img [src]="'http://localhost:5174' + selectedPedido.fotoUrl" (error)="hasPhotoError = true" alt="Foto del pedido">
+              <img [src]="formatPhotoUrl(selectedPedido.fotoUrl)" (error)="hasPhotoError = true" alt="Foto del pedido">
             </div>
 
             <!-- DETAILS GRID -->
@@ -1020,6 +1019,15 @@ export class KanbanComponent implements OnInit {
   compartirWhatsApp(pedido: Pedido) {
     this.pedidoService.compartirWhatsApp(pedido);
   }
+
+  formatPhotoUrl(url: string | null | undefined): string {
+    if (!url) return '';
+    if (url.startsWith('data:') || url.startsWith('http://') || url.startsWith('https://')) return url;
+    const isLocal = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+    const base = isLocal ? 'http://localhost:5174' : 'https://sistema-importaciones.onrender.com';
+    return url.startsWith('/') ? `${base}${url}` : `${base}/${url}`;
+  }
+
 
   agregarPagoParcial() {
     if (!this.selectedPedido || !this.selectedPedido.id || this.nuevoPagoMonto <= 0) return;

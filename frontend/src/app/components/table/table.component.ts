@@ -6,6 +6,9 @@ import { AuthService } from '../../services/auth.service';
 import { PdfService } from '../../services/pdf.service';
 import { SignalrService } from '../../services/signalr.service';
 
+const isLocal = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+const API_ROOT = isLocal ? 'http://localhost:5174/api' : 'https://sistema-importaciones.onrender.com/api';
+
 @Component({
   selector: 'app-table',
   standalone: true,
@@ -256,11 +259,11 @@ import { SignalrService } from '../../services/signalr.service';
                 <div class="photo-cell">
                   <ng-container *ngIf="getEffectivePhotoUrl(pedido) as effectivePhoto; else categoryTpl">
                     <div class="thumb-container" [class.inherited-thumb]="!pedido.fotoUrl">
-                      <img [src]="'http://localhost:5174' + effectivePhoto" class="table-thumb" (click)="openPreview('http://localhost:5174' + effectivePhoto)">
+                      <img [src]="formatPhotoUrl(effectivePhoto)" class="table-thumb" (click)="openPreview(formatPhotoUrl(effectivePhoto))">
                       
                       <!-- Large hover popover preview -->
                       <div class="hover-preview-popover">
-                        <img [src]="'http://localhost:5174' + effectivePhoto" alt="Vista Previa">
+                        <img [src]="formatPhotoUrl(effectivePhoto)" alt="Vista Previa">
                       </div>
                       
                       <!-- Tiny blue edit badge in the corner -->
@@ -480,7 +483,7 @@ import { SignalrService } from '../../services/signalr.service';
 
           <div class="mobile-card-body">
             <div class="m-thumb-box" *ngIf="pedido.fotoUrl">
-              <img [src]="'http://localhost:5174' + pedido.fotoUrl" alt="Foto">
+              <img [src]="formatPhotoUrl(pedido.fotoUrl)" alt="Foto">
             </div>
             <div class="m-details">
               <h4 class="m-title">{{ pedido.descripcion || 'Producto de Importación' }}</h4>
@@ -554,7 +557,7 @@ import { SignalrService } from '../../services/signalr.service';
             
             <div class="group-left">
               <div class="group-thumb-box" *ngIf="g.fotoUrl; else groupCatTpl">
-                <img [src]="'http://localhost:5174' + g.fotoUrl" class="group-thumb">
+                <img [src]="formatPhotoUrl(g.fotoUrl)" class="group-thumb">
               </div>
               <ng-template #groupCatTpl>
                 <div class="group-thumb-box cat-placeholder">
@@ -692,7 +695,7 @@ import { SignalrService } from '../../services/signalr.service';
           <div class="catalog-grid" *ngIf="gruposProductos.length > 0">
             <div class="catalog-card glass-card" *ngFor="let g of gruposProductos">
               <div class="cat-img-wrap">
-                <img *ngIf="g.fotoUrl" [src]="'http://localhost:5174' + g.fotoUrl" class="cat-img">
+                <img *ngIf="g.fotoUrl" [src]="formatPhotoUrl(g.fotoUrl)" class="cat-img">
                 <div *ngIf="!g.fotoUrl" class="cat-no-img">
                   <span class="cat-no-img-icon">{{ getCategoryIcon(g.descripcion) }}</span>
                 </div>
@@ -776,7 +779,7 @@ import { SignalrService } from '../../services/signalr.service';
           <div class="sync-modal-body">
             <div class="sync-hero-card">
               <div class="sync-img-container">
-                <img [src]="'http://localhost:5174' + syncFotoModal.fotoUrl" alt="Foto recién subida" class="sync-img-main">
+                <img [src]="formatPhotoUrl(syncFotoModal.fotoUrl)" alt="Foto recién subida" class="sync-img-main">
                 <span class="sync-img-badge">Nueva Foto</span>
               </div>
               <div class="sync-info-content">
@@ -2405,6 +2408,16 @@ export class TableComponent implements OnInit {
   galeriaModalOpen = false;
   gruposProductos: any[] = [];
 
+  formatPhotoUrl(url: string | null | undefined): string {
+    if (!url) return '';
+    if (url.startsWith('data:') || url.startsWith('http://') || url.startsWith('https://')) {
+      return url;
+    }
+    const isLocal = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+    const base = isLocal ? 'http://localhost:5174' : 'https://sistema-importaciones.onrender.com';
+    return url.startsWith('/') ? `${base}${url}` : `${base}/${url}`;
+  }
+
   getEffectivePhotoUrl(pedido: Pedido): string | null {
     if (pedido.fotoUrl) return pedido.fotoUrl;
     if (!pedido.descripcion || !pedido.descripcion.trim()) return null;
@@ -2896,7 +2909,7 @@ export class TableComponent implements OnInit {
 
   exportarExcel() {
     const token = this.authService.getToken() || '';
-    const url = 'http://localhost:5174/api/pedidos/export/excel';
+    const url = `${API_ROOT}/pedidos/export/excel`;
 
     fetch(url, {
       headers: {

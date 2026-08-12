@@ -2,6 +2,10 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
+
+const isLocal = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+const API_ROOT = isLocal ? 'http://localhost:5174/api' : 'https://sistema-importaciones.onrender.com/api';
+
 import { LanguageService } from '../../services/language.service';
 
 export interface Contenedor {
@@ -304,7 +308,7 @@ export class ContenedoresComponent implements OnInit {
   }
 
   cargar() {
-    this.http.get<Contenedor[]>('http://localhost:5174/api/contenedores').subscribe({
+    this.http.get<Contenedor[]>(`${API_ROOT}/contenedores`).subscribe({
       next: (data) => this.contenedores = data || []
     });
   }
@@ -317,7 +321,7 @@ export class ContenedoresComponent implements OnInit {
   guardar() {
     if (!this.formData.numeroContenedor) return;
 
-    this.http.post('http://localhost:5174/api/contenedores', this.formData).subscribe({
+    this.http.post(`${API_ROOT}/contenedores`, this.formData).subscribe({
       next: () => {
         this.showModal = false;
         this.cargar();

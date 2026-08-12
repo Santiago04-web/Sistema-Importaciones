@@ -357,7 +357,7 @@ export class PedidoService {
   }
 
   getCnyCopRate(): Observable<{ rateCnyCop: number; lastUpdated: string; source: string; isLive: boolean }> {
-    return this.http.get<{ rateCnyCop: number; lastUpdated: string; source: string; isLive: boolean }>('http://localhost:5174/api/tasas/cny-cop');
+    return this.http.get<{ rateCnyCop: number; lastUpdated: string; source: string; isLive: boolean }>(`${API_ROOT}/tasas/cny-cop`);
   }
 
   simularPedido(pedido: Partial<Pedido>): Observable<any> {

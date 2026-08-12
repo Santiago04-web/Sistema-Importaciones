@@ -588,10 +588,7 @@ export class ProveedoresComponent implements OnInit {
         try { return JSON.parse(stored); } catch { return []; }
       }
     }
-    return [
-      { id: 1, nombre: 'Guangzhou Textile Corp', ciudadChina: 'Guangzhou', categoria: 'Ropa / Textiles', contactoTelefono: '+86 138 0013 8000', weChatId: 'gz_textile_official', contactoEmail: 'sales@gztextile.cn', calificacion: 5, notas: 'Proveedor principal de telas de alta calidad' },
-      { id: 2, nombre: 'Yiwu General Merchandise Co.', ciudadChina: 'Yiwu', categoria: 'Variedades', contactoTelefono: '+86 159 5890 0000', weChatId: 'yiwu_general_export', contactoEmail: 'export@yiwugeneral.cn', calificacion: 5, notas: 'Amplio catálogo de accesorios y productos varios' }
-    ];
+    return [];
   }
 
   private saveLocalProveedores(list: Proveedor[]) {
@@ -601,6 +598,19 @@ export class ProveedoresComponent implements OnInit {
   }
 
   cargar() {
+    // Auto-limpiar proveedores de ejemplo hardcodeados (si el usuario los tiene en localStorage de una versión anterior)
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem('user_imported_proveedores');
+      if (stored) {
+        try {
+          const parsed: Proveedor[] = JSON.parse(stored);
+          const fakeNames = ['Guangzhou Textile Corp', 'Yiwu General Merchandise Co.'];
+          const onlyFakes = parsed.every(p => fakeNames.includes(p.nombre));
+          if (onlyFakes) localStorage.removeItem('user_imported_proveedores');
+        } catch {}
+      }
+    }
+
     const fallback = this.getLocalProveedores();
     this.http.get<Proveedor[]>(`${API_ROOT}/proveedores`).pipe(
       catchError(() => of(fallback))

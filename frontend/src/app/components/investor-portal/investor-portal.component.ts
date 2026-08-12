@@ -113,7 +113,7 @@ interface GroupedInvestment {
             
             <div class="card-head">
               <div class="prod-img-box">
-                <img *ngIf="item.fotoUrl" [src]="'http://localhost:5174' + item.fotoUrl" (error)="item.fotoUrl = undefined" alt="Foto">
+                <img *ngIf="item.fotoUrl" [src]="formatPhotoUrl(item.fotoUrl)" (error)="item.fotoUrl = undefined" alt="Foto">
                 <span *ngIf="!item.fotoUrl" class="no-img-emoji">📦</span>
               </div>
 
@@ -472,6 +472,14 @@ export class InvestorPortalComponent implements OnInit {
 
   ngOnInit() {
     this.cargarDatos();
+  }
+
+  formatPhotoUrl(url: string | null | undefined): string {
+    if (!url) return '';
+    if (url.startsWith('data:') || url.startsWith('http://') || url.startsWith('https://')) return url;
+    const isLocal = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+    const base = isLocal ? 'http://localhost:5174' : 'https://sistema-importaciones.onrender.com';
+    return url.startsWith('/') ? `${base}${url}` : `${base}/${url}`;
   }
 
   cargarDatos() {
