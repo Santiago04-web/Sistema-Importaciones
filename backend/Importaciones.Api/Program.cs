@@ -31,33 +31,41 @@ builder.Services.AddHttpContextAccessor();
 
 builder.Services.AddDbContext<ImportacionesDbContext>(options =>
 {
-    // 1. Si hay una variable de entorno DATABASE_URL (Render PostgreSQL) → usarla
-    var databaseUrl = builder.Configuration["DATABASE_URL"]
-                   ?? Environment.GetEnvironmentVariable("DATABASE_URL");
+    // 1. Si hay DATABASE_URL (Render PostgreSQL) → usarla directamente
+    var databaseUrl = Environment.GetEnvironmentVariable("DATABASE_URL")
+                   ?? builder.Configuration["DATABASE_URL"];
 
-    // 2. Connection string explícita de appsettings (desarrollo local SQL Server)
+    // 2. Connection string local (SQL Server en Windows dev)
     var connStr = builder.Configuration.GetConnectionString("ImportacionesDb")
                ?? builder.Configuration.GetConnectionString("DefaultConnection");
 
-    if (!string.IsNullOrWhiteSpace(databaseUrl) && databaseUrl.StartsWith("postgres"))
+    if (!string.IsNullOrWhiteSpace(databaseUrl) && 
+        (databaseUrl.StartsWith("postgres://") || databaseUrl.StartsWith("postgresql://")))
     {
-        // Render provee la URL en formato: postgres://user:pass@host:port/dbname
-        // Convertir a formato de connection string de Npgsql
+        // Npgsql acepta la URL directamente si la convertimos a formato de connection string
         var uri = new Uri(databaseUrl);
         var userInfo = uri.UserInfo.Split(':');
-        var pgConnStr = $"Host={uri.Host};Port={uri.Port};Database={uri.AbsolutePath.TrimStart('/')};Username={userInfo[0]};Password={userInfo[1]};SSL Mode=Require;Trust Server Certificate=true;";
+        var host = uri.Host;
+        var port = uri.IsDefaultPort ? 5432 : uri.Port;
+        var database = uri.AbsolutePath.TrimStart('/');
+        var username = userInfo[0];
+        var password = userInfo.Length > 1 ? userInfo[1] : "";
+        
+        var pgConnStr = $"Host={host};Port={port};Database={database};Username={username};Password={password};SSL Mode=Require;Trust Server Certificate=true;";
         options.UseNpgsql(pgConnStr);
+        Console.WriteLine($"===> Usando PostgreSQL: {host}/{database}");
     }
     else if (string.IsNullOrWhiteSpace(connStr) || connStr.Contains("SQLEXPRESS"))
     {
-        // Fallback local: SQLite solo para desarrollo en máquina sin SQL Server
+        // Fallback: SQLite solo para desarrollo local sin SQL Server
         var dbPath = Path.Combine(Directory.GetCurrentDirectory(), "importaciones_cloud.db");
         options.UseSqlite($"Data Source={dbPath}");
+        Console.WriteLine($"===> Usando SQLite local: {dbPath}");
     }
     else
     {
-        // SQL Server local (Windows con SQL Express configurado)
         options.UseSqlServer(connStr);
+        Console.WriteLine("===> Usando SQL Server local");
     }
 });
 
