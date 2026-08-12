@@ -322,10 +322,46 @@ import { LanguageService } from './services/language.service';
 
     @media (max-width: 768px) {
       .top-nav {
-        padding: 0 0.75rem;
+        height: auto;
+        min-height: 52px;
+        padding: 0.5rem 0.75rem;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.5rem;
       }
-      .calc-trigger-btn, .cmd-trigger-btn kbd {
+      .nav-brand-group {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        width: 100%;
+      }
+      .nav-actions {
+        width: 100%;
+        display: flex;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        padding-bottom: 2px;
+        gap: 6px;
+        justify-content: flex-start;
+      }
+      .nav-actions::-webkit-scrollbar {
         display: none;
+      }
+      .tabs {
+        flex-shrink: 0;
+        gap: 4px;
+        padding: 2px;
+      }
+      .tab-link {
+        font-size: 0.76rem;
+        padding: 0.35rem 0.65rem;
+        white-space: nowrap;
+      }
+      .calc-trigger-btn, .cmd-trigger-btn kbd, .collapse-btn {
+        display: none;
+      }
+      .main-content {
+        padding: 0.75rem 0.65rem 4.5rem 0.65rem;
       }
     }
   `]

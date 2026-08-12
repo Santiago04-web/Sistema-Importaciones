@@ -1242,8 +1242,121 @@ import jsPDF from 'jspdf';
       .kpi-grid { grid-template-columns: repeat(2, 1fr); }
       .logistics-row { grid-template-columns: 1fr; }
     }
+
     @media (max-width: 768px) {
-      .three-col-grid, .kpi-grid, .container-grid { grid-template-columns: 1fr; }
+      .dash {
+        padding-bottom: 3.5rem;
+      }
+      
+      /* TOOLBAR ON MOBILE */
+      .dash-toolbar {
+        padding: 0.85rem 1rem;
+        margin-bottom: 1rem;
+      }
+      .toolbar-top-row {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.75rem;
+      }
+      .filter-title h2 {
+        font-size: 1.15rem;
+      }
+      .filter-buttons {
+        display: flex;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        gap: 6px;
+        padding-bottom: 4px;
+        margin-top: 0.5rem;
+      }
+      .filter-buttons::-webkit-scrollbar {
+        display: none;
+      }
+      .filter-btn {
+        flex-shrink: 0;
+        padding: 0.35rem 0.75rem;
+        font-size: 0.75rem;
+        border-radius: 999px;
+        white-space: nowrap;
+      }
+
+      /* SLEEK 2x2 KPI GRID FOR IPHONE / MOBILE */
+      .kpi-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.65rem;
+        margin-bottom: 1rem;
+      }
+      .kpi-card {
+        padding: 0.85rem 0.95rem;
+        border-radius: 12px;
+        min-height: auto;
+      }
+      .kpi-title {
+        font-size: 0.72rem;
+      }
+      .kpi-chip {
+        font-size: 0.6rem;
+        padding: 0.15rem 0.4rem;
+      }
+      .kpi-value {
+        font-size: 1.15rem;
+        margin-top: 0.15rem;
+      }
+      .kpi-footer {
+        font-size: 0.65rem;
+        margin-top: 0.2rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      /* LOGISTICS & CATEGORIES */
+      .logistics-row {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+        margin-bottom: 1rem;
+      }
+      .card-title-box {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.65rem;
+      }
+      .cbm-big-badge {
+        align-self: flex-start;
+        padding: 0.3rem 0.65rem;
+      }
+      .cbm-num {
+        font-size: 1rem;
+      }
+      .categories-list-grid {
+        grid-template-columns: 1fr;
+        gap: 0.5rem;
+      }
+      .cat-card-item {
+        padding: 0.65rem 0.8rem;
+      }
+
+      /* 3-COLUMN SECTIONS (CHARTS & PIPELINES) */
+      .three-col-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+      }
+      .bar-canvas-wrap {
+        height: 210px;
+      }
+      .donut-container {
+        height: 190px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .kpi-value {
+        font-size: 1.05rem;
+      }
+      .kpi-card {
+        padding: 0.75rem 0.8rem;
+      }
     }
   `]
 })
