@@ -311,8 +311,9 @@ import { PedidoService, Pedido } from '../../services/pedido.service';
       align-items: center;
       justify-content: center;
       padding: 2.5rem 2rem;
-      margin-bottom: 2rem;
+      margin-bottom: 1.5rem;
       position: relative;
+      flex: 1;
     }
     .drop-zone:hover {
       border-color: #3b82f6;
