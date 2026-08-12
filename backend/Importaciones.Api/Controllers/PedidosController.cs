@@ -43,7 +43,7 @@ public class PedidosController : ControllerBase
     [HttpGet]
     public async Task<ActionResult<IEnumerable<Pedido>>> GetPedidos()
     {
-        return await _context.Pedidos
+        var list = await _context.Pedidos
             .AsNoTracking()
             .Where(p => !p.Eliminado)
             .Include(p => p.HistorialEtapas)
@@ -53,6 +53,13 @@ public class PedidosController : ControllerBase
             .Include(p => p.Documentos)
             .AsSplitQuery()
             .ToListAsync();
+
+        foreach (var p in list)
+        {
+            p.Descripcion = FormatTitleCase(p.Descripcion);
+            p.Observaciones = FormatTitleCase(p.Observaciones);
+        }
+        return list;
     }
 
     [HttpGet("{id}")]
@@ -69,6 +76,8 @@ public class PedidosController : ControllerBase
             .FirstOrDefaultAsync(p => p.Id == id && !p.Eliminado);
 
         if (pedido == null) return NotFound();
+        pedido.Descripcion = FormatTitleCase(pedido.Descripcion);
+        pedido.Observaciones = FormatTitleCase(pedido.Observaciones);
         return pedido;
     }
 
@@ -80,8 +89,8 @@ public class PedidosController : ControllerBase
 
         pedido.Codigo = System.Net.WebUtility.HtmlEncode(pedido.Codigo.Trim());
         pedido.Ciudad = System.Net.WebUtility.HtmlEncode(pedido.Ciudad.Trim());
-        pedido.Descripcion = System.Net.WebUtility.HtmlEncode(pedido.Descripcion ?? "");
-        pedido.Observaciones = System.Net.WebUtility.HtmlEncode(pedido.Observaciones ?? "");
+        pedido.Descripcion = FormatTitleCase(pedido.Descripcion);
+        pedido.Observaciones = FormatTitleCase(pedido.Observaciones);
         pedido.Referencia = System.Net.WebUtility.HtmlEncode(pedido.Referencia ?? "");
 
         _context.Pedidos.Add(pedido);
@@ -110,8 +119,8 @@ public class PedidosController : ControllerBase
 
         pedido.Codigo = System.Net.WebUtility.HtmlEncode(pedidoInput.Codigo.Trim());
         pedido.Ciudad = System.Net.WebUtility.HtmlEncode(pedidoInput.Ciudad.Trim());
-        pedido.Descripcion = System.Net.WebUtility.HtmlEncode(pedidoInput.Descripcion ?? "");
-        pedido.Observaciones = System.Net.WebUtility.HtmlEncode(pedidoInput.Observaciones ?? "");
+        pedido.Descripcion = FormatTitleCase(pedidoInput.Descripcion);
+        pedido.Observaciones = FormatTitleCase(pedidoInput.Observaciones);
         pedido.Referencia = System.Net.WebUtility.HtmlEncode(pedidoInput.Referencia ?? "");
         pedido.TotalQty = pedidoInput.TotalQty;
         pedido.Yuanes = pedidoInput.Yuanes;
@@ -303,8 +312,8 @@ public class PedidosController : ControllerBase
                     Ciudad = string.IsNullOrWhiteSpace(item.Ciudad) ? "GZ" : item.Ciudad.Trim(),
                     FechaNegociacion = item.FechaNegociacion ?? DateTime.UtcNow,
                     Abono = item.Abono,
-                    Descripcion = item.Descripcion ?? "",
-                    Observaciones = item.Observaciones ?? "",
+                    Descripcion = FormatTitleCase(item.Descripcion),
+                    Observaciones = FormatTitleCase(item.Observaciones),
                     Referencia = item.Referencia ?? "",
                     TotalQty = item.TotalQty,
                     Yuanes = item.Yuanes,
@@ -474,6 +483,19 @@ public class PedidosController : ControllerBase
         await _hubContext.Clients.All.SendAsync("PedidoActualizado", pedido);
 
         return NoContent();
+    }
+
+    private static string FormatTitleCase(string? input)
+    {
+        if (string.IsNullOrWhiteSpace(input)) return string.Empty;
+        var decoded = System.Net.WebUtility.HtmlDecode(input).Trim();
+        if (string.IsNullOrEmpty(decoded)) return string.Empty;
+        
+        var lower = decoded.ToLowerInvariant();
+        var textInfo = System.Globalization.CultureInfo.InvariantCulture.TextInfo;
+        var titleCased = textInfo.ToTitleCase(lower);
+        
+        return System.Net.WebUtility.HtmlEncode(titleCased);
     }
 }
 
