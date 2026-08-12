@@ -1983,13 +1983,18 @@ const API_ROOT = isLocal ? 'http://localhost:5174/api' : 'https://sistema-import
 
     /* Bulk Select Controls */
     .bulk-select {
-      background: rgba(255, 255, 255, 0.08);
+      background: #09090b;
       border: 1px solid rgba(255, 255, 255, 0.12);
       color: #fafafa;
       padding: 0.35rem 0.75rem;
       border-radius: 6px;
       font-size: 0.78rem;
       cursor: pointer;
+      outline: none;
+    }
+    .bulk-select option {
+      background: #18181b;
+      color: #fafafa;
     }
 
     /* Abono Pill Badge */
