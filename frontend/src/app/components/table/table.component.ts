@@ -1082,7 +1082,25 @@ const API_ROOT = isLocal ? 'http://localhost:5174/api' : 'https://sistema-import
     
     .table-responsive {
       overflow-x: auto;
+      overflow-y: auto;
+      max-height: calc(100vh - 300px);
       padding: 0 1.5rem 1.5rem;
+    }
+    .table-responsive::-webkit-scrollbar {
+      height: 8px;
+      width: 8px;
+    }
+    .table-responsive::-webkit-scrollbar-track {
+      background: rgba(255, 255, 255, 0.02);
+      border-radius: 4px;
+    }
+    .table-responsive::-webkit-scrollbar-thumb {
+      background: rgba(59, 130, 246, 0.2);
+      border-radius: 4px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    .table-responsive::-webkit-scrollbar-thumb:hover {
+      background: rgba(59, 130, 246, 0.45);
     }
     
     .table {
@@ -1095,6 +1113,10 @@ const API_ROOT = isLocal ? 'http://localhost:5174/api' : 'https://sistema-import
     }
     
     .table th {
+      position: sticky;
+      top: 0;
+      background: var(--panel-bg);
+      z-index: 10;
       color: var(--text-muted);
       font-weight: 700;
       padding: 1rem 0.5rem;
