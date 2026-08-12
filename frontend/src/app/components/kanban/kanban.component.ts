@@ -75,7 +75,7 @@ interface ColumnaEtapa {
             </button>
           </div>
 
-          <button class="hide-toolbar-btn" (click)="showActionBar = false" title="Ocultar barra de herramientas">
+          <button class="hide-toolbar-btn" (click)="toggleActionBar(false)" title="Ocultar barra de herramientas">
             ▲ Ocultar
           </button>
         </div>
@@ -83,7 +83,7 @@ interface ColumnaEtapa {
 
       <!-- SHOW BAR TRIGGER WHEN HIDDEN -->
       <div class="show-bar-trigger" *ngIf="!showActionBar">
-        <button class="show-bar-btn" (click)="showActionBar = true">
+        <button class="show-bar-btn" (click)="toggleActionBar(true)">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2.5">
             <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
           </svg>
@@ -1010,7 +1010,7 @@ export class KanbanComponent implements OnInit {
 
   searchQuery = '';
   isCompact = false;
-  showActionBar = true;
+  showActionBar = false;
   selectedPedido: Pedido | null = null;
   hasPhotoError = false;
   nuevoPagoMonto: number = 0;
@@ -1102,10 +1102,18 @@ export class KanbanComponent implements OnInit {
   ) {}
 
   ngOnInit() {
+    const saved = localStorage.getItem('kanban_showActionBar');
+    this.showActionBar = saved === 'true';
+
     this.cargarPedidos();
     this.signalrService.pedidoCreado$.subscribe(() => this.cargarPedidos());
     this.signalrService.pedidoActualizado$.subscribe(() => this.cargarPedidos());
     this.signalrService.pedidoEliminado$.subscribe(() => this.cargarPedidos());
+  }
+
+  toggleActionBar(val: boolean) {
+    this.showActionBar = val;
+    localStorage.setItem('kanban_showActionBar', String(val));
   }
 
   descargarPdf(pedido: Pedido, event?: Event) {
