@@ -511,6 +511,14 @@ const API_ROOT = isLocal ? 'http://localhost:5174/api' : 'https://sistema-import
           </div>
           <h3>{{ confirmModal.title }}</h3>
           <p>{{ confirmModal.message }}</p>
+          <div class="modal-input-wrapper" *ngIf="confirmModal.isPrompt" style="width: 100%; margin: 1.25rem 0 0.5rem 0;">
+            <input type="text" 
+                   [(ngModel)]="confirmModal.promptValue" 
+                   [placeholder]="confirmModal.promptPlaceholder || ''" 
+                   class="filter-control modal-prompt-input" 
+                   style="width: 100%; box-sizing: border-box; background: #09090b; border: 1px solid rgba(255,255,255,0.12); color: #fafafa; padding: 0.6rem 0.8rem; border-radius: 8px; font-size: 0.9rem;"
+                   (keydown.enter)="executeConfirm()">
+          </div>
           <div class="modal-actions">
             <button class="btn-modal btn-cancel" (click)="cancelConfirm()">{{ confirmModal.cancelText }}</button>
             <button class="btn-modal btn-confirm" [style.background]="confirmModal.isWarning ? '#ef4444' : '#3b82f6'" (click)="executeConfirm()">{{ confirmModal.confirmText }}</button>
@@ -2238,6 +2246,9 @@ export class TableComponent implements OnInit {
     isWarning: false,
     confirmText: 'Aceptar',
     cancelText: 'Cancelar',
+    isPrompt: false,
+    promptValue: '',
+    promptPlaceholder: '',
     onConfirm: () => {}
   };
 
@@ -2344,8 +2355,35 @@ export class TableComponent implements OnInit {
       isWarning,
       confirmText,
       cancelText: 'Cancelar',
+      isPrompt: false,
+      promptValue: '',
+      promptPlaceholder: '',
       onConfirm
     };
+  }
+
+  showPrompt(title: string, message: string, defaultValue: string, placeholder: string, onConfirm: (val: string) => void) {
+    this.confirmModal = {
+      show: true,
+      title,
+      message,
+      isWarning: false,
+      confirmText: 'Confirmar',
+      cancelText: 'Cancelar',
+      isPrompt: true,
+      promptValue: defaultValue,
+      promptPlaceholder: placeholder,
+      onConfirm: () => {
+        onConfirm(this.confirmModal.promptValue);
+      }
+    };
+    setTimeout(() => {
+      const input = document.querySelector('.modal-prompt-input') as HTMLInputElement;
+      if (input) {
+        input.focus();
+        input.select();
+      }
+    }, 50);
   }
 
   showAlert(title: string, message: string) {
@@ -2700,36 +2738,52 @@ export class TableComponent implements OnInit {
   batchUpdateTasa() {
     const ids = Array.from(this.selectedIds);
     if (ids.length === 0) return;
-    const val = prompt(`Ingresa la nueva Tasa COP/RMB para los ${ids.length} pedidos seleccionados:`, '535');
-    if (!val) return;
-    const nuevaTasa = parseFloat(val);
-    if (isNaN(nuevaTasa) || nuevaTasa <= 0) return;
+    
+    this.showPrompt(
+      "⚡ Cambiar Tasa COP/RMB",
+      `Ingresa la nueva tasa de cambio para los ${ids.length} pedidos seleccionados:`,
+      "535",
+      "ej. 535",
+      (val) => {
+        if (!val || !val.trim()) return;
+        const nuevaTasa = parseFloat(val);
+        if (isNaN(nuevaTasa) || nuevaTasa <= 0) return;
 
-    this.pedidoService.updateBatch({ ids, tasa: nuevaTasa }).subscribe({
-      next: () => {
-        this.cargarPedidos();
-        this.clearSelection();
-        this.showAlert("Actualización Masiva", `Se actualizó la Tasa a $${nuevaTasa} para ${ids.length} pedidos.`);
-      },
-      error: (err) => console.error("Error batch updating tasa:", err)
-    });
+        this.pedidoService.updateBatch({ ids, tasa: nuevaTasa }).subscribe({
+          next: () => {
+            this.cargarPedidos();
+            this.clearSelection();
+            this.showAlert("Actualización Masiva", `Se actualizó la Tasa a $${nuevaTasa} para ${ids.length} pedidos.`);
+          },
+          error: (err) => console.error("Error batch updating tasa:", err)
+        });
+      }
+    );
   }
 
   batchUpdateCodigo() {
     const ids = Array.from(this.selectedIds);
     if (ids.length === 0) return;
-    const val = prompt(`Reasignar los ${ids.length} ítems seleccionados al Pedido / Lote # (ej. 2):`);
-    if (!val || !val.trim()) return;
-    const nuevoCodigo = val.trim();
 
-    this.pedidoService.updateBatch({ ids, codigo: nuevoCodigo }).subscribe({
-      next: () => {
-        this.cargarPedidos();
-        this.clearSelection();
-        this.showAlert("Lote Reasignado", `Se reasignaron ${ids.length} ítems al Pedido #${nuevoCodigo}.`);
-      },
-      error: (err) => console.error("Error batch updating codigo:", err)
-    });
+    this.showPrompt(
+      "🏷️ Reasignar Lote / Pedido #",
+      `Ingresa el nuevo número de Pedido / Lote para los ${ids.length} ítems seleccionados:`,
+      "2",
+      "ej. 2",
+      (val) => {
+        if (!val || !val.trim()) return;
+        const nuevoCodigo = val.trim();
+
+        this.pedidoService.updateBatch({ ids, codigo: nuevoCodigo }).subscribe({
+          next: () => {
+            this.cargarPedidos();
+            this.clearSelection();
+            this.showAlert("Lote Reasignado", `Se reasignaron ${ids.length} ítems al Pedido #${nuevoCodigo}.`);
+          },
+          error: (err) => console.error("Error batch updating codigo:", err)
+        });
+      }
+    );
   }
 
   batchUpdateEtapa(etapa: number) {
