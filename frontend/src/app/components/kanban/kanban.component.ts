@@ -264,6 +264,11 @@ interface ColumnaEtapa {
                 <input type="text" [(ngModel)]="nuevoPagoNota" placeholder="Nota / Ref (Ej: Transferencia Bancolombia)" class="pago-input-txt">
                 <button class="add-pago-btn" (click)="agregarPagoParcial()">+ Registrar Abono</button>
               </div>
+              <div style="margin-top: 8px; display: flex; justify-content: flex-end;" *ngIf="authService.canEdit() && selectedPedido && (selectedPedido.saldo || 0) > 0">
+                <button class="btn-saldar-todo" (click)="saldarPedidoTotalmente()">
+                  💳 Saldar Deuda / Pagar Todo ($ {{ selectedPedido.saldo | number:'1.0-0' }} COP)
+                </button>
+              </div>
             </div>
 
             <div class="observaciones-box" *ngIf="selectedPedido.observaciones">
@@ -1023,6 +1028,30 @@ interface ColumnaEtapa {
       font-size: 0.75rem;
       cursor: pointer;
     }
+    .btn-saldar-todo {
+      background: rgba(16, 185, 129, 0.15);
+      border: 1px solid rgba(16, 185, 129, 0.4);
+      color: #34d399;
+      font-weight: 700;
+      border-radius: 8px;
+      padding: 0.5rem 1rem;
+      font-size: 0.78rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.15);
+    }
+    .btn-saldar-todo:hover {
+      background: #10b981;
+      color: #fff;
+      border-color: #10b981;
+      box-shadow: 0 6px 16px rgba(16, 185, 129, 0.35);
+    }
+    .btn-saldar-todo:active {
+      transform: scale(0.96);
+    }
     
     @media (max-width: 580px) {
       .detail-modal-overlay {
@@ -1087,6 +1116,33 @@ export class KanbanComponent implements OnInit {
         this.nuevoPagoMonto = 0;
         this.nuevoPagoNota = '';
         this.cargarPedidos();
+      }
+    });
+  }
+
+  saldarPedidoTotalmente() {
+    if (!this.selectedPedido || !this.selectedPedido.id || !this.selectedPedido.saldo || this.selectedPedido.saldo <= 0) return;
+    
+    const pedido = this.selectedPedido;
+    const pedidoId = this.selectedPedido.id;
+    const amountToPay = this.selectedPedido.saldo;
+    
+    this.pedidoService.addPagoParcial(pedidoId, {
+      monto: amountToPay,
+      nota: 'Liquidación total del saldo'
+    }).subscribe({
+      next: (res) => {
+        if (!pedido.pagosParciales) pedido.pagosParciales = [];
+        pedido.pagosParciales.push(res);
+        pedido.totalPagosParciales = (pedido.totalPagosParciales || 0) + amountToPay;
+        pedido.saldo = 0;
+        
+        pedido.etapa = 2; // stage: Pagado
+        this.pedidoService.updatePedido(pedidoId, pedido).subscribe({
+          next: () => {
+            this.cargarPedidos();
+          }
+        });
       }
     });
   }
