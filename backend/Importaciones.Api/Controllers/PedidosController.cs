@@ -490,11 +490,11 @@ public class PedidosController : ControllerBase
         if (string.IsNullOrWhiteSpace(input)) return string.Empty;
         var decoded = System.Net.WebUtility.HtmlDecode(input).Trim();
         if (string.IsNullOrEmpty(decoded)) return string.Empty;
-        
+
         var lower = decoded.ToLowerInvariant();
         var textInfo = System.Globalization.CultureInfo.InvariantCulture.TextInfo;
         var titleCased = textInfo.ToTitleCase(lower);
-        
+
         return System.Net.WebUtility.HtmlEncode(titleCased);
     }
 }

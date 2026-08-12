@@ -41,7 +41,7 @@ builder.Services.AddDbContext<ImportacionesDbContext>(options =>
     var connStr = builder.Configuration.GetConnectionString("ImportacionesDb")
                ?? builder.Configuration.GetConnectionString("DefaultConnection");
 
-    if (!string.IsNullOrWhiteSpace(databaseUrl) && 
+    if (!string.IsNullOrWhiteSpace(databaseUrl) &&
         (databaseUrl.StartsWith("postgres://") || databaseUrl.StartsWith("postgresql://")))
     {
         var uri = new Uri(databaseUrl);
@@ -51,7 +51,7 @@ builder.Services.AddDbContext<ImportacionesDbContext>(options =>
         var database = uri.AbsolutePath.TrimStart('/');
         var username = userInfo[0];
         var password = userInfo.Length > 1 ? userInfo[1] : "";
-        
+
         var pgConnStr = $"Host={host};Port={port};Database={database};Username={username};Password={password};SSL Mode=Require;Trust Server Certificate=true;";
         options.UseNpgsql(pgConnStr);
         Console.WriteLine($"===> Usando PostgreSQL: {host}/{database}");
@@ -139,7 +139,7 @@ builder.Services.AddAuthentication(options =>
 builder.Services.AddRateLimiter(options =>
 {
     options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
-    
+
     // Login endpoints: 5 attempts per minute
     options.AddPolicy("LoginLimiter", httpContext =>
         RateLimitPartition.GetFixedWindowLimiter(
@@ -209,7 +209,7 @@ using (var scope = app.Services.CreateScope())
 
     var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
     var userManager = scope.ServiceProvider.GetRequiredService<UserManager<IdentityUser>>();
-    
+
     var roles = new[] { "Admin", "Editor", "Viewer" };
     foreach (var role in roles)
     {
@@ -275,7 +275,7 @@ app.Use(async (context, next) =>
     context.Response.Headers.Append("X-XSS-Protection", "1; mode=block");
     context.Response.Headers.Append("Referrer-Policy", "strict-origin-when-cross-origin");
     context.Response.Headers.Append("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
-    context.Response.Headers.Append("Content-Security-Policy", 
+    context.Response.Headers.Append("Content-Security-Policy",
         "default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self' http://localhost:5174 https://localhost:7200 http://localhost:5200 https://localhost:7200 http://localhost:4200 ws://localhost:5174 wss://localhost:7200;");
     await next();
 });

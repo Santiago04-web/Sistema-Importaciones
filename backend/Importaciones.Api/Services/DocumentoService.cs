@@ -20,7 +20,7 @@ public class DocumentoService
         // Validate Magic Bytes (real file signature inspection)
         using var stream = file.OpenReadStream();
         var header = new byte[8];
-        await stream.ReadAsync(header, 0, header.Length);
+        await stream.ReadExactlyAsync(header);
 
         bool isPdf = header[0] == 0x25 && header[1] == 0x50 && header[2] == 0x44 && header[3] == 0x46; // %PDF
         bool isPng = header[0] == 0x89 && header[1] == 0x50 && header[2] == 0x4E && header[3] == 0x47; // PNG

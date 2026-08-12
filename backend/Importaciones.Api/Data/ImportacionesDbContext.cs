@@ -22,8 +22,8 @@ public class ImportacionesDbContext : IdentityDbContext<IdentityUser>
                 return _currentUserId;
             }
             var user = _httpContextAccessor?.HttpContext?.User;
-            return user?.FindFirstValue(ClaimTypes.NameIdentifier) 
-                   ?? user?.Identity?.Name 
+            return user?.FindFirstValue(ClaimTypes.NameIdentifier)
+                   ?? user?.Identity?.Name
                    ?? "System";
         }
         set => _currentUserId = value;

@@ -1072,15 +1072,19 @@ export class ExcelComponent implements OnInit {
 
   recalcularTotalesPreview() {
     if (!this.previewData || !this.previewData.items) return;
-    this.previewTotalQty = this.previewData.items.reduce((s: number, x: any) => s + (Number(x.totalQty) || 0), 0);
-    this.previewTotalYuanes = this.previewData.items.reduce((s: number, x: any) => {
-      const qty = Number(x.totalQty) > 0 ? Number(x.totalQty) : 1;
+
+    let totalQty = 0;
+    let totalYuanes = 0;
+    let totalCOP = 0;
+
+    for (const x of this.previewData.items) {
+      const qty = Number(x.totalQty) || 0;
+      totalQty += qty;
+
       const unitRmb = Number(x.yuanes) || 0;
-      return s + unitRmb * qty;
-    }, 0);
-    this.previewTotalCOP = this.previewData.items.reduce((s: number, x: any) => {
-      const qty = Number(x.totalQty) > 0 ? Number(x.totalQty) : 0;
-      const unitRmb = Number(x.yuanes) || 0;
+      const normQty = qty > 0 ? qty : 1;
+      totalYuanes += unitRmb * normQty;
+
       const tasa = Number(x.tasa) > 0 ? Number(x.tasa) : 535;
       const prodCOP = unitRmb * qty * tasa;
       const piezasCaja = Number(x.piezasCaja) > 0 ? Number(x.piezasCaja) : 1;
@@ -1092,8 +1096,13 @@ export class ExcelComponent implements OnInit {
       const comisionTrabajo = prodCOP * 0.05;
       const pagoInicial = prodCOP * 0.30;
       const comisionApalancamiento = (prodCOP - pagoInicial) * 0.07;
-      return s + fleteCOP + prodCOP + comisionTrabajo + comisionApalancamiento;
-    }, 0);
+      
+      totalCOP += fleteCOP + prodCOP + comisionTrabajo + comisionApalancamiento;
+    }
+
+    this.previewTotalQty = totalQty;
+    this.previewTotalYuanes = totalYuanes;
+    this.previewTotalCOP = totalCOP;
   }
 
   eliminarFilaPreview(index: number) {

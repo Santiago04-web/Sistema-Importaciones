@@ -23,7 +23,7 @@ public class ExcelService
         var pedidos = new List<Pedido>();
         using var workbook = new XLWorkbook(stream);
         var worksheet = workbook.Worksheet(1);
-        
+
         var headerRow = worksheet.Row(1);
         int colPedido = 1, colCiudad = 2, colFecha = 3, colAbono = 4;
         int colDesc = 5, colObs = 6, colRef = 7, colQty = 8;
@@ -57,7 +57,7 @@ public class ExcelService
         foreach (var row in rows)
         {
             var rawPedido = GetCellValueAsString(row.Cell(colPedido));
-            if (string.IsNullOrWhiteSpace(rawPedido) || 
+            if (string.IsNullOrWhiteSpace(rawPedido) ||
                 rawPedido.Equals("TOTAL", StringComparison.OrdinalIgnoreCase) ||
                 rawPedido.Equals("TOTALES", StringComparison.OrdinalIgnoreCase) ||
                 rawPedido.Equals("NOTAS", StringComparison.OrdinalIgnoreCase) ||

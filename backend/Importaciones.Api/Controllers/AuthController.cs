@@ -23,9 +23,9 @@ public class AuthController : ControllerBase
     private readonly IConfiguration _configuration;
 
     public AuthController(
-        UserManager<IdentityUser> userManager, 
-        RoleManager<IdentityRole> roleManager, 
-        ImportacionesDbContext context, 
+        UserManager<IdentityUser> userManager,
+        RoleManager<IdentityRole> roleManager,
+        ImportacionesDbContext context,
         IConfiguration configuration)
     {
         _userManager = userManager;
@@ -71,7 +71,7 @@ public class AuthController : ControllerBase
         // Accept username OR email in the username field
         var user = await _userManager.FindByNameAsync(model.Username)
                    ?? await _userManager.FindByEmailAsync(model.Username);
-        
+
         if (user != null && await _userManager.IsLockedOutAsync(user))
         {
             return StatusCode(StatusCodes.Status423Locked, new { Status = "Error", Message = "Tu cuenta está bloqueada temporalmente por exceso de intentos fallidos. Intenta de nuevo en 15 minutos." });
