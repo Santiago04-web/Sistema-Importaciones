@@ -189,7 +189,7 @@ const API_ROOT = isLocal ? 'http://localhost:5174/api' : 'https://sistema-import
               <label class="dropdown-item">
                 <input type="checkbox" [(ngModel)]="columnasVisibles.etapa"> Etapa
               </label>
-              <label class="dropdown-item">
+              <label class="dropdown-item" style="margin-bottom: 0.5rem;">
                 <input type="checkbox" [(ngModel)]="columnasVisibles.total"> Total ($)
               </label>
             </div>
@@ -251,24 +251,24 @@ const API_ROOT = isLocal ? 'http://localhost:5174/api' : 'https://sistema-import
         <table class="table">
           <thead>
             <tr>
-              <th style="min-width: 40px; text-align: center;">
+              <th style="width: 32px; text-align: center;">
                 <input type="checkbox" class="row-checkbox" [checked]="allSelected" (change)="toggleSelectAll()">
               </th>
-              <th style="min-width: 90px;">Pedido</th>
-              <th style="min-width: 115px;">Referencia</th>
-              <th style="min-width: 80px; text-align: center;" *ngIf="mostrarFotos && columnasVisibles.foto">Foto</th>
-              <th style="min-width: 90px;" *ngIf="columnasVisibles.ciudad">Ciudad</th>
-              <th style="min-width: 110px;" *ngIf="columnasVisibles.fecha">Fecha</th>
-              <th style="min-width: 220px;">Producto</th>
-              <th style="min-width: 85px;" *ngIf="columnasVisibles.qty">Qty</th>
-              <th style="min-width: 90px;" *ngIf="columnasVisibles.yuanes">Yuanes</th>
-              <th style="min-width: 90px;" *ngIf="columnasVisibles.tasa">Tasa</th>
-              <th style="min-width: 80px;" *ngIf="columnasVisibles.cubica">Cúbica</th>
-              <th style="min-width: 110px;" *ngIf="columnasVisibles.precioMt3">Precio m³</th>
-              <th style="min-width: 80px;" *ngIf="columnasVisibles.ehuk">% EHUK</th>
-              <th style="min-width: 130px;" *ngIf="columnasVisibles.etapa">Etapa</th>
-              <th style="min-width: 140px; text-align: right;" *ngIf="columnasVisibles.total">Total ($)</th>
-              <th style="min-width: 60px;"></th>
+              <th style="width: 55px;">Pedido</th>
+              <th style="width: 80px;">Referencia</th>
+              <th style="width: 50px; text-align: center;" *ngIf="mostrarFotos && columnasVisibles.foto">Foto</th>
+              <th style="width: 55px;" *ngIf="columnasVisibles.ciudad">Ciudad</th>
+              <th style="width: 95px;" *ngIf="columnasVisibles.fecha">Fecha</th>
+              <th style="min-width: 140px;">Producto</th>
+              <th style="width: 70px; text-align: right;" *ngIf="columnasVisibles.qty">Qty</th>
+              <th style="width: 70px; text-align: right;" *ngIf="columnasVisibles.yuanes">Yuanes</th>
+              <th style="width: 55px; text-align: right;" *ngIf="columnasVisibles.tasa">Tasa</th>
+              <th style="width: 65px; text-align: right;" *ngIf="columnasVisibles.cubica">Cúbica</th>
+              <th style="width: 90px; text-align: right;" *ngIf="columnasVisibles.precioMt3">Precio m³</th>
+              <th style="width: 60px; text-align: center;" *ngIf="columnasVisibles.ehuk">% EHUK</th>
+              <th style="width: 105px; text-align: center;" *ngIf="columnasVisibles.etapa">Etapa</th>
+              <th style="width: 110px; text-align: right;" *ngIf="columnasVisibles.total">Total ($)</th>
+              <th style="width: 45px; text-align: center;"></th>
             </tr>
           </thead>
           <tbody>
@@ -1000,13 +1000,13 @@ const API_ROOT = isLocal ? 'http://localhost:5174/api' : 'https://sistema-import
     /* Stage Pill Styles */
     .etapa-select {
       border-radius: 6px;
-      padding: 0.25rem 0.5rem;
-      font-size: 0.75rem;
+      padding: 0.25rem 0.4rem;
+      font-size: 0.72rem;
       font-weight: 600;
       border: 1px solid transparent !important;
       text-align: center;
       width: 100%;
-      min-width: 125px;
+      min-width: 100px;
       cursor: pointer;
       display: inline-block;
       transition: all 0.15s;
@@ -1474,18 +1474,18 @@ const API_ROOT = isLocal ? 'http://localhost:5174/api' : 'https://sistema-import
       position: absolute;
       top: calc(100% + 8px);
       right: 0;
-      width: 215px;
-      max-height: calc(100vh - 200px);
+      width: 220px;
+      max-height: 420px;
       overflow-y: auto;
-      background: #111827;
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 12px;
-      padding: 0.8rem;
+      background: #0f172a;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 14px;
+      padding: 0.9rem 0.9rem 1.4rem 0.9rem;
       z-index: 1000;
-      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.6);
+      box-shadow: 0 15px 35px -5px rgba(0, 0, 0, 0.8);
       display: flex;
       flex-direction: column;
-      gap: 0.4rem;
+      gap: 0.35rem;
       animation: dropdownFade 0.2s ease;
     }
     .col-selector-dropdown .dropdown-menu::-webkit-scrollbar {
