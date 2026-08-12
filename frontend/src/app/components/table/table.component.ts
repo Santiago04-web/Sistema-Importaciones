@@ -130,7 +130,6 @@ const API_ROOT = isLocal ? 'http://localhost:5174/api' : 'https://sistema-import
                 *ngIf="filtros.busqueda || filtros.ciudad || filtros.etapa !== null || filtros.montoMin !== null">
           Limpiar Filtros
         </button>
-
         <!-- VISUAL VIEW MODE SWITCHES -->
         <div class="view-mode-toolbar">
           <button class="view-pill-btn" [class.active]="mostrarFotos" (click)="toggleMostrarFotos()" title="Mostrar u ocultar la columna de fotos">
@@ -138,16 +137,58 @@ const API_ROOT = isLocal ? 'http://localhost:5174/api' : 'https://sistema-import
           </button>
 
           <button class="view-pill-btn" [class.active]="mostrarObservaciones" (click)="toggleMostrarObservaciones()" title="Mostrar u ocultar notas u observaciones de los productos">
-            {{ mostrarObservaciones ? '📝 Obs. Visibles' : '📝 Obs. Ocultas' }}
+            {{ mostrarObservaciones ? '💬 Obs. Visibles' : '💬 Obs. Ocultas' }}
           </button>
 
-          <button class="view-pill-btn" [class.active]="agruparPorProducto" (click)="toggleAgruparPorProducto()" title="Agrupar productos repetidos en 1 sola tarjeta desplegable">
-            {{ agruparPorProducto ? '📑 Agrupado por Producto' : '📋 Filas Individuales' }}
+          <button class="view-pill-btn" [class.active]="agruparPorProducto" (click)="toggleAgruparPorProducto()">
+            {{ agruparPorProducto ? '🗂️ Filas Consolidadas' : '📄 Filas Individuales' }}
           </button>
 
-          <button class="view-pill-btn catalog-btn" (click)="abrirGaleriaModal()" title="Abrir catálogo visual en cuadrícula">
+          <button class="view-pill-btn active" (click)="galeriaModalOpen = true" style="margin-right: 8px;">
             ✨ Catálogo Galería
           </button>
+
+          <div class="col-selector-dropdown" (click)="$event.stopPropagation()">
+            <button class="view-pill-btn" [class.active]="showColDropdown" (click)="toggleColDropdown($event)" title="Mostrar/ocultar columnas de la tabla">
+              ⚙️ Columnas
+            </button>
+            <div class="dropdown-menu glass-card" *ngIf="showColDropdown" (click)="$event.stopPropagation()">
+              <span class="dropdown-title">Visibilidad de Columnas</span>
+              <label class="dropdown-item" *ngIf="mostrarFotos">
+                <input type="checkbox" [(ngModel)]="columnasVisibles.foto"> Foto
+              </label>
+              <label class="dropdown-item">
+                <input type="checkbox" [(ngModel)]="columnasVisibles.ciudad"> Ciudad
+              </label>
+              <label class="dropdown-item">
+                <input type="checkbox" [(ngModel)]="columnasVisibles.fecha"> Fecha
+              </label>
+              <label class="dropdown-item">
+                <input type="checkbox" [(ngModel)]="columnasVisibles.qty"> Qty (Unidades)
+              </label>
+              <label class="dropdown-item">
+                <input type="checkbox" [(ngModel)]="columnasVisibles.yuanes"> Yuanes
+              </label>
+              <label class="dropdown-item">
+                <input type="checkbox" [(ngModel)]="columnasVisibles.tasa"> Tasa
+              </label>
+              <label class="dropdown-item">
+                <input type="checkbox" [(ngModel)]="columnasVisibles.cubica"> Cúbica
+              </label>
+              <label class="dropdown-item">
+                <input type="checkbox" [(ngModel)]="columnasVisibles.precioMt3"> Precio m³
+              </label>
+              <label class="dropdown-item">
+                <input type="checkbox" [(ngModel)]="columnasVisibles.ehuk"> % EHUK
+              </label>
+              <label class="dropdown-item">
+                <input type="checkbox" [(ngModel)]="columnasVisibles.etapa"> Etapa
+              </label>
+              <label class="dropdown-item">
+                <input type="checkbox" [(ngModel)]="columnasVisibles.total"> Total ($)
+              </label>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -210,18 +251,18 @@ const API_ROOT = isLocal ? 'http://localhost:5174/api' : 'https://sistema-import
               </th>
               <th style="width: 100px;">Pedido</th>
               <th style="width: 120px;">Referencia</th>
-              <th style="width: 80px; text-align: center;" *ngIf="mostrarFotos">Foto</th>
-              <th style="width: 100px;">Ciudad</th>
-              <th style="width: 120px;">Fecha</th>
+              <th style="width: 80px; text-align: center;" *ngIf="mostrarFotos && columnasVisibles.foto">Foto</th>
+              <th style="width: 100px;" *ngIf="columnasVisibles.ciudad">Ciudad</th>
+              <th style="width: 120px;" *ngIf="columnasVisibles.fecha">Fecha</th>
               <th style="min-width: 220px;">Producto</th>
-              <th style="width: 80px;">Qty</th>
-              <th style="width: 90px;">Yuanes</th>
-              <th style="width: 90px;">Tasa</th>
-              <th style="width: 80px;">Cúbica</th>
-              <th style="width: 100px;">Precio m³</th>
-              <th style="width: 80px;">% EHUK</th>
-              <th style="width: 130px;">Etapa</th>
-              <th style="width: 140px; text-align: right;">Total ($)</th>
+              <th style="width: 80px;" *ngIf="columnasVisibles.qty">Qty</th>
+              <th style="width: 90px;" *ngIf="columnasVisibles.yuanes">Yuanes</th>
+              <th style="width: 90px;" *ngIf="columnasVisibles.tasa">Tasa</th>
+              <th style="width: 80px;" *ngIf="columnasVisibles.cubica">Cúbica</th>
+              <th style="width: 100px;" *ngIf="columnasVisibles.precioMt3">Precio m³</th>
+              <th style="width: 80px;" *ngIf="columnasVisibles.ehuk">% EHUK</th>
+              <th style="width: 130px;" *ngIf="columnasVisibles.etapa">Etapa</th>
+              <th style="width: 140px; text-align: right;" *ngIf="columnasVisibles.total">Total ($)</th>
               <th style="width: 40px;"></th>
             </tr>
           </thead>
@@ -255,7 +296,7 @@ const API_ROOT = isLocal ? 'http://localhost:5174/api' : 'https://sistema-import
               </td>
 
               <!-- PHOTO -->
-              <td *ngIf="mostrarFotos">
+              <td *ngIf="mostrarFotos && columnasVisibles.foto">
                 <div class="photo-cell">
                   <ng-container *ngIf="getEffectivePhotoUrl(pedido) as effectivePhoto; else categoryTpl">
                     <div class="thumb-container" [class.inherited-thumb]="!pedido.fotoUrl">
@@ -284,7 +325,7 @@ const API_ROOT = isLocal ? 'http://localhost:5174/api' : 'https://sistema-import
               </td>
 
               <!-- CIUDAD -->
-              <td>
+              <td *ngIf="columnasVisibles.ciudad">
                 <input type="text" class="inline-edit-input city-badge-input" 
                        [(ngModel)]="pedido.ciudad" 
                        (ngModelChange)="onCellChange(pedido)"
@@ -293,7 +334,7 @@ const API_ROOT = isLocal ? 'http://localhost:5174/api' : 'https://sistema-import
               </td>
 
               <!-- FECHA -->
-              <td>
+              <td *ngIf="columnasVisibles.fecha">
                 <input type="date" class="inline-edit-input date-input" 
                        [ngModel]="formatDateForInput(pedido.fechaNegociacion)" 
                        (ngModelChange)="onDateChange(pedido, $event)"
@@ -325,7 +366,7 @@ const API_ROOT = isLocal ? 'http://localhost:5174/api' : 'https://sistema-import
               </td>
 
               <!-- QTY -->
-              <td>
+              <td *ngIf="columnasVisibles.qty">
                 <input *ngIf="editField === pedido.id + '-qty'"
                        [id]="pedido.id + '-qty-input'"
                        type="number" class="inline-edit-input text-right" 
@@ -335,14 +376,14 @@ const API_ROOT = isLocal ? 'http://localhost:5174/api' : 'https://sistema-import
                        (keydown.enter)="editField = null; actualizarPedido(pedido)"
                        placeholder="0">
                 <span *ngIf="editField !== pedido.id + '-qty'"
-                      class="inline-edit-display text-right"
-                      (click)="startEdit(pedido.id + '-qty')">
+                       class="inline-edit-display text-right"
+                       (click)="startEdit(pedido.id + '-qty')">
                   {{ (pedido.totalQty || 0) | number }}
                 </span>
               </td>
 
               <!-- YUANES -->
-              <td>
+              <td *ngIf="columnasVisibles.yuanes">
                 <input *ngIf="editField === pedido.id + '-yuanes'"
                        [id]="pedido.id + '-yuanes-input'"
                        type="number" step="0.01" class="inline-edit-input text-right" 
@@ -352,14 +393,14 @@ const API_ROOT = isLocal ? 'http://localhost:5174/api' : 'https://sistema-import
                        (keydown.enter)="editField = null; actualizarPedido(pedido)"
                        placeholder="0.00">
                 <span *ngIf="editField !== pedido.id + '-yuanes'"
-                      class="inline-edit-display text-right"
-                      (click)="startEdit(pedido.id + '-yuanes')">
+                       class="inline-edit-display text-right"
+                       (click)="startEdit(pedido.id + '-yuanes')">
                   ¥{{ (pedido.yuanes || 0) | number:'1.2-2' }}
                 </span>
               </td>
 
               <!-- TASA -->
-              <td>
+              <td *ngIf="columnasVisibles.tasa">
                 <input *ngIf="editField === pedido.id + '-tasa'"
                        [id]="pedido.id + '-tasa-input'"
                        type="number" step="0.01" class="inline-edit-input text-right" 
@@ -369,14 +410,14 @@ const API_ROOT = isLocal ? 'http://localhost:5174/api' : 'https://sistema-import
                        (keydown.enter)="editField = null; actualizarPedido(pedido)"
                        placeholder="535">
                 <span *ngIf="editField !== pedido.id + '-tasa'"
-                      class="inline-edit-display text-right"
-                      (click)="startEdit(pedido.id + '-tasa')">
+                       class="inline-edit-display text-right"
+                       (click)="startEdit(pedido.id + '-tasa')">
                   {{ (pedido.tasa || 0) | number }}
                 </span>
               </td>
 
               <!-- CUBICA -->
-              <td>
+              <td *ngIf="columnasVisibles.cubica">
                 <input *ngIf="editField === pedido.id + '-cubica'"
                        [id]="pedido.id + '-cubica-input'"
                        type="number" step="0.0001" class="inline-edit-input text-right" 
@@ -386,14 +427,14 @@ const API_ROOT = isLocal ? 'http://localhost:5174/api' : 'https://sistema-import
                        (keydown.enter)="editField = null; actualizarPedido(pedido)"
                        placeholder="0.000">
                 <span *ngIf="editField !== pedido.id + '-cubica'"
-                      class="inline-edit-display text-right"
-                      (click)="startEdit(pedido.id + '-cubica')">
+                       class="inline-edit-display text-right"
+                       (click)="startEdit(pedido.id + '-cubica')">
                   {{ (pedido.cubica || 0) | number:'1.3-4' }}
                 </span>
               </td>
 
               <!-- PRECIO MT3 -->
-              <td>
+              <td *ngIf="columnasVisibles.precioMt3">
                 <input *ngIf="editField === pedido.id + '-precioMt3'"
                        [id]="pedido.id + '-precioMt3-input'"
                        type="number" step="0.01" class="inline-edit-input text-right" 
@@ -403,14 +444,14 @@ const API_ROOT = isLocal ? 'http://localhost:5174/api' : 'https://sistema-import
                        (keydown.enter)="editField = null; actualizarPedido(pedido)"
                        placeholder="0.00">
                 <span *ngIf="editField !== pedido.id + '-precioMt3'"
-                      class="inline-edit-display text-right"
-                      (click)="startEdit(pedido.id + '-precioMt3')">
+                       class="inline-edit-display text-right"
+                       (click)="startEdit(pedido.id + '-precioMt3')">
                   {{ (pedido.precioMt3 || 0) | currency:'COP':'symbol-narrow':'1.0-0' }}
                 </span>
               </td>
 
               <!-- PORCENTAJE EHUK -->
-              <td>
+              <td *ngIf="columnasVisibles.ehuk">
                 <input *ngIf="editField === pedido.id + '-porcentajeEhuk'"
                        [id]="pedido.id + '-porcentajeEhuk-input'"
                        type="number" step="0.01" class="inline-edit-input text-right" 
@@ -420,14 +461,14 @@ const API_ROOT = isLocal ? 'http://localhost:5174/api' : 'https://sistema-import
                        (keydown.enter)="editField = null; actualizarPedido(pedido)"
                        placeholder="0.10">
                 <span *ngIf="editField !== pedido.id + '-porcentajeEhuk'"
-                      class="inline-edit-display text-right"
-                      (click)="startEdit(pedido.id + '-porcentajeEhuk')">
+                       class="inline-edit-display text-right"
+                       (click)="startEdit(pedido.id + '-porcentajeEhuk')">
                   {{ (pedido.porcentajeEhuk || 0) | percent:'1.0-1' }}
                 </span>
               </td>
 
               <!-- ETAPA -->
-              <td>
+              <td *ngIf="columnasVisibles.etapa">
                 <select [class]="'inline-select etapa-select ' + getEtapaClass(pedido.etapa)"
                         [ngModel]="pedido.etapa" 
                         (ngModelChange)="onEtapaChange(pedido, $event)">
@@ -441,7 +482,7 @@ const API_ROOT = isLocal ? 'http://localhost:5174/api' : 'https://sistema-import
               </td>
 
               <!-- TOTAL (calculated) -->
-              <td class="text-right text-highlight" style="padding-right: 1.5rem; font-variant-numeric: tabular-nums;">
+              <td class="text-right text-highlight" style="padding-right: 1.5rem; font-variant-numeric: tabular-nums;" *ngIf="columnasVisibles.total">
                 {{ (pedido.total || 0) | currency:'COP':'symbol-narrow':'1.0-0' }}
               </td>
 
@@ -1103,7 +1144,7 @@ const API_ROOT = isLocal ? 'http://localhost:5174/api' : 'https://sistema-import
       background: rgba(59, 130, 246, 0.45);
     }
     
-    .table {
+    .table:not(.inner-group-table) {
       width: 100%;
       min-width: 1450px;
       border-collapse: separate;
@@ -1418,6 +1459,85 @@ const API_ROOT = isLocal ? 'http://localhost:5174/api' : 'https://sistema-import
       align-items: center;
       gap: 6px;
       margin-left: auto;
+    }
+    
+    /* Column Selector Dropdown Menu */
+    .col-selector-dropdown {
+      position: relative;
+      display: inline-block;
+    }
+    .col-selector-dropdown .dropdown-menu {
+      position: absolute;
+      top: calc(100% + 8px);
+      right: 0;
+      width: 200px;
+      background: #111827;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      padding: 0.8rem;
+      z-index: 1000;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.6);
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      animation: dropdownFade 0.2s ease;
+    }
+    @keyframes dropdownFade {
+      from { opacity: 0; transform: translateY(-8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .dropdown-title {
+      font-size: 0.72rem;
+      font-weight: 800;
+      color: #94a3b8;
+      text-transform: uppercase;
+      margin-bottom: 0.25rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      padding-bottom: 0.4rem;
+    }
+    .dropdown-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: #cbd5e1;
+      font-size: 0.82rem;
+      cursor: pointer;
+      padding: 4px 6px;
+      border-radius: 6px;
+      transition: background 0.15s;
+    }
+    .dropdown-item:hover {
+      background: rgba(255, 255, 255, 0.04);
+      color: #fff;
+    }
+    .dropdown-item input[type="checkbox"] {
+      cursor: pointer;
+      accent-color: #3b82f6;
+    }
+
+    /* Auto-compactness for laptop viewports to maximize data density */
+    @media (max-width: 1400px) {
+      .table:not(.inner-group-table) {
+        font-size: 0.78rem !important;
+      }
+      .table th {
+        padding: 0.75rem 0.35rem !important;
+        font-size: 0.65rem !important;
+      }
+      .table td {
+        padding: 0.35rem 0.25rem !important;
+      }
+      .inline-edit-input {
+        padding: 0.25rem 0.35rem !important;
+        font-size: 0.75rem !important;
+      }
+      .inline-edit-display {
+        font-size: 0.75rem !important;
+      }
+      .inline-select {
+        padding: 0.25rem 0.35rem !important;
+        font-size: 0.75rem !important;
+      }
     }
     .view-pill-btn {
       background: rgba(255, 255, 255, 0.05);
@@ -2512,6 +2632,25 @@ export class TableComponent implements OnInit {
   agruparPorProducto = false;
   galeriaModalOpen = false;
   gruposProductos: any[] = [];
+  showColDropdown = false;
+  columnasVisibles = {
+    foto: true,
+    ciudad: true,
+    fecha: true,
+    qty: true,
+    yuanes: true,
+    tasa: true,
+    cubica: true,
+    precioMt3: true,
+    ehuk: true,
+    etapa: true,
+    total: true
+  };
+
+  toggleColDropdown(event: Event) {
+    event.stopPropagation();
+    this.showColDropdown = !this.showColDropdown;
+  }
 
   formatPhotoUrl(url: string | null | undefined): string {
     if (!url) return '';
@@ -3057,6 +3196,12 @@ export class TableComponent implements OnInit {
     if (this.alertModal.show) {
       this.alertModal.show = false;
     }
+    this.showColDropdown = false;
+  }
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent) {
+    this.showColDropdown = false;
   }
 
   resetFiltros() {
