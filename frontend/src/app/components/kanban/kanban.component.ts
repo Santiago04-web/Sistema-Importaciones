@@ -633,13 +633,31 @@ interface ColumnaEtapa {
     .mode-btn {
       background: none;
       border: none;
-      color: #71717a;
+      color: #a1a1aa;
       font-size: 0.75rem;
       font-weight: 700;
       padding: 0.4rem 0.85rem;
       border-radius: 6px;
       cursor: pointer;
       transition: all 0.15s;
+    }
+    .mode-btn:hover {
+      color: #fafafa;
+      background: rgba(255, 255, 255, 0.05);
+    }
+    .mode-btn.active {
+      background: #3b82f6 !important;
+      color: #ffffff !important;
+      box-shadow: 0 2px 8px rgba(59, 130, 246, 0.35);
+    }
+    .mode-btn.active:hover {
+      background: #2563eb !important;
+    }
+    .mode-btn:active, 
+    .hide-toolbar-btn:active, 
+    .scroll-arrow-btn:active, 
+    .show-bar-btn:active {
+      transform: scale(0.95);
     }
     .hide-toolbar-btn {
       background: rgba(255, 255, 255, 0.04);
