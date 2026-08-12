@@ -223,7 +223,24 @@ export class PedidoService {
     return this.http.get<Pedido[]>(this.apiUrl).pipe(
       tap((res) => {
         if (res && res.length > 0) {
-          this.saveLocalPedidos(res);
+          const local = this.getLocalPedidos();
+          const mergedMap = new Map<string, Pedido>();
+
+          // Keep all existing local items (including newly uploaded Excels)
+          local.forEach(p => {
+            const key = p.id ? `id_${p.id}` : `${p.codigo}_${p.descripcion}_${p.referencia}`;
+            mergedMap.set(key, p);
+          });
+
+          // Enrich with remote database records
+          res.forEach(p => {
+            const calculated = calculateFinancials(p);
+            const key = calculated.id ? `id_${calculated.id}` : `${calculated.codigo}_${calculated.descripcion}_${calculated.referencia}`;
+            mergedMap.set(key, calculated);
+          });
+
+          const mergedList = Array.from(mergedMap.values());
+          this.saveLocalPedidos(mergedList);
         }
       }),
       catchError(() => {
