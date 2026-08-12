@@ -960,6 +960,7 @@ const API_ROOT = isLocal ? 'http://localhost:5174/api' : 'https://sistema-import
       border: 1px solid transparent !important;
       text-align: center;
       width: 100%;
+      min-width: 125px;
       cursor: pointer;
       display: inline-block;
       transition: all 0.15s;
