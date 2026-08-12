@@ -1034,6 +1034,7 @@ export class ExcelComponent implements OnInit {
     if (!this.previewData || !this.previewData.items) return;
 
     this.savingConfirmed = true;
+    this.error = '';
     const requestData = {
       overrideCodigo: (this.overrideCodigo || '').trim(),
       items: this.previewData.items
@@ -1044,7 +1045,7 @@ export class ExcelComponent implements OnInit {
         this.savingConfirmed = false;
         this.showPreviewModal = false;
         const loteLabel = res.codigo ? `Pedido #${res.codigo}` : 'el manifiesto';
-        this.successMsg = `¡Lote guardado con éxito! Se registraron ${res.count || requestData.items.length} productos asignados a ${loteLabel}.`;
+        this.successMsg = `✅ ¡Lote guardado con éxito en la nube! Se registraron ${res.count || requestData.items.length} productos asignados a ${loteLabel}.`;
         this.selectedFile = null;
         this.previewData = null;
         this.cargarRecientes();
@@ -1054,16 +1055,18 @@ export class ExcelComponent implements OnInit {
         console.error('Error al confirmar y guardar en DB:', err);
         this.savingConfirmed = false;
         this.showPreviewModal = false;
-        const count = requestData.items.length;
-        const loteLabel = requestData.overrideCodigo ? `Pedido #${requestData.overrideCodigo}` : 'el manifiesto';
-        this.successMsg = `¡Lote guardado con éxito! Se registraron ${count} productos asignados a ${loteLabel}.`;
         this.selectedFile = null;
         this.previewData = null;
-        this.cargarRecientes();
+
+        // Mostrar el error real al usuario
+        const errMsg = err?.error?.Message || err?.error?.message || err?.message || 'Error de conexión con el servidor';
+        this.error = `❌ Error al guardar en la base de datos: ${errMsg}. Verifica tu conexión e intenta de nuevo.`;
+        this.successMsg = '';
         this.cdr.detectChanges();
       }
     });
   }
+
 
   recalcularTotalesPreview() {
     if (!this.previewData || !this.previewData.items) return;

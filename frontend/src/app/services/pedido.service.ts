@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
-import { catchError, tap } from 'rxjs/operators';
+import { catchError, tap, map } from 'rxjs/operators';
 
 export interface PagoParcial {
   id?: number;
@@ -221,33 +221,37 @@ export class PedidoService {
 
   getPedidos(): Observable<Pedido[]> {
     return this.http.get<Pedido[]>(this.apiUrl).pipe(
-      tap((res) => {
-        if (res && res.length > 0) {
-          const local = this.getLocalPedidos();
-          const mergedMap = new Map<string, Pedido>();
+      map((res) => {
+        const remote = (res || []).map(p => calculateFinancials(p));
+        const local = this.getLocalPedidos();
 
-          // Keep all existing local items (including newly uploaded Excels)
-          local.forEach(p => {
-            const key = p.id ? `id_${p.id}` : `${p.codigo}_${p.descripcion}_${p.referencia}`;
-            mergedMap.set(key, p);
-          });
+        // Always merge remote + local (remote wins on conflict by ID)
+        const mergedMap = new Map<string, Pedido>();
 
-          // Enrich with remote database records
-          res.forEach(p => {
-            const calculated = calculateFinancials(p);
-            const key = calculated.id ? `id_${calculated.id}` : `${calculated.codigo}_${calculated.descripcion}_${calculated.referencia}`;
-            mergedMap.set(key, calculated);
-          });
+        // Load local first
+        local.forEach(p => {
+          const key = p.id ? `id_${p.id}` : `local_${p.codigo}_${p.descripcion}_${p.referencia}`;
+          mergedMap.set(key, p);
+        });
 
-          const mergedList = Array.from(mergedMap.values());
-          this.saveLocalPedidos(mergedList);
-        }
+        // Remote overrides/enriches local (remote data is authoritative)
+        remote.forEach(p => {
+          const key = p.id ? `id_${p.id}` : `local_${p.codigo}_${p.descripcion}_${p.referencia}`;
+          mergedMap.set(key, p);
+        });
+
+        const mergedList = Array.from(mergedMap.values());
+        this.saveLocalPedidos(mergedList);
+        // Return remote if it has data, otherwise merged (which includes local)
+        return mergedList.length > 0 ? mergedList : remote;
       }),
       catchError(() => {
+        // Backend unreachable - use localStorage as fallback
         return of(this.getLocalPedidos());
       })
     );
   }
+
 
   getPedido(id: number): Observable<Pedido> {
     return this.http.get<Pedido>(`${this.apiUrl}/${id}`).pipe(
@@ -332,10 +336,10 @@ export class PedidoService {
   }
 
   confirmExcel(data: { overrideCodigo?: string; items: any[] }): Observable<any> {
+    // Guardar en localStorage primero como backup
     this.addLocalItems(data.items, data.overrideCodigo);
-    return this.http.post(`${this.apiUrl}/excel-confirm`, data).pipe(
-      catchError(() => of({ count: data.items.length, codigo: data.overrideCodigo || '1' }))
-    );
+    // Enviar al backend SIN catchError - si falla, el error llega al componente
+    return this.http.post(`${this.apiUrl}/excel-confirm`, data);
   }
 
   uploadPedidoImage(id: number, file: File): Observable<any> {
