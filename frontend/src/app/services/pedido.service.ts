@@ -223,30 +223,12 @@ export class PedidoService {
     return this.http.get<Pedido[]>(this.apiUrl).pipe(
       map((res) => {
         const remote = (res || []).map(p => calculateFinancials(p));
-        const local = this.getLocalPedidos();
-
-        // Always merge remote + local (remote wins on conflict by ID)
-        const mergedMap = new Map<string, Pedido>();
-
-        // Load local first
-        local.forEach(p => {
-          const key = p.id ? `id_${p.id}` : `local_${p.codigo}_${p.descripcion}_${p.referencia}`;
-          mergedMap.set(key, p);
-        });
-
-        // Remote overrides/enriches local (remote data is authoritative)
-        remote.forEach(p => {
-          const key = p.id ? `id_${p.id}` : `local_${p.codigo}_${p.descripcion}_${p.referencia}`;
-          mergedMap.set(key, p);
-        });
-
-        const mergedList = Array.from(mergedMap.values());
-        this.saveLocalPedidos(mergedList);
-        // Return remote if it has data, otherwise merged (which includes local)
-        return mergedList.length > 0 ? mergedList : remote;
+        // Overwrite the local storage cache with the fresh database records
+        this.saveLocalPedidos(remote);
+        return remote;
       }),
       catchError(() => {
-        // Backend unreachable - use localStorage as fallback
+        // Fallback to local storage only if backend is unreachable
         return of(this.getLocalPedidos());
       })
     );

@@ -70,6 +70,14 @@ const HUB_URL = isLocal ? 'http://localhost:5174/hubs/pedidos' : 'https://sistem
     this.hubConnection.on('PedidoEliminado', (id: number) => {
       this.pedidoEliminado$.next(id);
     });
+
+    this.hubConnection.on('TodosPedidosEliminados', () => {
+      this.pedidoEliminado$.next(0); // Triggers load of empty dataset
+    });
+
+    this.hubConnection.on('PedidoActualizadoMasivo', () => {
+      this.pedidoActualizado$.next(null); // Triggers list reload
+    });
   }
 
   public stopConnection() {
