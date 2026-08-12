@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
@@ -750,5 +750,12 @@ export class ProveedoresComponent implements OnInit {
 
   formatNum(n: number): string {
     return (n || 0).toLocaleString('en-US', { maximumFractionDigits: 0 });
+  }
+
+  @HostListener('document:keydown.escape', ['$event'])
+  handleEscapeKey(event: KeyboardEvent) {
+    if (this.showModal) {
+      this.showModal = false;
+    }
   }
 }

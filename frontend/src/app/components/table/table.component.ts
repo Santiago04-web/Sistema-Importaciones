@@ -1569,6 +1569,42 @@ const API_ROOT = isLocal ? 'http://localhost:5174/api' : 'https://sistema-import
 
     /* Catalog Gallery Modal */
     .catalog-modal { max-width: 900px; width: 95%; max-height: 85vh; overflow-y: auto; background: #0f172a; border-radius: 20px; padding: 1.75rem; }
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 1.5rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      padding-bottom: 1rem;
+    }
+    .modal-header h3 {
+      margin: 0;
+      font-size: 1.3rem;
+      font-weight: 800;
+      color: #fafafa;
+    }
+    .btn-close {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      color: #a1a1aa;
+      font-size: 0.9rem;
+      font-weight: 600;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.15s;
+    }
+    .btn-close:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: #fafafa;
+    }
+    .btn-close:active {
+      transform: scale(0.92);
+    }
     .catalog-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 1.25rem; margin-top: 1.25rem; }
     .catalog-card { background: #020617; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 14px; overflow: hidden; display: flex; flex-direction: column; justify-content: space-between; }
     .cat-img-wrap { height: 160px; width: 100%; position: relative; background: #09090b; }
@@ -2988,6 +3024,9 @@ export class TableComponent implements OnInit {
   handleEscapeKey(event: KeyboardEvent) {
     if (this.previewImage) {
       this.previewImage = null;
+    }
+    if (this.galeriaModalOpen) {
+      this.galeriaModalOpen = false;
     }
     if (this.confirmModal.show) {
       this.cancelConfirm();
