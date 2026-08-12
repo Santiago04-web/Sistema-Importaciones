@@ -246,24 +246,24 @@ const API_ROOT = isLocal ? 'http://localhost:5174/api' : 'https://sistema-import
         <table class="table">
           <thead>
             <tr>
-              <th style="width: 40px; text-align: center;">
+              <th style="min-width: 40px; text-align: center;">
                 <input type="checkbox" class="row-checkbox" [checked]="allSelected" (change)="toggleSelectAll()">
               </th>
-              <th style="width: 100px;">Pedido</th>
-              <th style="width: 120px;">Referencia</th>
-              <th style="width: 80px; text-align: center;" *ngIf="mostrarFotos && columnasVisibles.foto">Foto</th>
-              <th style="width: 100px;" *ngIf="columnasVisibles.ciudad">Ciudad</th>
-              <th style="width: 120px;" *ngIf="columnasVisibles.fecha">Fecha</th>
+              <th style="min-width: 90px;">Pedido</th>
+              <th style="min-width: 115px;">Referencia</th>
+              <th style="min-width: 80px; text-align: center;" *ngIf="mostrarFotos && columnasVisibles.foto">Foto</th>
+              <th style="min-width: 90px;" *ngIf="columnasVisibles.ciudad">Ciudad</th>
+              <th style="min-width: 110px;" *ngIf="columnasVisibles.fecha">Fecha</th>
               <th style="min-width: 220px;">Producto</th>
-              <th style="width: 80px;" *ngIf="columnasVisibles.qty">Qty</th>
-              <th style="width: 90px;" *ngIf="columnasVisibles.yuanes">Yuanes</th>
-              <th style="width: 90px;" *ngIf="columnasVisibles.tasa">Tasa</th>
-              <th style="width: 80px;" *ngIf="columnasVisibles.cubica">Cúbica</th>
-              <th style="width: 100px;" *ngIf="columnasVisibles.precioMt3">Precio m³</th>
-              <th style="width: 80px;" *ngIf="columnasVisibles.ehuk">% EHUK</th>
-              <th style="width: 130px;" *ngIf="columnasVisibles.etapa">Etapa</th>
-              <th style="width: 140px; text-align: right;" *ngIf="columnasVisibles.total">Total ($)</th>
-              <th style="width: 40px;"></th>
+              <th style="min-width: 85px;" *ngIf="columnasVisibles.qty">Qty</th>
+              <th style="min-width: 90px;" *ngIf="columnasVisibles.yuanes">Yuanes</th>
+              <th style="min-width: 90px;" *ngIf="columnasVisibles.tasa">Tasa</th>
+              <th style="min-width: 80px;" *ngIf="columnasVisibles.cubica">Cúbica</th>
+              <th style="min-width: 110px;" *ngIf="columnasVisibles.precioMt3">Precio m³</th>
+              <th style="min-width: 80px;" *ngIf="columnasVisibles.ehuk">% EHUK</th>
+              <th style="min-width: 130px;" *ngIf="columnasVisibles.etapa">Etapa</th>
+              <th style="min-width: 140px; text-align: right;" *ngIf="columnasVisibles.total">Total ($)</th>
+              <th style="min-width: 60px;"></th>
             </tr>
           </thead>
           <tbody>
@@ -487,7 +487,7 @@ const API_ROOT = isLocal ? 'http://localhost:5174/api' : 'https://sistema-import
               </td>
 
               <!-- ACTIONS (PDF & DELETE) -->
-              <td style="text-align: center;">
+              <td style="text-align: center; min-width: 60px;">
                 <div style="display: flex; align-items: center; justify-content: center; gap: 0.3rem;">
                   <button class="delete-row-btn" (click)="exportarPdf(pedido, $event)" title="Descargar PDF de esta importación" style="color: #3b82f6;">
                     📄
@@ -1146,7 +1146,6 @@ const API_ROOT = isLocal ? 'http://localhost:5174/api' : 'https://sistema-import
     
     .table:not(.inner-group-table) {
       width: 100%;
-      min-width: 1450px;
       border-collapse: separate;
       border-spacing: 0;
       text-align: left;
