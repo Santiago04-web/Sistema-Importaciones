@@ -361,6 +361,9 @@ export interface Proveedor {
       transform: translateY(-2px);
       box-shadow: 0 6px 20px rgba(59, 130, 246, 0.5);
     }
+    .btn-primary-add:active {
+      transform: translateY(0) scale(0.96);
+    }
 
     /* KPI GRID */
     .kpi-grid {
@@ -533,6 +536,8 @@ export interface Proveedor {
     /* EMPTY STATE */
     .empty-state { text-align: center; padding: 3rem 1.5rem; color: #cbd5e1; }
     .empty-icon { font-size: 2.5rem; margin-bottom: 0.5rem; }
+    .empty-state h3 { margin-bottom: 0.5rem; color: #f8fafc; font-weight: 700; }
+    .empty-state p { margin-bottom: 1.5rem; color: #94a3b8; font-size: 0.9rem; }
 
     /* MODAL */
     .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(4px); display: flex; justify-content: center; align-items: center; z-index: 99999; padding: 1.5rem; overflow-y: auto; }
