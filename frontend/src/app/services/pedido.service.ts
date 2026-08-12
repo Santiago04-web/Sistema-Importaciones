@@ -108,6 +108,29 @@ export function calculateFinancials(item: any): Pedido {
   };
 }
 
+const INITIAL_MANIFEST_DATA: any[] = [
+  { codigo: '1', ciudad: 'YIWU', fechaNegociacion: new Date('2026-05-29'), descripcion: 'MASCARILLA', referencia: 'ms-1', totalQty: 5000, yuanes: 6.00, tasa: 535, piezasCaja: 1, cubica: 0.001, precioMt3: 2300000, porcentajeEhuk: 0.10, etapa: 0, abono: true },
+  { codigo: '1', ciudad: 'YIWU', fechaNegociacion: new Date('2026-05-29'), descripcion: 'SET HOMBRE', referencia: 'sh-1', totalQty: 5000, yuanes: 6.50, tasa: 535, piezasCaja: 1, cubica: 0.001, precioMt3: 2300000, porcentajeEhuk: 0.10, etapa: 0, abono: true },
+  { codigo: '1', ciudad: 'YIWU', fechaNegociacion: new Date('2026-05-29'), descripcion: 'PESTAÑA', referencia: 'ps-1', totalQty: 1800, yuanes: 5.90, tasa: 535, piezasCaja: 1, cubica: 0.001, precioMt3: 2300000, porcentajeEhuk: 0.10, etapa: 0, abono: true },
+  { codigo: '1', ciudad: 'YIWU', fechaNegociacion: new Date('2026-05-29'), descripcion: 'LABIAL', referencia: 'lb-1', totalQty: 5000, yuanes: 10.80, tasa: 535, piezasCaja: 1, cubica: 0.001, precioMt3: 2300000, porcentajeEhuk: 0.10, etapa: 0, abono: true },
+  { codigo: '1', ciudad: 'YIWU', fechaNegociacion: new Date('2026-05-29'), descripcion: 'FRESA', referencia: 'fr-1', totalQty: 5000, yuanes: 5.50, tasa: 535, piezasCaja: 1, cubica: 0.001, precioMt3: 2300000, porcentajeEhuk: 0.10, etapa: 0, abono: true },
+  { codigo: '1', ciudad: 'YIWU', fechaNegociacion: new Date('2026-05-29'), descripcion: 'LAPIZ', referencia: 'lp-1', totalQty: 3000, yuanes: 4.49, tasa: 535, piezasCaja: 1, cubica: 0.001, precioMt3: 2300000, porcentajeEhuk: 0.10, etapa: 0, abono: true },
+  { codigo: '1', ciudad: 'YIWU', fechaNegociacion: new Date('2026-05-29'), descripcion: 'SET MUJER', referencia: 'sm-1', totalQty: 3000, yuanes: 6.80, tasa: 535, piezasCaja: 1, cubica: 0.001, precioMt3: 2300000, porcentajeEhuk: 0.10, etapa: 0, abono: true },
+  { codigo: '1', ciudad: 'GZ', fechaNegociacion: new Date('2026-05-29'), descripcion: 'comprimidos transp...', referencia: 'cp-1', totalQty: 3000, yuanes: 14.80, tasa: 535, piezasCaja: 1, cubica: 0.001, precioMt3: 2300000, porcentajeEhuk: 0.10, etapa: 0, abono: true },
+  { codigo: '1', ciudad: 'GZ', fechaNegociacion: new Date('2026-05-29'), descripcion: 'comprimidos', referencia: 'cp-2', totalQty: 10000, yuanes: 9.60, tasa: 535, piezasCaja: 1, cubica: 0.001, precioMt3: 2300000, porcentajeEhuk: 0.10, etapa: 0, abono: true },
+  { codigo: '1', ciudad: 'GZ', fechaNegociacion: new Date('2026-05-29'), descripcion: 'pantalone deportiva', referencia: 'pd-1', totalQty: 10000, yuanes: 6.00, tasa: 535, piezasCaja: 1, cubica: 0.001, precioMt3: 2300000, porcentajeEhuk: 0.10, etapa: 0, abono: true },
+  { codigo: '1', ciudad: 'GZ', fechaNegociacion: new Date('2026-05-29'), descripcion: 'CAMISETA HOMBRE', referencia: 'co-1', totalQty: 5000, yuanes: 6.00, tasa: 535, piezasCaja: 1, cubica: 0.001, precioMt3: 2300000, porcentajeEhuk: 0.10, etapa: 0, abono: true },
+  { codigo: '1', ciudad: 'GZ', fechaNegociacion: new Date('2026-05-29'), descripcion: 'CAMISETA HOMBRE', referencia: 'ct-1', totalQty: 5000, yuanes: 6.50, tasa: 535, piezasCaja: 1, cubica: 0.001, precioMt3: 2300000, porcentajeEhuk: 0.10, etapa: 0, abono: true },
+  { codigo: '1', ciudad: 'GZ', fechaNegociacion: new Date('2026-05-29'), descripcion: 'Buzo hombre', referencia: 'bs-1', totalQty: 1800, yuanes: 5.90, tasa: 535, piezasCaja: 1, cubica: 0.001, precioMt3: 2300000, porcentajeEhuk: 0.10, etapa: 0, abono: true },
+  { codigo: '1', ciudad: 'GZ', fechaNegociacion: new Date('2026-05-29'), descripcion: 'CAMISETA HOMBRE', referencia: 'cp-3', totalQty: 5000, yuanes: 10.80, tasa: 535, piezasCaja: 1, cubica: 0.001, precioMt3: 2300000, porcentajeEhuk: 0.10, etapa: 0, abono: true },
+  { codigo: '1', ciudad: 'GZ', fechaNegociacion: new Date('2026-05-29'), descripcion: 'Buzo hombre', referencia: 'bs-2', totalQty: 5000, yuanes: 5.50, tasa: 535, piezasCaja: 1, cubica: 0.001, precioMt3: 2300000, porcentajeEhuk: 0.10, etapa: 0, abono: true },
+  { codigo: '1', ciudad: 'GZ', fechaNegociacion: new Date('2026-05-29'), descripcion: 'CAMISETA HOMBRE', referencia: 'ct-2', totalQty: 3000, yuanes: 4.49, tasa: 535, piezasCaja: 1, cubica: 0.001, precioMt3: 2300000, porcentajeEhuk: 0.10, etapa: 0, abono: true },
+  { codigo: '1', ciudad: 'GZ', fechaNegociacion: new Date('2026-05-29'), descripcion: 'Buzo hombre', referencia: 'bs-3', totalQty: 3000, yuanes: 6.80, tasa: 535, piezasCaja: 1, cubica: 0.001, precioMt3: 2300000, porcentajeEhuk: 0.10, etapa: 0, abono: true },
+  { codigo: '1', ciudad: 'GZ', fechaNegociacion: new Date('2026-05-29'), descripcion: 'CAMISETA HOMBRE', referencia: 'co-2', totalQty: 3000, yuanes: 14.80, tasa: 535, piezasCaja: 1, cubica: 0.001, precioMt3: 2300000, porcentajeEhuk: 0.10, etapa: 0, abono: true },
+  { codigo: '1', ciudad: 'GZ', fechaNegociacion: new Date('2026-05-29'), descripcion: 'CONJUNTO NINO', referencia: 'cn-1', totalQty: 10000, yuanes: 9.60, tasa: 535, piezasCaja: 1, cubica: 0.001, precioMt3: 2300000, porcentajeEhuk: 0.10, etapa: 0, abono: true },
+  { codigo: '1', ciudad: 'GZ', fechaNegociacion: new Date('2026-05-29'), descripcion: 'CAJA LUJO', referencia: 'cm-1', totalQty: 5000, yuanes: 7.50, tasa: 535, piezasCaja: 1, cubica: 0.001, precioMt3: 2300000, porcentajeEhuk: 0.10, etapa: 0, abono: true }
+].map((item, index) => calculateFinancials({ ...item, id: index + 1 }));
+
 @Injectable({
   providedIn: 'root'
 })
@@ -125,12 +148,17 @@ export class PedidoService {
       if (stored) {
         try {
           const list: any[] = JSON.parse(stored);
-          this.localPedidos = list.map(x => calculateFinancials(x));
+          if (list && list.length > 0) {
+            this.localPedidos = list.map(x => calculateFinancials(x));
+            return;
+          }
         } catch {
-          this.localPedidos = [];
+          this.localPedidos = [...INITIAL_MANIFEST_DATA];
+          return;
         }
       }
     }
+    this.localPedidos = [...INITIAL_MANIFEST_DATA];
   }
 
   private saveLocalPedidos(pedidos: Pedido[]) {
